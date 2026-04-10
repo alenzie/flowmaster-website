@@ -1,0 +1,439 @@
+================================================================================
+TASK 04: CHECKOUT AND WEBHOOK EDGE FUNCTIONS
+================================================================================
+
+Objective: Create Supabase Edge Functions to handle Stripe checkout session 
+creation and webhook processing for key assignment.
+
+--------------------------------------------------------------------------------
+CONTEXT
+--------------------------------------------------------------------------------
+
+Flow:
+1. User clicks "Get This Key" on website
+2. Website calls create-checkout-session edge function
+3. Edge function creates Stripe checkout session, reserves a key
+4. User completes payment on Stripe's hosted checkout
+5. Stripe sends webhook to stripe-webhook edge function
+6. Webhook confirms payment, finalizes key claim, triggers email
+
+--------------------------------------------------------------------------------
+DELIVERABLES
+--------------------------------------------------------------------------------
+
+1. CREATE CHECKOUT SESSION FUNCTION
+
+   Location: supabase/functions/create-checkout-session/index.ts
+
+```typescript
+import { serve } from 'https://deno.land/std@0.168.0/http/server.ts';
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+import Stripe from 'https://esm.sh/stripe@14.14.0?target=deno';
+
+const stripe = new Stripe(Deno.env.get('STRIPE_SECRET_KEY')!, {
+  apiVersion: '2023-10-16',
+  httpClient: Stripe.createFetchHttpClient(),
+});
+
+const corsHeaders = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+};
+
+serve(async (req) => {
+  // Handle CORS preflight
+  if (req.method === 'OPTIONS') {
+    return new Response('ok', { headers: corsHeaders });
+  }
+
+  try {
+    const supabase = createClient(
+      Deno.env.get('SUPABASE_URL')!,
+      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
+    );
+
+    const { tierId } = await req.json();
+
+    if (!tierId) {
+      throw new Error('tierId is required');
+    }
+
+    // Get tier info
+    const { data: tier, error: tierError } = await supabase
+      .from('pricing_tiers')
+      .select('*')
+      .eq('id', tierId)
+      .single();
+
+    if (tierError || !tier) {
+      throw new Error('Tier not found');
+    }
+
+    if (!tier.stripe_price_id) {
+      throw new Error('Tier not configured for payments');
+    }
+
+    // Get current tier status to verify this tier is available
+    const { data: tierStatus } = await supabase.rpc('get_current_tier_status');
+    
+    const currentTier = tierStatus?.find((t: any) => t.is_current);
+    if (!currentTier || currentTier.tier_id !== tierId) {
+      throw new Error('This tier is not currently available for purchase');
+    }
+
+    // Reserve a key (get next available, but don't fully claim yet)
+    const { data: availableKey, error: keyError } = await supabase
+      .rpc('get_next_available_key', { p_tier_id: tierId });
+
+    if (keyError || !availableKey || availableKey.length === 0) {
+      throw new Error('No keys available in this tier');
+    }
+
+    const reservedKey = availableKey[0];
+
+    // Create Stripe checkout session
+    const session = await stripe.checkout.sessions.create({
+      payment_method_types: ['card'],
+      line_items: [
+        {
+          price: tier.stripe_price_id,
+          quantity: 1,
+        },
+      ],
+      mode: 'payment',
+      success_url: `${req.headers.get('origin')}/purchase-success?session_id={CHECKOUT_SESSION_ID}`,
+      cancel_url: `${req.headers.get('origin')}/pricing?canceled=true`,
+      customer_email: undefined, // Let Stripe collect email
+      metadata: {
+        tier_id: tierId.toString(),
+        tier_name: tier.name,
+        license_id: reservedKey.license_id,
+        license_key: reservedKey.license_key, // Stored in metadata for webhook
+      },
+      payment_intent_data: {
+        metadata: {
+          tier_id: tierId.toString(),
+          license_id: reservedKey.license_id,
+        },
+      },
+    });
+
+    // Temporarily reserve the key by setting the session ID
+    // This prevents double-booking during checkout
+    const { error: reserveError } = await supabase
+      .from('licenses')
+      .update({
+        stripe_checkout_session_id: session.id,
+        updated_at: new Date().toISOString(),
+      })
+      .eq('id', reservedKey.license_id)
+      .is('purchased_at', null);
+
+    if (reserveError) {
+      console.error('Failed to reserve key:', reserveError);
+      // Continue anyway - webhook will handle final assignment
+    }
+
+    return new Response(
+      JSON.stringify({
+        sessionId: session.id,
+        url: session.url,
+      }),
+      {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        status: 200,
+      }
+    );
+
+  } catch (error) {
+    console.error('Checkout error:', error);
+    return new Response(
+      JSON.stringify({ error: error.message }),
+      {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        status: 400,
+      }
+    );
+  }
+});
+```
+
+2. STRIPE WEBHOOK FUNCTION
+
+   Location: supabase/functions/stripe-webhook/index.ts
+
+```typescript
+import { serve } from 'https://deno.land/std@0.168.0/http/server.ts';
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+import Stripe from 'https://esm.sh/stripe@14.14.0?target=deno';
+
+const stripe = new Stripe(Deno.env.get('STRIPE_SECRET_KEY')!, {
+  apiVersion: '2023-10-16',
+  httpClient: Stripe.createFetchHttpClient(),
+});
+
+const webhookSecret = Deno.env.get('STRIPE_WEBHOOK_SECRET')!;
+
+serve(async (req) => {
+  const signature = req.headers.get('stripe-signature');
+  
+  if (!signature) {
+    return new Response('Missing signature', { status: 400 });
+  }
+
+  try {
+    const body = await req.text();
+    
+    // Verify webhook signature
+    const event = stripe.webhooks.constructEvent(body, signature, webhookSecret);
+
+    const supabase = createClient(
+      Deno.env.get('SUPABASE_URL')!,
+      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
+    );
+
+    switch (event.type) {
+      case 'checkout.session.completed': {
+        const session = event.data.object as Stripe.Checkout.Session;
+        
+        console.log('Processing completed checkout:', session.id);
+        
+        const { tier_id, license_id, tier_name } = session.metadata || {};
+        const customerEmail = session.customer_email || session.customer_details?.email;
+        
+        if (!license_id) {
+          console.error('No license_id in session metadata');
+          break;
+        }
+
+        // Finalize the key claim
+        const { error: claimError } = await supabase
+          .from('licenses')
+          .update({
+            customer_email: customerEmail,
+            purchased_at: new Date().toISOString(),
+            stripe_payment_intent_id: session.payment_intent as string,
+            price_paid: (session.amount_total || 0) / 100,
+            metadata: {
+              stripe_session_id: session.id,
+              tier_name: tier_name,
+              purchase_completed_at: new Date().toISOString(),
+            },
+            updated_at: new Date().toISOString(),
+          })
+          .eq('id', license_id);
+
+        if (claimError) {
+          console.error('Failed to claim key:', claimError);
+          throw claimError;
+        }
+
+        // Log to audit
+        await supabase.from('audit_log').insert({
+          action: 'key_purchased',
+          details: {
+            license_id,
+            tier_id,
+            tier_name,
+            customer_email: customerEmail,
+            amount_cents: session.amount_total,
+            stripe_session_id: session.id,
+          },
+        });
+
+        // Get the license key for email
+        const { data: license } = await supabase
+          .from('licenses')
+          .select('key, tier_id')
+          .eq('id', license_id)
+          .single();
+
+        // Check if this is Tier 1 (pioneer) for special email
+        const isPioneer = tier_id === '1' || tier_name === 'pioneer';
+
+        // TODO: Trigger email delivery (Task 07)
+        // For now, log the key that needs to be emailed
+        console.log('Key ready for delivery:', {
+          email: customerEmail,
+          key: license?.key,
+          isPioneer,
+          tier: tier_name,
+        });
+
+        break;
+      }
+
+      case 'checkout.session.expired': {
+        const session = event.data.object as Stripe.Checkout.Session;
+        
+        console.log('Checkout session expired:', session.id);
+        
+        // Release the reserved key
+        const { error: releaseError } = await supabase
+          .from('licenses')
+          .update({
+            stripe_checkout_session_id: null,
+            updated_at: new Date().toISOString(),
+          })
+          .eq('stripe_checkout_session_id', session.id)
+          .is('purchased_at', null);
+
+        if (releaseError) {
+          console.error('Failed to release key:', releaseError);
+        }
+
+        break;
+      }
+
+      default:
+        console.log('Unhandled event type:', event.type);
+    }
+
+    return new Response(JSON.stringify({ received: true }), {
+      headers: { 'Content-Type': 'application/json' },
+      status: 200,
+    });
+
+  } catch (err) {
+    console.error('Webhook error:', err);
+    return new Response(
+      JSON.stringify({ error: err.message }),
+      { status: 400 }
+    );
+  }
+});
+```
+
+3. GET TIER STATUS FUNCTION (Public endpoint for website)
+
+   Location: supabase/functions/get-tier-status/index.ts
+
+```typescript
+import { serve } from 'https://deno.land/std@0.168.0/http/server.ts';
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+
+const corsHeaders = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+};
+
+serve(async (req) => {
+  if (req.method === 'OPTIONS') {
+    return new Response('ok', { headers: corsHeaders });
+  }
+
+  try {
+    const supabase = createClient(
+      Deno.env.get('SUPABASE_URL')!,
+      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
+    );
+
+    const { data: tiers, error } = await supabase.rpc('get_current_tier_status');
+
+    if (error) throw error;
+
+    // Transform for frontend consumption
+    const response = {
+      tiers: tiers.map((t: any) => ({
+        id: t.tier_id,
+        name: t.tier_name,
+        displayName: t.display_name,
+        priceCents: t.price_cents,
+        priceFormatted: `$${(t.price_cents / 100).toFixed(0)}`,
+        totalKeys: t.total_keys,
+        claimedKeys: Number(t.claimed_keys),
+        availableKeys: Number(t.available_keys),
+        isCurrent: t.is_current,
+        isSoldOut: t.available_keys <= 0,
+      })),
+      currentTier: tiers.find((t: any) => t.is_current) || null,
+      totalSold: tiers.reduce((sum: number, t: any) => sum + Number(t.claimed_keys), 0),
+    };
+
+    return new Response(JSON.stringify(response), {
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      status: 200,
+    });
+
+  } catch (error) {
+    console.error('Error:', error);
+    return new Response(
+      JSON.stringify({ error: error.message }),
+      {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        status: 500,
+      }
+    );
+  }
+});
+```
+
+4. DEPLOY EDGE FUNCTIONS
+
+   Commands to deploy (run from flowmastersuite directory):
+
+   ```bash
+   supabase functions deploy create-checkout-session
+   supabase functions deploy stripe-webhook
+   supabase functions deploy get-tier-status
+   ```
+
+--------------------------------------------------------------------------------
+ACCEPTANCE CRITERIA
+--------------------------------------------------------------------------------
+
+[ ] create-checkout-session function created and deployed
+[ ] stripe-webhook function created and deployed
+[ ] get-tier-status function created and deployed
+[ ] Checkout session creates with correct tier metadata
+[ ] Webhook verifies Stripe signature correctly
+[ ] Successful payment updates license with purchased_at, customer_email, etc.
+[ ] Expired sessions release reserved keys
+[ ] get-tier-status returns properly formatted tier data
+[ ] All functions handle errors gracefully with proper status codes
+[ ] CORS headers allow website origin
+
+--------------------------------------------------------------------------------
+TESTING
+--------------------------------------------------------------------------------
+
+1. Test get-tier-status:
+   ```bash
+   curl -X POST https://zkmfjmzoqjcylvhxbwii.supabase.co/functions/v1/get-tier-status
+   ```
+
+2. Test create-checkout-session (requires auth):
+   ```bash
+   curl -X POST https://zkmfjmzoqjcylvhxbwii.supabase.co/functions/v1/create-checkout-session \
+     -H "Content-Type: application/json" \
+     -H "Authorization: Bearer YOUR_ANON_KEY" \
+     -d '{"tierId": 1}'
+   ```
+
+3. Test webhook with Stripe CLI:
+   ```bash
+   stripe listen --forward-to https://zkmfjmzoqjcylvhxbwii.supabase.co/functions/v1/stripe-webhook
+   stripe trigger checkout.session.completed
+   ```
+
+--------------------------------------------------------------------------------
+NOTES
+--------------------------------------------------------------------------------
+
+- The webhook must verify Stripe's signature to prevent spoofing
+- Key reservation during checkout prevents race conditions
+- Expired session cleanup ensures keys don't get stuck in limbo
+- The webhook logs "Key ready for delivery" - actual email is Task 07
+
+--------------------------------------------------------------------------------
+AFTER COMPLETION
+--------------------------------------------------------------------------------
+
+1. Create 04_IMPLEMENTATION_SUMMARY.txt with:
+   - Functions deployed successfully
+   - Test results from curl commands
+   - Any adjustments made
+
+2. Update TASK_CHECKLIST.txt to mark this task complete
+
+================================================================================

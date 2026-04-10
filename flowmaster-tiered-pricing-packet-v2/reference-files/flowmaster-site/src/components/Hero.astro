@@ -1,0 +1,208 @@
+---
+import Button from './Button.astro';
+import AnimatedLogo from './AnimatedLogo.astro';
+---
+
+<section id="hero" class="min-h-screen flex items-center justify-center relative">
+  <div class="hero-container">
+    <div class="hero-text">
+      <!-- Headline with parallax effect -->
+      <div class="hero-animate" style="--delay: 0.3s">
+        <div class="hero-headline-container relative mb-6">
+          <!-- Shadow text (behind) -->
+          <h1 class="hero-headline-shadow" aria-hidden="true">Record Everything.<br />Stress Nothing.</h1>
+          <!-- Primary text (front) -->
+          <h1 class="hero-headline-primary">Record Everything.<br />Stress Nothing.</h1>
+        </div>
+      </div>
+
+      <!-- Description -->
+      <div class="hero-animate" style="--delay: 0.5s">
+        <p class="text-lg md:text-xl text-gray-300 max-w-2xl mb-8">
+          The ultimate OBS Studio creator workflow tool.
+        </p>
+      </div>
+
+      <!-- CTA Buttons -->
+      <div class="hero-animate" style="--delay: 0.7s">
+        <div class="hero-buttons flex flex-col sm:flex-row gap-4 mb-6">
+          <Button href="/download" size="lg">Download v0.8.5</Button>
+          <Button href="#how-it-works" variant="secondary" size="lg">See How It Works</Button>
+        </div>
+      </div>
+
+      <!-- Subtext -->
+      <div class="hero-animate" style="--delay: 0.9s">
+        <p class="text-sm text-gray-500">
+          Free to use &bull; Windows 10/11
+        </p>
+      </div>
+    </div>
+
+    <div class="hero-logo">
+      <AnimatedLogo />
+    </div>
+  </div>
+
+  <!-- Scroll indicator -->
+  <div class="absolute bottom-8 left-1/2 -translate-x-1/2 hero-animate" style="--delay: 1.1s">
+    <a href="#how-it-works" class="scroll-indicator" aria-label="Scroll to learn more">
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        class="w-6 h-6 text-gray-500"
+        fill="none"
+        viewBox="0 0 24 24"
+        stroke="currentColor"
+      >
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 14l-7 7m0 0l-7-7m7 7V3" />
+      </svg>
+    </a>
+  </div>
+</section>
+
+<style>
+  /* Two-column grid layout */
+  .hero-container {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 3rem;
+    align-items: center;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 1.5rem;
+    width: 100%;
+  }
+
+  .hero-text {
+    text-align: left;
+  }
+
+  .hero-logo {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+
+  .hero-buttons {
+    justify-content: flex-start;
+  }
+
+  /* Staggered fade-in animation */
+  @keyframes hero-fade-in {
+    from {
+      opacity: 0;
+      transform: translateY(20px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  .hero-animate {
+    opacity: 0;
+    animation: hero-fade-in 0.8s ease-out forwards;
+    animation-delay: var(--delay, 0s);
+  }
+
+  /* Bouncing scroll indicator */
+  @keyframes bounce {
+    0%, 100% {
+      transform: translateY(0);
+    }
+    50% {
+      transform: translateY(-10px);
+    }
+  }
+
+  .scroll-indicator {
+    display: block;
+    animation: bounce 2s ease-in-out infinite;
+    transition: color 0.2s;
+  }
+
+  .scroll-indicator:hover {
+    color: var(--color-gray-300);
+  }
+
+  /* Hero headline parallax/swaying effect */
+  .hero-headline-container {
+    position: relative;
+    display: inline-block;
+  }
+
+  .hero-headline-shadow {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    color: rgba(20, 15, 12, 0.8);
+    z-index: 1;
+    animation: sway-shadow 6s ease-in-out infinite;
+    user-select: none;
+    pointer-events: none;
+  }
+
+  .hero-headline-primary {
+    position: relative;
+    z-index: 2;
+    animation: sway-primary 6s ease-in-out infinite;
+  }
+
+  @keyframes sway-primary {
+    0%, 100% { transform: translate(0, 0); }
+    25% { transform: translate(4px, -2px); }
+    50% { transform: translate(0, -3px); }
+    75% { transform: translate(-4px, -1px); }
+  }
+
+  @keyframes sway-shadow {
+    0%, 100% { transform: translate(0, 0); }
+    25% { transform: translate(1px, -0.5px); }
+    50% { transform: translate(0, -1px); }
+    75% { transform: translate(-1px, -0.5px); }
+  }
+
+  /* Respect reduced motion preference */
+  @media (prefers-reduced-motion: reduce) {
+    .hero-animate {
+      opacity: 1;
+      animation: none;
+    }
+
+    .scroll-indicator {
+      animation: none;
+    }
+
+    .hero-headline-shadow,
+    .hero-headline-primary {
+      animation: none;
+    }
+  }
+
+  /* Mobile Layout (<768px) */
+  @media (max-width: 767px) {
+    .hero-container {
+      grid-template-columns: 1fr;
+      gap: 2rem;
+      text-align: center;
+    }
+
+    .hero-logo {
+      order: -1; /* Move logo above text */
+      margin-bottom: 1rem;
+    }
+
+    .hero-text {
+      text-align: center;
+    }
+
+    .hero-buttons {
+      justify-content: center;
+    }
+
+    .hero-headline-container {
+      display: block;
+    }
+  }
+</style>

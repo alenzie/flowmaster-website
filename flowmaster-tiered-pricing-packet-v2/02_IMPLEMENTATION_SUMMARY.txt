@@ -1,0 +1,49 @@
+================================================================================
+TASK 02: KEY GENERATION - IMPLEMENTATION SUMMARY
+================================================================================
+
+Completed: 2026-02-11
+
+--------------------------------------------------------------------------------
+SCRIPT FILE
+--------------------------------------------------------------------------------
+
+File: flowmastersuite/scripts/generate-tier-keys.ts
+
+Run with: npx tsx scripts/generate-tier-keys.ts
+Requires: SUPABASE_SERVICE_ROLE_KEY environment variable
+
+Note: Used npx tsx instead of npx ts-node because the project has
+"type": "module" in package.json which causes ts-node to fail with
+ERR_UNKNOWN_FILE_EXTENSION.
+
+Also installed @supabase/supabase-js at the project root (was only in
+admin-ui previously).
+
+--------------------------------------------------------------------------------
+KEYS GENERATED
+--------------------------------------------------------------------------------
+
+| Tier          | Count | Sequences  |
+|---------------|-------|------------|
+| Pioneer       | 15    | 1-15       |
+| Early Adopter | 385   | 16-400     |
+| Believer      | 1600  | 401-2000   |
+| Standard      | 1000  | 2001-3000  |
+| TOTAL         | 3000  |            |
+
+All keys:
+  - Format: FM-XXXXX-XXXXX-XXXXX-XXXXX
+  - Type: pro
+  - Excludes confusing chars (I, O, 0, 1)
+  - purchased_at = NULL (unclaimed)
+
+--------------------------------------------------------------------------------
+DEVIATIONS FROM SPEC
+--------------------------------------------------------------------------------
+
+- Fixed Supabase URL from spec's zkmfjmzoqjcylvhxbwii to correct
+  jwwbwozjvfiheunavbnk
+- Used tsx runner instead of ts-node due to ESM compatibility
+
+================================================================================

@@ -1,0 +1,284 @@
+================================================================================
+FLOWMASTER TIERED PRICING SYSTEM - PROJECT CONTEXT
+================================================================================
+
+Project: Arcade-Style Early Adopter Pricing with Real-Time Tier Progression
+Site: https://www.flowmaster.live
+Repos: flowmastersuite (backend/admin), flowmaster-site (Astro frontend)
+
+--------------------------------------------------------------------------------
+BUSINESS GOAL
+--------------------------------------------------------------------------------
+
+Create a transparent, gamified pricing system that rewards early adopters with 
+lower prices. As more people buy, the price increases. This creates real 
+urgency without fake scarcity—customers can see exactly how many keys remain 
+at each price tier.
+
+The UI should feel like selecting a car in an arcade racing game from the 
+2000s: a horizontal carousel of selectable "cards" with the active tier 
+floating, glowing, and animated while unavailable tiers are grayed out.
+
+--------------------------------------------------------------------------------
+TIER STRUCTURE
+--------------------------------------------------------------------------------
+
+| Tier | Keys      | Price | Internal Name | Framing                    |
+|------|-----------|-------|---------------|----------------------------|
+| 1    | 1-15      | $12   | pioneer       | "Basically a beta tester"  |
+| 2    | 16-400    | $19   | early_adopter | "Early adopter deal"       |
+| 3    | 401-2000  | $29   | believer      | "Still got in early"       |
+| 4    | 2001+     | $39   | standard      | "Normal price"             |
+
+Special: Tier 1 buyers receive a personalized digital message (~80 words) 
+from Huskie in their delivery email as a thank-you for being first.
+
+--------------------------------------------------------------------------------
+TECHNICAL STACK
+--------------------------------------------------------------------------------
+
+Database:       Supabase (hosted PostgreSQL)
+Backend:        Supabase Edge Functions (Deno/TypeScript)
+Frontend:       Astro + Tailwind v4
+Payments:       Stripe (NOT LemonSqueezy)
+Animations:     Custom CSS @keyframes (no external libraries)
+Desktop App:    Tauri (Rust) - validates keys via licenses-validate endpoint
+
+Supabase URL:   https://zkmfjmzoqjcylvhxbwii.supabase.co
+
+--------------------------------------------------------------------------------
+EXISTING INFRASTRUCTURE (FROM REPO REPORT)
+--------------------------------------------------------------------------------
+
+DATABASE TABLES:
+────────────────────────────────────────
+licenses
+  - id (UUID, PK)
+  - key (TEXT, UNIQUE) -- Format: FM-XXXXX-XXXXX-XXXXX-XXXXX
+  - type (TEXT) -- 'trial', 'beta', 'scout', 'supporter', 'pro'
+  - user_id (UUID, FK → auth.users)
+  - machine_id (UUID, FK → machines)
+  - is_revoked (BOOLEAN)
+  - revoked_at, revoked_reason
+  - expires_at (TIMESTAMPTZ)
+  - metadata (JSONB)
+  - created_at, updated_at
+  - [EXISTING] attributed_scout_id, attributed_invite_link_id
+  - [EXISTING] activation_ip, various timestamps
+  - [EXISTING] price_paid (DECIMAL), discount_percent (INTEGER)
+
+machines
+  - id (UUID, PK)
+  - hardware_signature (TEXT, UNIQUE)
+  - created_at, last_seen
+  - trial_actions_used (INTEGER)
+  - is_blocked (BOOLEAN), blocked_reason, blocked_at
+
+audit_log
+  - id, action, user_id, machine_id, details (JSONB), created_at
+
+invite_links
+  - id, code, license_id, clicks, last_clicked_at, is_active, created_by, notes
+
+EDGE FUNCTIONS (21 total, relevant ones):
+────────────────────────────────────────
+licenses-validate   -- Validates key + machine binding (MODIFY for tier support)
+beta-key-claim      -- Claims beta key (reference only)
+validate-invite-link-- Validates invite code (reference only)
+get-public-stats    -- Returns public metrics (reference only)
+trial-assign        -- Auto-assign trial (reference only)
+trial-sync          -- Sync trial usage (reference only)
+
+--------------------------------------------------------------------------------
+CURRENT USER FLOW (NO PAYMENT)
+--------------------------------------------------------------------------------
+
+1. User receives invite link → /invite?code=XXXXX
+2. JS calls validate-invite-link edge function
+3. Success reveals a pre-created beta key + copy button + download link
+4. User downloads installer separately
+
+Scouts get keys via magic link signup flow.
+
+--------------------------------------------------------------------------------
+NEW USER FLOW (WITH PAYMENT)
+--------------------------------------------------------------------------------
+
+1. User visits /pricing
+2. Sees arcade-style tier selector with current tier highlighted
+3. Clicks "Get This Key" on current tier
+4. Redirects to Stripe Checkout (hosted by Stripe)
+5. Completes payment
+6. Stripe webhook fires → key assigned in database
+7. User redirected to /purchase-success?session_id=XXX
+8. Success page reveals key + sends email
+9. User downloads installer from /download
+
+--------------------------------------------------------------------------------
+FILES TO CREATE
+--------------------------------------------------------------------------------
+
+DATABASE:
+  supabase/migrations/YYYYMMDD_tiered_pricing.sql
+
+KEY GENERATION:
+  scripts/generate-tier-keys.ts
+
+EDGE FUNCTIONS:
+  supabase/functions/create-checkout-session/index.ts
+  supabase/functions/stripe-webhook/index.ts
+  supabase/functions/get-tier-status/index.ts
+  supabase/functions/get-purchase-key/index.ts
+  supabase/functions/send-license-email/index.ts
+  supabase/functions/_shared/email-templates.ts
+
+WEBSITE (flowmaster-site):
+  src/pages/pricing.astro
+  src/pages/purchase-success.astro
+  src/components/TierSelector.astro
+  src/types/stripe.ts
+  .env.example
+
+--------------------------------------------------------------------------------
+FILES TO MODIFY
+--------------------------------------------------------------------------------
+
+WEBSITE (flowmaster-site):
+  src/components/Header.astro      -- Add "Pricing" nav link
+  src/components/Hero.astro        -- Update "Free to use" messaging
+  src/components/CTASection.astro  -- Point to pricing page
+  src/pages/download.astro         -- Handle post-purchase flow (optional)
+  src/styles/global.css            -- Add tier selector theme tokens
+  package.json                     -- Add @stripe/stripe-js
+
+EDGE FUNCTIONS:
+  supabase/functions/licenses-validate/index.ts -- Handle pro/supporter tiers
+
+ADMIN UI (flowmastersuite):
+  admin-ui/src/types/index.ts               -- Add tier types
+  admin-ui/src/components/Dashboard.tsx     -- Add revenue metrics
+  admin-ui/src/components/LicenseTable.tsx  -- Add tier/payment columns
+
+--------------------------------------------------------------------------------
+EXISTING CODE PATTERNS TO FOLLOW
+--------------------------------------------------------------------------------
+
+EDGE FUNCTION PATTERN (from licenses-validate):
+```typescript
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+
+const corsHeaders = {
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+  "Access-Control-Allow-Methods": "POST, OPTIONS",
+};
+
+function jsonResponse(body: Record<string, unknown>, status = 200) {
+  return new Response(JSON.stringify(body), {
+    status,
+    headers: { ...corsHeaders, "Content-Type": "application/json" },
+  });
+}
+
+Deno.serve(async (req) => {
+  if (req.method === "OPTIONS") {
+    return new Response("ok", { headers: corsHeaders });
+  }
+  // ... handler logic
+});
+```
+
+ASTRO COMPONENT PATTERN (from Header.astro):
+```astro
+---
+const navLinks = [
+  { href: '/features', label: 'Features' },
+  // ...
+];
+---
+<header>
+  <!-- markup -->
+</header>
+<script>
+  // client-side JS
+</script>
+```
+
+CSS THEME TOKENS (from global.css):
+```css
+@theme {
+  --color-brand-red: #f43f43;
+  --color-brand-red-bright: #ff5959;
+  --color-bg-primary: #101010;
+  --color-bg-secondary: #1a1a1a;
+  --color-bg-tertiary: #252525;
+  --color-alenzie-mint: #55ffa2;
+  /* ... */
+}
+```
+
+ADMIN UI TYPE PATTERN (from types/index.ts):
+```typescript
+export type LicenseType = 'trial' | 'beta' | 'scout' | 'supporter' | 'pro'
+
+export interface License {
+  id: string
+  key: string
+  type: LicenseType
+  // ...
+}
+```
+
+--------------------------------------------------------------------------------
+DESIGN TOKENS FOR TIER SELECTOR
+--------------------------------------------------------------------------------
+
+Add to global.css @theme block:
+
+--color-tier-glow: rgba(244, 63, 67, 0.4);
+--color-tier-glow-intense: rgba(244, 63, 67, 0.6);
+--color-tier-sold-out: #525252;
+--duration-float: 3s;
+--duration-shine: 3s;
+--duration-slide: 0.3s;
+
+--------------------------------------------------------------------------------
+STRIPE CONFIGURATION CHECKLIST
+--------------------------------------------------------------------------------
+
+Products to create:
+  [ ] Flowmaster Pioneer License - $12.00
+  [ ] Flowmaster Early Adopter License - $19.00
+  [ ] Flowmaster Believer License - $29.00
+  [ ] Flowmaster Pro License - $39.00
+
+Webhook events to enable:
+  [ ] checkout.session.completed
+  [ ] checkout.session.expired
+
+Secrets to configure:
+  [ ] STRIPE_SECRET_KEY (sk_test_... or sk_live_...)
+  [ ] STRIPE_PUBLISHABLE_KEY (pk_test_... or pk_live_...)
+  [ ] STRIPE_WEBHOOK_SECRET (whsec_...)
+  [ ] STRIPE_PRICE_PIONEER (price_...)
+  [ ] STRIPE_PRICE_EARLY_ADOPTER (price_...)
+  [ ] STRIPE_PRICE_BELIEVER (price_...)
+  [ ] STRIPE_PRICE_STANDARD (price_...)
+
+--------------------------------------------------------------------------------
+WORKFLOW INSTRUCTIONS FOR CLAUDE CODE
+--------------------------------------------------------------------------------
+
+After completing each task:
+
+1. Create an implementation summary file in the same directory as the task:
+   Name: XX_IMPLEMENTATION_SUMMARY.txt (matching task number)
+   Contents: What was done, files created/modified, any deviations from spec
+
+2. Update TASK_CHECKLIST.txt to mark the task complete:
+   Change [ ] to [x] for the completed task
+   Add completion date
+
+3. Note any blockers or questions for the next task
+
+================================================================================

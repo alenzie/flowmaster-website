@@ -1,0 +1,307 @@
+================================================================================
+TASK 05: TIER SELECTOR UI - DESIGN DOCUMENT
+================================================================================
+
+🟡 DESIGN PHASE REQUIRED
+
+This task creates the visual centerpiece of the pricing system. Before 
+implementing, review the design decisions below and confirm or modify.
+
+--------------------------------------------------------------------------------
+VISUAL CONCEPT: ARCADE CAR SELECTOR
+--------------------------------------------------------------------------------
+
+Reference: Ridge Racer / Need for Speed Underground car selection screens
+- Horizontal row of selectable items
+- Active item: larger, centered, glowing, animated
+- Inactive items: smaller, grayed, recessed
+- Detail panel above shows specs of selected item
+- Atmospheric background with particles and depth
+
+--------------------------------------------------------------------------------
+DESIGN DECISION 1: CARD LAYOUT & SIZING
+--------------------------------------------------------------------------------
+
+OPTION A: Fixed Width Cards (Current Spec)
+  - Card size: 140px × 180px
+  - Selected card: scale(1.1)
+  - Unselected: scale(0.9) + opacity(0.5)
+  
+  PROS: Predictable layout, easy to implement
+  CONS: May feel cramped on large screens
+
+OPTION B: Responsive Cards
+  - Card size: 12vw × 15vw (clamped)
+  - Min: 120px × 150px
+  - Max: 180px × 225px
+  
+  PROS: Better use of screen real estate
+  CONS: More complex CSS, edge case testing
+
+OPTION C: Card Container Approach
+  - Fixed container width (800px)
+  - Cards fill container proportionally
+  
+  PROS: Consistent appearance across viewports
+  CONS: Wasted space on wide screens
+
+▶ DECISION: C (Fixed container - 800px centered, arcade cabinet feel)
+
+--------------------------------------------------------------------------------
+DESIGN DECISION 2: ANIMATION TIMING
+--------------------------------------------------------------------------------
+
+Current spec animations:
+  - Float: 3s ease-in-out infinite
+  - Shine sweep: 3s ease-in-out infinite
+  - Card transition: 0.4s cubic-bezier(0.16, 1, 0.3, 1)
+  - Detail panel slide: 0.3s ease-out
+
+QUESTIONS:
+  1. Float animation - 3s feels slow. Test 2s and 2.5s alternatives?
+  2. Shine effect - Should it run continuously or on hover/focus?
+  3. Should animations pause when tab is not visible? (performance)
+
+▶ FLOAT DURATION: 2.5s (snappier, more responsive feel)
+▶ SHINE TRIGGER: continuous (matches sparkle-heavy mockup aesthetic)
+▶ PAUSE WHEN HIDDEN: yes (performance optimization)
+
+--------------------------------------------------------------------------------
+DESIGN DECISION 3: MOBILE EXPERIENCE
+--------------------------------------------------------------------------------
+
+Current mobile spec:
+  - Navigation arrows hidden on mobile
+  - Relies on horizontal scroll/swipe
+  - Cards at 120px × 160px
+
+OPTION A: Swipe-Only (Current)
+  - Hide arrows, use native scroll snap
+  - Simplest implementation
+  
+OPTION B: Touch Carousel
+  - Add touch event handling
+  - Momentum scrolling
+  - Requires JS touch library or custom code
+
+OPTION C: Stacked Cards on Mobile
+  - Show cards vertically on mobile (<640px)
+  - All cards visible, current highlighted
+  - Different UX but possibly clearer
+
+▶ MOBILE APPROACH: A (Swipe-only with native scroll snap - simpler, reliable)
+
+--------------------------------------------------------------------------------
+DESIGN DECISION 4: DETAIL PANEL CONTENT
+--------------------------------------------------------------------------------
+
+Current spec detail panel shows:
+  - Large price
+  - Tier title & subtitle
+  - Benefits list (3-5 bullet points)
+  - Tier-specific note
+  - Availability badge (for current tier)
+
+QUESTIONS:
+  1. Benefits are mostly identical across tiers. Differentiate more?
+  2. Pioneer gets "personalized thank-you message" benefit - emphasize?
+  3. Should sold-out tiers show "was $X" or just the price?
+
+TIER BENEFITS MATRIX (confirm or modify):
+
+PIONEER ($12):
+  [ ] Lifetime access to Flowmaster Pro
+  [ ] All future updates included forever
+  [ ] Priority support channel access
+  [ ] Personal thank-you message from creator
+  [ ] Name in credits (optional)
+  
+EARLY ADOPTER ($19):
+  [ ] Lifetime access to Flowmaster Pro
+  [ ] All future updates included forever
+  [ ] Priority support channel access
+  
+BELIEVER ($29):
+  [ ] Lifetime access to Flowmaster Pro
+  [ ] All future updates included forever
+  [ ] Community Discord access
+  
+STANDARD ($39):
+  [ ] Lifetime access to Flowmaster Pro
+  [ ] All future updates included forever
+  [ ] Community Discord access
+
+▶ BENEFIT CHANGES: None - keep as specified (differentiation is good)
+
+--------------------------------------------------------------------------------
+DESIGN DECISION 5: SOLD-OUT TIER APPEARANCE
+--------------------------------------------------------------------------------
+
+OPTION A: Heavy Gray-Out (Current)
+  - grayscale(1) + opacity(0.4)
+  - "SOLD OUT" badge (angled ribbon)
+  - Still clickable to view details
+  
+OPTION B: Subtle Gray-Out
+  - grayscale(0.5) + opacity(0.6)
+  - "SOLD OUT" badge (simple overlay)
+  - Maintains some brand color
+
+OPTION C: Celebratory Sold-Out
+  - Show as "CLAIMED" with checkmarks
+  - Gold/green tint instead of gray
+  - Feels like achievement unlocked
+
+▶ SOLD-OUT STYLE: C (Celebratory - gold/green "CLAIMED" with checkmarks, feels like achievement)
+
+--------------------------------------------------------------------------------
+DESIGN DECISION 6: EDGE CASES
+--------------------------------------------------------------------------------
+
+Scenario: ALL TIERS SOLD OUT
+  - Show message: "All early adopter tiers sold out!"
+  - CTA: "Join waitlist" or "Coming soon"
+  - Or: Generate more standard tier keys automatically?
+
+▶ ALL SOLD OUT BEHAVIOR: Show celebratory "All early tiers claimed!" + waitlist CTA
+
+Scenario: USER CANCELS CHECKOUT
+  - Redirect to /pricing?canceled=true
+  - Show toast/message?
+  - Key that was reserved gets released by webhook timeout
+
+▶ CANCEL HANDLING: Show brief toast "No worries - come back when you're ready"
+
+Scenario: CHECKOUT TAKES TOO LONG (>30 min)
+  - Stripe session expires
+  - User's reserved key released
+  - If they try to complete, key may be gone
+  - Show appropriate error on success page
+
+▶ TIMEOUT HANDLING: Success page shows friendly error + "Try again" button to /pricing
+
+--------------------------------------------------------------------------------
+DESIGN DECISION 7: PARTICLE BACKGROUND
+--------------------------------------------------------------------------------
+
+Current spec: 30 particles, brand-red, float upward
+
+QUESTIONS:
+  1. Is 30 particles too many/few? (performance vs visual)
+  2. Single color or gradient/variety?
+  3. Should particles interact with mouse/scroll?
+
+▶ PARTICLE COUNT: 40 (matches sparkle-heavy mockup)
+▶ PARTICLE COLORS: red + mint + white (brand colors, sparkle variety)
+▶ INTERACTIVITY: none (keep it simple, performance-friendly)
+
+--------------------------------------------------------------------------------
+ACCESSIBILITY REQUIREMENTS
+--------------------------------------------------------------------------------
+
+MUST HAVE:
+  [ ] Keyboard navigation (arrow keys to select tier)
+  [ ] Focus visible indicators
+  [ ] Screen reader announcements when tier changes
+  [ ] Reduced motion support (@media prefers-reduced-motion)
+  [ ] Color contrast ratios (WCAG AA minimum)
+
+NICE TO HAVE:
+  [ ] Tab-trapping in detail panel when focused
+  [ ] ARIA live regions for dynamic content
+  [ ] High contrast mode support
+
+--------------------------------------------------------------------------------
+COMPONENT STRUCTURE
+--------------------------------------------------------------------------------
+
+Proposed file structure:
+
+src/
+  components/
+    TierSelector.astro          -- Main component (orchestrates all)
+    TierCard.astro              -- Individual tier card (optional extraction)
+    TierDetailPanel.astro       -- Detail panel above carousel (optional)
+  pages/
+    pricing.astro               -- Page wrapper, fetches tier data
+
+OR simpler (current spec):
+
+src/
+  components/
+    TierSelector.astro          -- Everything in one file
+  pages/
+    pricing.astro               -- Page wrapper
+
+▶ COMPONENT STRUCTURE: single file (TierSelector.astro contains everything - simpler to iterate)
+
+--------------------------------------------------------------------------------
+IMPLEMENTATION APPROACH
+--------------------------------------------------------------------------------
+
+RECOMMENDED PHASED APPROACH:
+
+Phase 1: Static Layout (1 hour)
+  - Build card grid with hardcoded tier data
+  - No animations, no interactivity
+  - Verify responsive behavior
+  - Commit checkpoint
+
+Phase 2: Interactivity (1 hour)
+  - Add click/keyboard selection
+  - Detail panel content switching
+  - CTA button state management
+  - Commit checkpoint
+
+Phase 3: Animations (1 hour)
+  - Float animation on current tier
+  - Shine effect
+  - Card transitions
+  - Particle background
+  - Commit checkpoint
+
+Phase 4: API Integration (30 min)
+  - Fetch tier data from get-tier-status
+  - Wire up checkout button
+  - Handle loading/error states
+  - Commit checkpoint
+
+Phase 5: Polish (30 min)
+  - Fine-tune timings
+  - Mobile testing
+  - Accessibility audit
+  - Commit checkpoint
+
+--------------------------------------------------------------------------------
+REFERENCE IMPLEMENTATION
+--------------------------------------------------------------------------------
+
+The full implementation code is provided in the original 05_TIER_SELECTOR_UI.txt
+file. Use it as reference, but feel free to deviate based on design decisions
+made above.
+
+Key sections to reference:
+  - TierSelector.astro markup structure
+  - CSS animation keyframes
+  - JavaScript tier selection logic
+  - Checkout button handler
+
+--------------------------------------------------------------------------------
+SIGN-OFF
+--------------------------------------------------------------------------------
+
+Before implementing, confirm:
+
+[x] All design decisions above have been made
+[x] Benefits text is finalized
+[x] Animation timings are confirmed
+[x] Mobile approach is decided
+[x] Edge case behaviors are specified
+
+Designer/Owner: Huskie
+Date: 2026-02-11
+
+VISUAL REFERENCE: See Photoshop mockup (arcade key selector with sparkles)
+TITLE: "EARLY ACCESS KEYS" with subheadline "The earlier you join, the less you pay"
+
+================================================================================

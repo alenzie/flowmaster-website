@@ -1,0 +1,412 @@
+================================================================================
+TASK 07: POST-IMPLEMENTATION SETUP & DEPLOYMENT GUIDE
+================================================================================
+Status: Code complete — manual setup required before going live
+Date: 2026-02-12
+
+================================================================================
+STEP 1: CREATE RESEND ACCOUNT
+================================================================================
+
+1. Go to https://resend.com and sign up (GitHub or email)
+2. Free tier includes:
+   - 100 emails/day
+   - 3,000 emails/month
+   - 1 custom domain
+   - This is plenty for early launch — upgrade later if needed
+
+3. After signup, go to Dashboard → Domains → Add Domain
+4. Enter: flowmaster.live
+5. Resend will show you 3-5 DNS records to add. These typically include:
+
+   RECORD TYPE   HOST/NAME                     VALUE
+   ─────────────────────────────────────────────────────────────────
+   MX            send.flowmaster.live          feedback-smtp.us-east-1.amazonses.com
+                                               (priority 10)
+
+   TXT (SPF)     send.flowmaster.live          "v=spf1 include:amazonses.com ~all"
+
+   CNAME (DKIM)  resend._domainkey             (long hash provided by Resend)
+                 .flowmaster.live
+
+   CNAME (DKIM)  resend2._domainkey            (long hash provided by Resend)
+                 .flowmaster.live
+
+   NOTE: The exact records will differ — copy them directly from Resend's UI.
+         Do NOT use the values above literally.
+
+6. Add these records to your DNS provider (wherever flowmaster.live is managed —
+   likely Cloudflare, Namecheap, etc.)
+
+7. Back in Resend, click "Verify" — usually takes 1-5 minutes
+   - If it doesn't verify immediately, wait up to 48 hours (rare)
+   - You can click "Verify" again to re-check
+
+8. Once verified, Resend will show a green checkmark next to flowmaster.live
+
+HOW TO CONFIRM IT WORKED:
+   - Domain status shows "Verified" in Resend dashboard
+   - All DNS records show green checkmarks
+
+================================================================================
+STEP 2: CREATE RESEND API KEY
+================================================================================
+
+1. In Resend dashboard → API Keys → Create API Key
+2. Settings:
+   - Name: "flowmaster-edge-functions" (or similar)
+   - Permission: "Sending access" (NOT full access)
+   - Domain: flowmaster.live (restrict to this domain only)
+3. Copy the key — it starts with "re_" and looks like:
+   re_AbCdEfGh_1234567890abcdef
+
+   IMPORTANT: You can only see it once. Save it somewhere safe before closing.
+
+================================================================================
+STEP 3: ADD RESEND API KEY TO SUPABASE
+================================================================================
+
+Option A: Via Supabase CLI (recommended)
+────────────────────────────────────────
+
+   Open terminal and run:
+
+   supabase secrets set RESEND_API_KEY=re_YOUR_ACTUAL_KEY_HERE
+
+   Then verify it was set:
+
+   supabase secrets list
+
+   You should see RESEND_API_KEY in the list (value will be hidden).
+
+Option B: Via Supabase Dashboard
+────────────────────────────────
+
+   1. Go to https://supabase.com/dashboard
+   2. Select your project (jwwbwozjvfiheunavbnk)
+   3. Settings → Edge Functions → Manage Secrets (or Environment Variables)
+   4. Add new secret:
+      - Key:   RESEND_API_KEY
+      - Value: re_YOUR_ACTUAL_KEY_HERE
+   5. Save
+
+HOW TO CONFIRM IT WORKED:
+   - Run: supabase secrets list
+   - RESEND_API_KEY appears in the output
+
+================================================================================
+STEP 4: UPLOAD EMAIL LOGO
+================================================================================
+
+The email template references:
+   https://flowmaster.live/images/logo-email.png
+
+You need to place a logo file at this path in the site repo:
+
+   flowmaster-site/public/images/logo-email.png
+
+Steps:
+   1. Find your horizontal logo file (LogoHorizontalLockup_3x.png or similar)
+   2. Resize/optimize:
+      - Width: 200-300px (will display at 200px in email)
+      - Format: PNG with transparency (or solid dark bg)
+      - File size: keep under 50KB for fast email loading
+   3. Copy it to the site:
+
+      cp /path/to/your/logo.png "/mnt/c/Users/alexb/Desktop/Dev Stuff/flowmaster-site/public/images/logo-email.png"
+
+   4. Verify the path exists:
+
+      ls "/mnt/c/Users/alexb/Desktop/Dev Stuff/flowmaster-site/public/images/logo-email.png"
+
+   5. The logo won't be live until you deploy the site (next Astro build/deploy)
+
+NOTE: If you don't have a logo ready, the email still works — the <img> tag will
+show the "Flowmaster" alt text instead. Not critical for testing.
+
+================================================================================
+STEP 5: DEPLOY EDGE FUNCTIONS
+================================================================================
+
+Deploy BOTH functions (email function is new, webhook is updated):
+
+   cd "/mnt/c/Users/alexb/Desktop/Dev Stuff/flowmastersuite"
+
+   supabase functions deploy send-license-email
+   supabase functions deploy stripe-webhook
+
+Expected output for each:
+   "Version X of 'send-license-email' is now deployed"
+   "Version X of 'stripe-webhook' is now deployed"
+
+If you get errors:
+   - "Cannot find module" → check the import paths in index.ts
+   - "Permission denied" → run: supabase login
+   - "Project ref" error → run: supabase link --project-ref jwwbwozjvfiheunavbnk
+
+================================================================================
+STEP 6: TEST — PREVIEW MODE (NO EMAIL SENT)
+================================================================================
+
+This tests the function responds correctly WITHOUT sending a real email.
+
+Replace YOUR_SERVICE_ROLE_KEY with your actual key (find it in Supabase
+Dashboard → Settings → API → service_role key):
+
+   curl -X POST https://jwwbwozjvfiheunavbnk.supabase.co/functions/v1/send-license-email \
+     -H "Authorization: Bearer YOUR_SERVICE_ROLE_KEY" \
+     -H "Content-Type: application/json" \
+     -d '{
+       "licenseId": "00000000-0000-0000-0000-000000000001",
+       "customerEmail": "test@example.com",
+       "licenseKey": "FM-TEST1-ABCDE-12345-FGHIJ",
+       "tierName": "pioneer",
+       "tierDisplayName": "Early Adopter",
+       "tierSequence": 3,
+       "preview": true
+     }'
+
+EXPECTED RESPONSE:
+   {
+     "success": true,
+     "preview": true,
+     "subject": "You're Early Adopter #3 — Here's Your Key",
+     "html": "<!DOCTYPE html>...",
+     "text": "WELCOME TO FLOWMASTER!..."
+   }
+
+WHAT TO CHECK:
+   [ ] Response has success: true
+   [ ] Subject line says "You're Early Adopter #3 — Here's Your Key"
+   [ ] HTML contains the license key FM-TEST1-ABCDE-12345-FGHIJ
+   [ ] HTML has dark background (#101010)
+   [ ] Text version has the key in plain text
+
+TIP: To view the HTML email in a browser, copy the "html" value from the
+response, save it as test-email.html, and open it in your browser.
+
+Also test a non-pioneer tier:
+
+   curl -X POST https://jwwbwozjvfiheunavbnk.supabase.co/functions/v1/send-license-email \
+     -H "Authorization: Bearer YOUR_SERVICE_ROLE_KEY" \
+     -H "Content-Type: application/json" \
+     -d '{
+       "licenseId": "00000000-0000-0000-0000-000000000002",
+       "customerEmail": "test@example.com",
+       "licenseKey": "FM-TEST2-ABCDE-12345-FGHIJ",
+       "tierName": "early_adopter",
+       "tierDisplayName": "Supporter",
+       "tierSequence": 50,
+       "preview": true
+     }'
+
+EXPECTED: Subject should be "Your Flowmaster License Key" (no sequence number).
+
+================================================================================
+STEP 7: TEST — SEND REAL EMAIL
+================================================================================
+
+PREREQUISITE: Steps 1-3 must be complete (Resend account, domain verified,
+API key in Supabase).
+
+Send a real email to yourself:
+
+   curl -X POST https://jwwbwozjvfiheunavbnk.supabase.co/functions/v1/send-license-email \
+     -H "Authorization: Bearer YOUR_SERVICE_ROLE_KEY" \
+     -H "Content-Type: application/json" \
+     -d '{
+       "licenseId": "00000000-0000-0000-0000-000000000001",
+       "customerEmail": "YOUR_REAL_EMAIL@gmail.com",
+       "licenseKey": "FM-TEST1-ABCDE-12345-FGHIJ",
+       "tierName": "pioneer",
+       "tierDisplayName": "Early Adopter",
+       "tierSequence": 1,
+       "preview": false
+     }'
+
+EXPECTED RESPONSE:
+   {
+     "success": true,
+     "resendId": "some-uuid-from-resend",
+     "attempts": 1
+   }
+
+WHAT TO CHECK IN YOUR INBOX:
+   [ ] Email arrived (check spam/junk too)
+   [ ] From: "Flowmaster <hello@flowmaster.live>"
+   [ ] Subject: "You're Early Adopter #1 — Here's Your Key"
+   [ ] Dark background renders (#101010)
+   [ ] Red border on key card (#f43f43)
+   [ ] License key is readable and copy-pastable
+   [ ] "Download Flowmaster" button links to https://flowmaster.live/download
+   [ ] Discord link goes to https://discord.gg/VmugsGgN66
+   [ ] Reply-to goes to support@flowmaster.live
+   [ ] Logo displays (if uploaded)
+
+IF EMAIL DOESN'T ARRIVE:
+   - Check Resend dashboard → Emails tab for delivery status
+   - Check if domain is verified
+   - Check spam/junk folders
+   - Try sending to a different email provider (Gmail, Outlook, etc.)
+
+================================================================================
+STEP 8: VERIFY AUDIT LOG
+================================================================================
+
+After the real email test, verify the audit_log was written.
+
+Go to Supabase Dashboard → Table Editor → audit_log
+
+Or run this SQL in the SQL Editor:
+
+   SELECT * FROM audit_log
+   WHERE action IN (
+     'license_email_sent',
+     'license_email_failed',
+     'license_email_skipped'
+   )
+   ORDER BY created_at DESC
+   LIMIT 10;
+
+EXPECTED: At least one row with:
+   - action: 'license_email_sent'
+   - details containing your test email, resend_id, and tier info
+
+================================================================================
+STEP 9: TEST IDEMPOTENCY (DUPLICATE PREVENTION)
+================================================================================
+
+Run the EXACT same curl from Step 7 again (same licenseId).
+
+EXPECTED RESPONSE:
+   {
+     "success": true,
+     "skipped": true,
+     "reason": "already_sent"
+   }
+
+This confirms duplicate emails won't be sent for the same license.
+
+Check audit_log for a 'license_email_skipped' entry.
+
+================================================================================
+STEP 10: TEST ERROR HANDLING
+================================================================================
+
+Test 1: Missing auth header
+   curl -X POST https://jwwbwozjvfiheunavbnk.supabase.co/functions/v1/send-license-email \
+     -H "Content-Type: application/json" \
+     -d '{"licenseId": "test"}'
+
+   EXPECTED: 401 Unauthorized
+
+Test 2: Missing required field
+   curl -X POST https://jwwbwozjvfiheunavbnk.supabase.co/functions/v1/send-license-email \
+     -H "Authorization: Bearer YOUR_SERVICE_ROLE_KEY" \
+     -H "Content-Type: application/json" \
+     -d '{"licenseId": "test"}'
+
+   EXPECTED: 400 Missing required field: customerEmail
+
+Test 3: Invalid email format
+   curl -X POST https://jwwbwozjvfiheunavbnk.supabase.co/functions/v1/send-license-email \
+     -H "Authorization: Bearer YOUR_SERVICE_ROLE_KEY" \
+     -H "Content-Type: application/json" \
+     -d '{
+       "licenseId": "test",
+       "customerEmail": "not-an-email",
+       "licenseKey": "FM-TEST",
+       "tierName": "pioneer",
+       "tierDisplayName": "Early Adopter"
+     }'
+
+   EXPECTED: 400 Invalid email format
+
+================================================================================
+STEP 11: DEPLOY SITE (FOR LOGO)
+================================================================================
+
+If you uploaded logo-email.png in Step 4, deploy your Astro site so it's
+accessible at https://flowmaster.live/images/logo-email.png
+
+Your deployment process (whatever you use — Vercel, Netlify, manual):
+
+   cd "/mnt/c/Users/alexb/Desktop/Dev Stuff/flowmaster-site"
+   npm run build
+   # then deploy via your hosting provider
+
+Verify: Open https://flowmaster.live/images/logo-email.png in a browser.
+
+================================================================================
+FULL END-TO-END TEST (LATER — AFTER STRIPE IS LIVE)
+================================================================================
+
+This tests the complete purchase flow:
+
+   1. Go to /pricing page
+   2. Select a tier, click purchase
+   3. Use Stripe test card: 4242 4242 4242 4242 (any future date, any CVC)
+   4. Complete checkout
+   5. Verify:
+      [ ] Redirected to success page with key displayed
+      [ ] Email arrives with the same key
+      [ ] audit_log has both 'key_purchased' and 'license_email_sent' entries
+      [ ] Stripe dashboard shows successful payment
+
+NOTE: For Stripe test mode, use test webhook:
+   stripe listen --forward-to https://jwwbwozjvfiheunavbnk.supabase.co/functions/v1/stripe-webhook
+
+================================================================================
+TROUBLESHOOTING
+================================================================================
+
+PROBLEM: "RESEND_API_KEY not configured"
+FIX: Run `supabase secrets set RESEND_API_KEY=re_xxxxx` and redeploy
+
+PROBLEM: "Unauthorized" on every request
+FIX: Make sure you're using the service_role key, not the anon key
+
+PROBLEM: Email sends but lands in spam
+FIX: Check Resend dashboard for DKIM/SPF pass. Ensure all DNS records are set.
+     Gmail is strict — first few emails may land in spam until reputation builds.
+
+PROBLEM: "Resend API error: 403"
+FIX: Domain not verified. Check Resend dashboard → Domains.
+
+PROBLEM: "Resend API error: 422"
+FIX: Usually invalid "from" address. Must match your verified domain.
+     Current from: hello@flowmaster.live — domain must be verified.
+
+PROBLEM: Webhook succeeds but no email arrives
+FIX: Check Supabase Edge Function logs:
+     supabase functions logs stripe-webhook
+     supabase functions logs send-license-email
+     Look for "Email trigger result" or "Email trigger failed" messages.
+
+PROBLEM: audit_log inserts fail silently
+FIX: Check RLS policies. The service_role key bypasses RLS, so this shouldn't
+     happen. If it does, check the table exists: SELECT * FROM audit_log LIMIT 1;
+
+================================================================================
+QUICK REFERENCE: ORDER OF OPERATIONS
+================================================================================
+
+Do these in order. Each step depends on the previous:
+
+   [1] Create Resend account                    (https://resend.com)
+   [2] Add domain + DNS records                 (Resend dashboard)
+   [3] Wait for domain verification             (1-5 min usually)
+   [4] Create API key                           (Resend dashboard)
+   [5] Add secret to Supabase                   (supabase secrets set)
+   [6] Upload logo to site                      (public/images/logo-email.png)
+   [7] Deploy edge functions                    (supabase functions deploy x2)
+   [8] Deploy site                              (for logo)
+   [9] Test preview mode                        (curl with preview: true)
+  [10] Test real send                           (curl to your email)
+  [11] Verify audit_log                         (Supabase SQL editor)
+  [12] Test idempotency                         (same curl again)
+  [13] Test error cases                         (bad auth, missing fields)
+
+================================================================================
+END OF GUIDE
+================================================================================

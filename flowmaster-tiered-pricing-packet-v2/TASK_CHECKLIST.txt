@@ -1,0 +1,300 @@
+================================================================================
+FLOWMASTER TIERED PRICING - TASK CHECKLIST
+================================================================================
+
+Project: Arcade-Style Early Adopter Pricing System
+Created: 2026-02-11
+Status: IN PROGRESS
+
+================================================================================
+PHASE 1: BACKEND FOUNDATION
+================================================================================
+
+[x] TASK 01: DATABASE SCHEMA                                     🟢 EXECUTE
+────────────────────────────────────────────────────────────────────────────
+    File: 01_DATABASE_SCHEMA.txt
+    Type: Execute directly (SQL fully specified)
+    Est:  30 minutes
+
+    Summary:
+      - Create pricing_tiers table
+      - Add tier columns to licenses table (tier_id, tier_sequence, Stripe fields)
+      - Create database functions (get_current_tier_status, get_next_available_key)
+      - Set up RLS policies
+
+    Blocks: Task 02, Task 04
+
+    Completed: 2026-02-11
+    Notes: Migration 20260216 + fix 20260218 for column ambiguity
+
+────────────────────────────────────────────────────────────────────────────
+
+[x] TASK 02: KEY GENERATION                                      🟢 EXECUTE
+────────────────────────────────────────────────────────────────────────────
+    File: 02_KEY_GENERATION.txt
+    Type: Execute directly (script provided)
+    Est:  30 minutes
+
+    Summary:
+      - Create scripts/generate-tier-keys.ts
+      - Generate 3000 keys total (15 + 385 + 1600 + 1000)
+      - Keys assigned to tiers with sequential tier_sequence
+      - Verify with SQL queries
+
+    Requires: Task 01 complete
+    Blocks: Task 03
+
+    Completed: 2026-02-11
+    Notes: Used tsx instead of ts-node (ESM compat). 3000 keys generated.
+
+────────────────────────────────────────────────────────────────────────────
+
+[x] TASK 03: STRIPE CONFIGURATION                                ⚪ HYBRID
+────────────────────────────────────────────────────────────────────────────
+    File: 03_STRIPE_SETUP.txt
+    Type: Manual setup + automated config
+    Est:  45 minutes
+
+    MANUAL STEPS (done via Stripe CLI):
+      [x] Create 4 Stripe products in Dashboard
+      [x] Create webhook endpoint in Dashboard
+      [x] Copy Price IDs and secrets
+      [x] Add secrets to Supabase Edge Functions settings
+
+    AUTOMATED STEPS (Claude Code):
+      [x] Update pricing_tiers with stripe_price_id
+      [x] Create .env and .env.example files
+      [x] Install @stripe/stripe-js in flowmaster-site
+
+    Requires: Task 02 complete
+    Blocks: Task 04
+
+    Completed: 2026-02-11
+    Notes: All steps automated via Stripe CLI. Test mode keys.
+
+================================================================================
+PHASE 2: API LAYER
+================================================================================
+
+[x] TASK 04: EDGE FUNCTIONS                                      🟢 EXECUTE
+────────────────────────────────────────────────────────────────────────────
+    File: 04_EDGE_FUNCTIONS.txt
+    Type: Execute directly (code provided)
+    Est:  1 hour
+
+    Summary:
+      - Create create-checkout-session/index.ts
+      - Create stripe-webhook/index.ts
+      - Create get-tier-status/index.ts
+      - Deploy all functions to Supabase
+      - Test with Stripe CLI
+
+    Requires: Task 03 complete
+    Blocks: Task 05, Task 06, Task 07
+
+    Completed: 2026-02-11
+    Notes: All 3 deployed. get-tier-status tested OK. Used Deno.serve() pattern.
+
+================================================================================
+PHASE 3: FRONTEND & POLISH
+================================================================================
+
+[ ] TASK 05: TIER SELECTOR UI                                    🟡 DESIGN
+────────────────────────────────────────────────────────────────────────────
+    Design Doc: 05_TIER_SELECTOR_UI_DESIGN.txt (COMPLETE THIS FIRST)
+    Impl Doc:   05_TIER_SELECTOR_UI_IMPLEMENTATION.txt
+    Est:        3-4 hours
+    
+    DESIGN PHASE:
+      [ ] Complete design decisions in 05_TIER_SELECTOR_UI_DESIGN.txt
+      [ ] Confirm animation timings
+      [ ] Decide mobile approach
+      [ ] Finalize benefits text
+      [ ] Sign off on design
+    
+    IMPLEMENTATION PHASE:
+      [ ] Build static layout (Phase 1)
+      [ ] Add interactivity (Phase 2)
+      [ ] Add animations (Phase 3)
+      [ ] Integrate API (Phase 4)
+      [ ] Polish and test (Phase 5)
+    
+    Requires: Task 04 complete
+    Blocks: Header/CTA updates
+    
+    Design Completed: ____-__-__
+    Implementation Completed: ____-__-__
+    Notes: _______________________________________________________________
+
+────────────────────────────────────────────────────────────────────────────
+
+[x] TASK 06: PURCHASE SUCCESS PAGE                               🟢 EXECUTE
+────────────────────────────────────────────────────────────────────────────
+    File: 06_PURCHASE_SUCCESS.txt
+    Type: Execute directly (code provided)
+    Est:  1 hour
+
+    Summary:
+      - Create get-purchase-key/index.ts edge function
+      - Create src/pages/purchase-success.astro
+      - Key reveal with copy button
+      - Confetti animation
+      - Pioneer special message
+      - Next steps cards
+
+    Requires: Task 04 complete
+    Blocks: Task 07 (email trigger)
+
+    Completed: 2026-02-12
+    Notes: Edge function with retry logic + fallback. Page has 3 states,
+           demo mode (?demo=true), confetti, copy button, next steps cards.
+
+────────────────────────────────────────────────────────────────────────────
+
+[x] TASK 07: LICENSE EMAIL DELIVERY VIA RESEND                    🟢 COMPLETE
+────────────────────────────────────────────────────────────────────────────
+    Design Doc: 07_LICENSE_EMAIL_DESIGN.txt
+    Est:        1.5 hours
+
+    PRE-IMPLEMENTATION (manual):
+      [ ] Create Resend account & verify flowmaster.live domain
+      [ ] Add RESEND_API_KEY to Supabase secrets
+      [ ] Upload logo-email.png to public/images/
+
+    IMPLEMENTATION:
+      [x] Create send-license-email/index.ts edge function
+      [x] Update stripe-webhook to trigger email after key claim
+      (audit_log table already exists in base schema — no migration needed)
+
+    DEPLOYMENT:
+      [ ] Deploy: supabase functions deploy send-license-email
+      [ ] Deploy: supabase functions deploy stripe-webhook
+      [ ] Test preview mode with curl
+      [ ] Test actual send to personal email
+
+    Requires: Task 04, Task 06 complete
+    Blocks: None
+
+    Completed: 2026-02-12
+    Notes: Dark theme email with red key card. Auth via service role key.
+           Idempotency check, rate limiting (100/day), retry with backoff.
+           Uses existing audit_log columns (action/details).
+
+────────────────────────────────────────────────────────────────────────────
+
+[ ] TASK 08: ADMIN DASHBOARD                                     🟢 EXECUTE
+────────────────────────────────────────────────────────────────────────────
+    File: 08_ADMIN_DASHBOARD.txt
+    Type: Execute directly (code provided)
+    Est:  1.5 hours
+    
+    Summary:
+      - Add PricingTier, TierStats, RevenueMetrics types
+      - Create RevenueStats.tsx component
+      - Update Dashboard.tsx with revenue section
+      - Update LicenseTable.tsx with tier/payment columns
+      - Create get_revenue_metrics() database function
+    
+    Requires: Task 01 complete
+    Blocks: None
+    
+    Completed: ____-__-__
+    Notes: _______________________________________________________________
+
+================================================================================
+SITE-WIDE UPDATES (After Task 05)
+================================================================================
+
+[ ] UPDATE: Header.astro
+────────────────────────────────────────────────────────────────────────────
+    Change: Add "Pricing" link to navLinks array
+    File: src/components/Header.astro
+    
+    Code:
+    ```javascript
+    const navLinks = [
+      { href: '/features', label: 'Features' },
+      { href: '/pricing', label: 'Pricing' },  // ADD THIS
+      { href: '/future', label: 'Future' },
+      { href: '/about', label: 'About' },
+      { href: '/docs', label: 'Docs' },
+    ];
+    ```
+    
+    Completed: ____-__-__
+
+────────────────────────────────────────────────────────────────────────────
+
+[ ] UPDATE: Hero.astro
+────────────────────────────────────────────────────────────────────────────
+    Change: Update "Free to use" text and CTA
+    File: src/components/Hero.astro
+    
+    Changes:
+      - "Free to use" → "Early adopter pricing available"
+      - Consider adding small price mention
+    
+    Completed: ____-__-__
+
+────────────────────────────────────────────────────────────────────────────
+
+[ ] UPDATE: CTASection.astro
+────────────────────────────────────────────────────────────────────────────
+    Change: Point CTA to pricing page
+    File: src/components/CTASection.astro
+    
+    Changes:
+      - href="/download" → href="/pricing"
+      - "Free to use" → "Starting at $12"
+      - Update button text
+    
+    Completed: ____-__-__
+
+================================================================================
+FINAL CHECKLIST (After All Tasks Complete)
+================================================================================
+
+END-TO-END TESTING:
+  [ ] Browse to /pricing page
+  [ ] Select tier, click "Get This Key"
+  [ ] Complete Stripe test checkout (4242 4242 4242 4242)
+  [ ] Verify redirect to success page
+  [ ] Verify key displays correctly
+  [ ] Verify email received (check spam)
+  [ ] Verify admin dashboard shows sale
+
+EDGE CASE TESTING:
+  [ ] Cancel checkout, verify return to pricing
+  [ ] Attempt purchase with declined card
+  [ ] Test keyboard navigation on tier selector
+  [ ] Test mobile responsiveness
+  [ ] Test with slow network (Chrome DevTools)
+
+FINAL POLISH:
+  [ ] All "Free to use" messaging updated
+  [ ] Header nav includes Pricing link
+  [ ] CTAs point to pricing page
+  [ ] Error messages are user-friendly
+  [ ] Loading states feel smooth
+
+LAUNCH PREP:
+  [ ] Switch Stripe to live mode (update all keys)
+  [ ] Verify Resend production limits
+  [ ] Test one real purchase (refund afterward)
+  [ ] Backup database before launch
+
+================================================================================
+TIER REFERENCE
+================================================================================
+
+| Tier | Name         | Keys    | Price | Internal     |
+|------|--------------|---------|-------|--------------|
+| 1    | Pioneer      | 1-15    | $12   | pioneer      |
+| 2    | Early Adopter| 16-400  | $19   | early_adopter|
+| 3    | Believer     | 401-2000| $29   | believer     |
+| 4    | Standard     | 2001+   | $39   | standard     |
+
+Key Format: FM-XXXXX-XXXXX-XXXXX-XXXXX
+Supabase URL: https://zkmfjmzoqjcylvhxbwii.supabase.co
+
+================================================================================

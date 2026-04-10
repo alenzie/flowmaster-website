@@ -1,0 +1,49 @@
+================================================================================
+TASK 01: DATABASE SCHEMA - IMPLEMENTATION SUMMARY
+================================================================================
+
+Completed: 2026-02-11
+
+--------------------------------------------------------------------------------
+MIGRATION FILE
+--------------------------------------------------------------------------------
+
+File: supabase/migrations/20260216_tiered_pricing.sql
+
+Created:
+  - pricing_tiers table (9 columns: id, name, display_name, price_cents,
+    key_range_start, key_range_end, sort_order, stripe_price_id, is_active,
+    created_at)
+  - 4 seed rows (pioneer, early_adopter, believer, standard)
+  - 6 new columns on licenses table (tier_id, tier_sequence,
+    stripe_payment_intent_id, stripe_checkout_session_id, customer_email,
+    purchased_at)
+  - 3 indexes (tier_id, tier_id+tier_sequence composite, stripe_session)
+  - 3 database functions (get_current_tier_status, get_next_available_key,
+    claim_key_for_purchase)
+  - RLS policies (public read on active tiers, service role full access)
+  - GRANT anon access to get_current_tier_status
+
+Fix Migration: supabase/migrations/20260218_fix_tier_status_function.sql
+  - Fixed ambiguous column references in get_current_tier_status() where
+    RETURNS TABLE column names conflicted with CTE column aliases
+  - Prefixed all CTE aliases with t_ to avoid conflicts
+
+--------------------------------------------------------------------------------
+DEVIATIONS FROM SPEC
+--------------------------------------------------------------------------------
+
+- Migration numbered 20260216 (next available after existing 20260215)
+- Required a follow-up fix migration (20260218) for column name ambiguity
+  in the get_current_tier_status() plpgsql function — the RETURNS TABLE
+  column names (total_keys, display_name, price_cents) conflicted with
+  identically-named CTE column aliases
+
+--------------------------------------------------------------------------------
+VERIFICATION
+--------------------------------------------------------------------------------
+
+get_current_tier_status() returns all 4 tiers correctly via the
+get-tier-status edge function (tested via curl).
+
+================================================================================

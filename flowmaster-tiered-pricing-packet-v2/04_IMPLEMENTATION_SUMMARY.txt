@@ -1,0 +1,58 @@
+================================================================================
+TASK 04: EDGE FUNCTIONS - IMPLEMENTATION SUMMARY
+================================================================================
+
+Completed: 2026-02-11
+
+--------------------------------------------------------------------------------
+FUNCTIONS DEPLOYED
+--------------------------------------------------------------------------------
+
+1. create-checkout-session
+   Location: supabase/functions/create-checkout-session/index.ts
+   JWT: Required (default)
+   Purpose: Creates Stripe checkout session, reserves a key during checkout
+
+2. stripe-webhook
+   Location: supabase/functions/stripe-webhook/index.ts
+   JWT: Disabled (Stripe sends raw webhook, uses signature verification)
+   Purpose: Handles checkout.session.completed (claims key, logs audit)
+            and checkout.session.expired (releases reserved key)
+
+3. get-tier-status
+   Location: supabase/functions/get-tier-status/index.ts
+   JWT: Disabled (public endpoint for pricing page)
+   Purpose: Returns all tiers with inventory counts, current tier, total sold
+
+--------------------------------------------------------------------------------
+PATTERN NOTES
+--------------------------------------------------------------------------------
+
+- Used Deno.serve() pattern (matching existing codebase) instead of
+  serve() import from deno std lib (as spec suggested)
+- Used jsonResponse() helper pattern from licenses-validate
+- CORS headers match existing edge function pattern
+- get-tier-status accepts both GET and POST methods
+
+--------------------------------------------------------------------------------
+TEST RESULTS
+--------------------------------------------------------------------------------
+
+get-tier-status endpoint tested successfully via curl:
+  - Returns all 4 tiers with correct prices
+  - Pioneer marked as is_current: true
+  - All tiers show 0 claimed, full availability
+  - totalSold: 0
+
+create-checkout-session and stripe-webhook require Stripe keys to test
+(configured in Task 03).
+
+--------------------------------------------------------------------------------
+DEVIATIONS FROM SPEC
+--------------------------------------------------------------------------------
+
+- Used Deno.serve() instead of serve() from deno std lib
+- Added Access-Control-Allow-Methods to CORS headers
+- get-tier-status allows GET in addition to POST
+
+================================================================================

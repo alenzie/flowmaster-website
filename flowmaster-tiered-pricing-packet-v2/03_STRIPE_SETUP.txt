@@ -1,0 +1,223 @@
+================================================================================
+TASK 03: STRIPE PRODUCTS AND CONFIGURATION
+================================================================================
+
+Objective: Set up Stripe products, prices, and environment configuration for 
+the tiered pricing system.
+
+--------------------------------------------------------------------------------
+CONTEXT
+--------------------------------------------------------------------------------
+
+Each tier is a separate Stripe product with one price. When a tier sells out,
+we don't need to do anything in Stripe—the website will automatically show 
+the next tier based on database inventory.
+
+Stripe will handle:
+- Payment processing
+- Receipt emails
+- PCI compliance
+
+Our system handles:
+- Inventory tracking (which tier is current)
+- Key assignment (after payment confirmed)
+- Custom delivery email with key
+
+--------------------------------------------------------------------------------
+DELIVERABLES
+--------------------------------------------------------------------------------
+
+1. STRIPE DASHBOARD SETUP (Manual Steps)
+
+   A) Create Products in Stripe Dashboard:
+   
+   Product 1: Flowmaster Pioneer License
+   - Description: "Early supporter license - you're basically a beta tester"
+   - Price: $12.00 USD (one-time)
+   - Metadata: { tier: "pioneer", tier_id: "1" }
+   
+   Product 2: Flowmaster Early Adopter License
+   - Description: "Early adopter pricing - thanks for believing early"
+   - Price: $19.00 USD (one-time)
+   - Metadata: { tier: "early_adopter", tier_id: "2" }
+   
+   Product 3: Flowmaster Believer License
+   - Description: "You still got in early - locked in before full price"
+   - Price: $29.00 USD (one-time)
+   - Metadata: { tier: "believer", tier_id: "3" }
+   
+   Product 4: Flowmaster Pro License
+   - Description: "Full Flowmaster Pro license - lifetime access"
+   - Price: $39.00 USD (one-time)
+   - Metadata: { tier: "standard", tier_id: "4" }
+
+   B) Create Webhook Endpoint:
+   
+   URL: https://zkmfjmzoqjcylvhxbwii.supabase.co/functions/v1/stripe-webhook
+   Events to listen for:
+   - checkout.session.completed
+   - checkout.session.expired
+   
+   Save the webhook signing secret.
+
+   C) Record these IDs:
+   - Each product's Price ID (starts with price_)
+   - Webhook signing secret (starts with whsec_)
+
+2. ENVIRONMENT CONFIGURATION
+
+   A) Supabase Edge Function Secrets (set via Supabase Dashboard > Settings > Edge Functions):
+   
+   STRIPE_SECRET_KEY=sk_live_...        # Or sk_test_... for testing
+   STRIPE_WEBHOOK_SECRET=whsec_...
+   STRIPE_PRICE_PIONEER=price_...
+   STRIPE_PRICE_EARLY_ADOPTER=price_...
+   STRIPE_PRICE_BELIEVER=price_...
+   STRIPE_PRICE_STANDARD=price_...
+
+   B) Website .env file (flowmaster-site/.env):
+   
+   PUBLIC_STRIPE_PUBLISHABLE_KEY=pk_live_...   # Or pk_test_...
+   PUBLIC_SUPABASE_URL=https://zkmfjmzoqjcylvhxbwii.supabase.co
+   PUBLIC_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIs...
+
+   C) Create .env.example for documentation:
+   
+   ```
+   # Stripe (get from dashboard.stripe.com)
+   PUBLIC_STRIPE_PUBLISHABLE_KEY=pk_test_...
+   
+   # Supabase
+   PUBLIC_SUPABASE_URL=https://your-project.supabase.co
+   PUBLIC_SUPABASE_ANON_KEY=your-anon-key
+   ```
+
+3. UPDATE DATABASE WITH STRIPE PRICE IDS
+
+   After creating products in Stripe, update the pricing_tiers table:
+
+   ```sql
+   UPDATE pricing_tiers SET stripe_price_id = 'price_XXXXX' WHERE name = 'pioneer';
+   UPDATE pricing_tiers SET stripe_price_id = 'price_XXXXX' WHERE name = 'early_adopter';
+   UPDATE pricing_tiers SET stripe_price_id = 'price_XXXXX' WHERE name = 'believer';
+   UPDATE pricing_tiers SET stripe_price_id = 'price_XXXXX' WHERE name = 'standard';
+   ```
+
+4. INSTALL STRIPE DEPENDENCIES
+
+   In flowmaster-site:
+   ```bash
+   npm install @stripe/stripe-js
+   ```
+
+   In flowmastersuite (for edge functions):
+   Stripe is imported via URL in Deno, no package install needed:
+   ```typescript
+   import Stripe from 'https://esm.sh/stripe@14.14.0?target=deno';
+   ```
+
+5. STRIPE HELPER TYPES
+
+   Create: flowmaster-site/src/types/stripe.ts
+
+   ```typescript
+   export interface TierCheckoutParams {
+     tierId: number;
+     tierName: string;
+     priceId: string;
+     customerEmail?: string;
+   }
+
+   export interface CheckoutSessionResponse {
+     sessionId: string;
+     url: string;
+   }
+
+   export interface StripeWebhookPayload {
+     type: string;
+     data: {
+       object: {
+         id: string;
+         customer_email: string;
+         payment_intent: string;
+         metadata: {
+           tier_id: string;
+           license_id: string;
+         };
+       };
+     };
+   }
+   ```
+
+--------------------------------------------------------------------------------
+ACCEPTANCE CRITERIA
+--------------------------------------------------------------------------------
+
+[ ] 4 Stripe products created with correct prices ($12, $19, $29, $39)
+[ ] Each product has tier metadata
+[ ] Webhook endpoint created pointing to Supabase edge function URL
+[ ] Webhook configured for checkout.session.completed event
+[ ] All environment variables documented
+[ ] Supabase edge function secrets configured
+[ ] Website .env file created with publishable key
+[ ] .env.example created for documentation
+[ ] pricing_tiers table updated with stripe_price_id values
+[ ] @stripe/stripe-js installed in flowmaster-site
+[ ] Type definitions created
+
+--------------------------------------------------------------------------------
+TESTING
+--------------------------------------------------------------------------------
+
+1. Verify Stripe products exist:
+   - Log into Stripe Dashboard
+   - Check Products section
+   - Confirm all 4 products with correct prices
+
+2. Verify database has price IDs:
+   ```sql
+   SELECT name, price_cents, stripe_price_id 
+   FROM pricing_tiers 
+   ORDER BY sort_order;
+   ```
+
+3. Verify environment variables:
+   - Website: Check .env file exists and has keys
+   - Supabase: Check Edge Function secrets in dashboard
+
+--------------------------------------------------------------------------------
+STRIPE TEST MODE
+--------------------------------------------------------------------------------
+
+For development/testing, use test mode keys:
+- Publishable: pk_test_...
+- Secret: sk_test_...
+
+Test card numbers:
+- Success: 4242 4242 4242 4242
+- Decline: 4000 0000 0000 0002
+- Requires auth: 4000 0025 0000 3155
+
+Switch to live keys before launch.
+
+--------------------------------------------------------------------------------
+NOTES
+--------------------------------------------------------------------------------
+
+- Stripe checkout handles the entire payment UI—no card forms needed on our site
+- The webhook will handle key assignment after successful payment
+- Customer email is collected by Stripe checkout (required for receipts)
+- Metadata on the checkout session links back to our tier system
+
+--------------------------------------------------------------------------------
+AFTER COMPLETION
+--------------------------------------------------------------------------------
+
+1. Create 03_IMPLEMENTATION_SUMMARY.txt with:
+   - Stripe product IDs created (can be partial for security)
+   - Environment variables configured (list names, not values)
+   - Any deviations from spec
+
+2. Update TASK_CHECKLIST.txt to mark this task complete
+
+================================================================================

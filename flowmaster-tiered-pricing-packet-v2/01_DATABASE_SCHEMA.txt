@@ -1,0 +1,255 @@
+================================================================================
+TASK 01: DATABASE SCHEMA FOR TIERED PRICING
+================================================================================
+
+Objective: Extend the Supabase database to support tiered pricing with 
+pre-generated key batches and inventory tracking.
+
+--------------------------------------------------------------------------------
+CONTEXT
+--------------------------------------------------------------------------------
+
+Current State:
+- licenses table exists with type column (trial, beta, scout, supporter, pro)
+- No tier/batch tracking—keys are just queried by type
+- price_paid column exists but not consistently used
+
+Required Changes:
+- Add tier tracking to licenses table
+- Create pricing_tiers table for tier configuration
+- Create view for current tier status
+- Add database functions for tier queries
+
+--------------------------------------------------------------------------------
+DELIVERABLES
+--------------------------------------------------------------------------------
+
+1. NEW MIGRATION FILE
+   Location: supabase/migrations/YYYYMMDD_tiered_pricing.sql
+   (Use current date for YYYYMMDD)
+
+2. SCHEMA CHANGES
+
+   A) pricing_tiers table (tier configuration):
+   
+   CREATE TABLE public.pricing_tiers (
+     id SERIAL PRIMARY KEY,
+     name TEXT NOT NULL UNIQUE,           -- 'pioneer', 'early_adopter', 'believer', 'standard'
+     display_name TEXT NOT NULL,          -- 'Basically a beta tester', etc.
+     price_cents INTEGER NOT NULL,        -- 1200, 1900, 2900, 3900
+     key_range_start INTEGER NOT NULL,    -- 1, 16, 401, 2001
+     key_range_end INTEGER,               -- 15, 400, 2000, NULL (unlimited)
+     sort_order INTEGER NOT NULL,         -- 1, 2, 3, 4
+     stripe_price_id TEXT,                -- Will be populated in Task 03
+     is_active BOOLEAN DEFAULT true,
+     created_at TIMESTAMPTZ DEFAULT now()
+   );
+
+   B) Add columns to licenses table:
+   
+   ALTER TABLE public.licenses ADD COLUMN IF NOT EXISTS
+     tier_id INTEGER REFERENCES public.pricing_tiers(id);
+   
+   ALTER TABLE public.licenses ADD COLUMN IF NOT EXISTS
+     tier_sequence INTEGER;  -- Position within tier (1-15 for tier 1, etc.)
+   
+   ALTER TABLE public.licenses ADD COLUMN IF NOT EXISTS
+     stripe_payment_intent_id TEXT;
+   
+   ALTER TABLE public.licenses ADD COLUMN IF NOT EXISTS
+     stripe_checkout_session_id TEXT;
+   
+   ALTER TABLE public.licenses ADD COLUMN IF NOT EXISTS
+     customer_email TEXT;
+   
+   ALTER TABLE public.licenses ADD COLUMN IF NOT EXISTS
+     purchased_at TIMESTAMPTZ;
+
+   C) Indexes:
+   
+   CREATE INDEX idx_licenses_tier_id ON public.licenses(tier_id);
+   CREATE INDEX idx_licenses_tier_sequence ON public.licenses(tier_id, tier_sequence);
+   CREATE INDEX idx_licenses_stripe_session ON public.licenses(stripe_checkout_session_id);
+
+3. SEED DATA (pricing tiers):
+
+   INSERT INTO public.pricing_tiers (name, display_name, price_cents, key_range_start, key_range_end, sort_order)
+   VALUES
+     ('pioneer', 'Basically a beta tester', 1200, 1, 15, 1),
+     ('early_adopter', 'Early adopter deal', 1900, 16, 400, 2),
+     ('believer', 'Still got in early', 2900, 401, 2000, 3),
+     ('standard', 'Normal price', 3900, 2001, NULL, 4);
+
+4. DATABASE FUNCTIONS
+
+   A) Get current tier status:
+   
+   CREATE OR REPLACE FUNCTION get_current_tier_status()
+   RETURNS TABLE (
+     tier_id INTEGER,
+     tier_name TEXT,
+     display_name TEXT,
+     price_cents INTEGER,
+     total_keys INTEGER,
+     claimed_keys BIGINT,
+     available_keys BIGINT,
+     is_current BOOLEAN
+   )
+   LANGUAGE plpgsql
+   SECURITY DEFINER
+   AS $$
+   BEGIN
+     RETURN QUERY
+     WITH tier_counts AS (
+       SELECT 
+         pt.id,
+         pt.name,
+         pt.display_name,
+         pt.price_cents,
+         COALESCE(pt.key_range_end - pt.key_range_start + 1, 99999) as total_keys,
+         COUNT(l.id) FILTER (WHERE l.purchased_at IS NOT NULL) as claimed,
+         pt.sort_order
+       FROM public.pricing_tiers pt
+       LEFT JOIN public.licenses l ON l.tier_id = pt.id
+       WHERE pt.is_active = true
+       GROUP BY pt.id
+     ),
+     current_tier AS (
+       SELECT MIN(id) as current_id
+       FROM tier_counts
+       WHERE claimed < total_keys
+     )
+     SELECT 
+       tc.id,
+       tc.name,
+       tc.display_name,
+       tc.price_cents,
+       tc.total_keys::INTEGER,
+       tc.claimed,
+       (tc.total_keys - tc.claimed)::BIGINT as available,
+       (tc.id = ct.current_id) as is_current
+     FROM tier_counts tc
+     CROSS JOIN current_tier ct
+     ORDER BY tc.sort_order;
+   END;
+   $$;
+
+   B) Get next available key for purchase:
+   
+   CREATE OR REPLACE FUNCTION get_next_available_key(p_tier_id INTEGER)
+   RETURNS TABLE (
+     license_id UUID,
+     license_key TEXT,
+     tier_sequence INTEGER
+   )
+   LANGUAGE plpgsql
+   SECURITY DEFINER
+   AS $$
+   BEGIN
+     RETURN QUERY
+     SELECT l.id, l.key, l.tier_sequence
+     FROM public.licenses l
+     WHERE l.tier_id = p_tier_id
+       AND l.purchased_at IS NULL
+       AND l.is_revoked = false
+     ORDER BY l.tier_sequence
+     LIMIT 1
+     FOR UPDATE SKIP LOCKED;  -- Prevents race conditions
+   END;
+   $$;
+
+   C) Claim key for purchase:
+   
+   CREATE OR REPLACE FUNCTION claim_key_for_purchase(
+     p_license_id UUID,
+     p_stripe_session_id TEXT,
+     p_customer_email TEXT
+   )
+   RETURNS BOOLEAN
+   LANGUAGE plpgsql
+   SECURITY DEFINER
+   AS $$
+   BEGIN
+     UPDATE public.licenses
+     SET 
+       stripe_checkout_session_id = p_stripe_session_id,
+       customer_email = p_customer_email,
+       purchased_at = now(),
+       updated_at = now()
+     WHERE id = p_license_id
+       AND purchased_at IS NULL;
+     
+     RETURN FOUND;
+   END;
+   $$;
+
+5. RLS POLICIES
+
+   -- pricing_tiers: public read, service role write
+   ALTER TABLE public.pricing_tiers ENABLE ROW LEVEL SECURITY;
+   
+   CREATE POLICY "Public can read active tiers"
+     ON public.pricing_tiers FOR SELECT
+     USING (is_active = true);
+   
+   CREATE POLICY "Service role full access"
+     ON public.pricing_tiers FOR ALL
+     USING (auth.role() = 'service_role');
+
+   -- Grant anon access to tier status function
+   GRANT EXECUTE ON FUNCTION get_current_tier_status TO anon;
+
+--------------------------------------------------------------------------------
+ACCEPTANCE CRITERIA
+--------------------------------------------------------------------------------
+
+[ ] Migration file created with proper naming convention
+[ ] pricing_tiers table created with all columns
+[ ] licenses table has new columns (tier_id, tier_sequence, stripe fields, etc.)
+[ ] Indexes created for performance
+[ ] Seed data inserted for 4 tiers
+[ ] get_current_tier_status() function returns correct data
+[ ] get_next_available_key() function works with row locking
+[ ] claim_key_for_purchase() function updates key correctly
+[ ] RLS policies allow public read of tier status
+[ ] Migration runs without errors in Supabase
+
+--------------------------------------------------------------------------------
+TESTING
+--------------------------------------------------------------------------------
+
+After migration, run these queries to verify:
+
+-- Check tiers created
+SELECT * FROM pricing_tiers ORDER BY sort_order;
+
+-- Check tier status function
+SELECT * FROM get_current_tier_status();
+
+-- Verify licenses table has new columns
+SELECT column_name, data_type 
+FROM information_schema.columns 
+WHERE table_name = 'licenses' 
+  AND column_name IN ('tier_id', 'tier_sequence', 'stripe_checkout_session_id');
+
+--------------------------------------------------------------------------------
+NOTES
+--------------------------------------------------------------------------------
+
+- The key_range_end for 'standard' tier is NULL (unlimited)
+- tier_sequence is the position within a tier (1-15 for pioneer, 1-385 for early_adopter, etc.)
+- The FOR UPDATE SKIP LOCKED in get_next_available_key prevents double-claiming during concurrent checkouts
+- stripe_price_id will be populated in Task 03 after Stripe products are created
+
+--------------------------------------------------------------------------------
+AFTER COMPLETION
+--------------------------------------------------------------------------------
+
+1. Create 01_IMPLEMENTATION_SUMMARY.txt with:
+   - Migration filename created
+   - Any SQL adjustments made
+   - Test query results
+
+2. Update TASK_CHECKLIST.txt to mark this task complete
+
+================================================================================

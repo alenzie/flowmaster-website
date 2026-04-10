@@ -1,0 +1,29 @@
+---
+import Button from './Button.astro';
+---
+
+<section id="cta" class="section-padding bg-gradient-to-b from-bg-primary to-bg-secondary">
+  <div class="container-main text-center">
+    <h2 class="text-3xl md:text-4xl font-bold mb-4">
+      Ready to <span class="text-brand-red">Transform</span> Your Workflow?
+    </h2>
+    <p class="text-text-secondary max-w-2xl mx-auto mb-6">
+      Join thousands of creators who've already made the switch. Start editing smarter today.
+    </p>
+
+    <!-- Version Highlight -->
+    <div class="inline-block bg-brand-red/10 border border-brand-red/30 rounded-full px-4 py-2 mb-8">
+      <span class="text-brand-red font-semibold">Free to use</span>
+      <span class="text-text-secondary ml-2"> - Windows 10/11</span>
+    </div>
+
+    <div class="flex flex-col items-center gap-4">
+      <Button href="/download" size="lg">
+        Download v0.8.5
+      </Button>
+      <p class="text-text-secondary text-sm">
+        Windows 10/11 • Free to use
+      </p>
+    </div>
+  </div>
+</section>

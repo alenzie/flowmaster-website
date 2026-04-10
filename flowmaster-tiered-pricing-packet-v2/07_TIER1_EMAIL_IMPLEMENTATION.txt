@@ -1,0 +1,434 @@
+================================================================================
+TASK 07: TIER 1 PIONEER PERSONALIZED EMAIL
+================================================================================
+
+Objective: Set up automated email delivery for license keys, with special 
+personalized messages for Tier 1 (Pioneer) buyers.
+
+--------------------------------------------------------------------------------
+CONTEXT
+--------------------------------------------------------------------------------
+
+All buyers receive an email with their license key. Tier 1 Pioneers (first 15 
+buyers) additionally receive a personalized ~80 word message from Huskie as a 
+thank-you for being the earliest believers.
+
+Options for email delivery:
+1. Resend (recommended) - Developer-friendly email API
+2. SendGrid - More established, enterprise-focused
+3. Stripe - Built-in receipts (limited customization)
+
+This task uses Resend for its simplicity and modern DX.
+
+--------------------------------------------------------------------------------
+DELIVERABLES
+--------------------------------------------------------------------------------
+
+1. RESEND SETUP (Manual Steps)
+
+   A) Create Resend account at https://resend.com
+   
+   B) Add and verify domain: flowmaster.live
+      - Add DNS records as instructed
+      - Wait for verification
+   
+   C) Create API key with send permissions
+   
+   D) Add to Supabase Edge Function secrets:
+      RESEND_API_KEY=re_...
+
+2. EMAIL TEMPLATES
+
+   Create: supabase/functions/_shared/email-templates.ts
+
+```typescript
+/**
+ * Email templates for Flowmaster license delivery
+ */
+
+interface LicenseEmailData {
+  recipientEmail: string;
+  licenseKey: string;
+  tierName: string;
+  tierDisplayName: string;
+  tierSequence?: number;
+  isPioneer: boolean;
+}
+
+/**
+ * Pioneer personalized message from Huskie
+ * This will be customized per-buyer (first 15 get unique messages)
+ */
+const pioneerMessages: Record<number, string> = {
+  1: `You're Pioneer #1. The absolute first. I can't tell you how much this means. When I started Flowmaster, I never imagined someone would trust it enough to be first. You took a chance on something brand new, and I won't forget that. Thank you for believing before anyone else did. — Huskie`,
+  
+  2: `Pioneer #2. You're right there at the beginning with me. The fact that you saw what Flowmaster could become and jumped in this early—that's incredible. Every feature I build from here, I'll be thinking about making sure it works perfectly for you. Grateful doesn't cover it. — Huskie`,
+  
+  3: `#3. Three is a magic number, right? You're part of the founding crew now. The people who saw potential when Flowmaster was just getting started. I promise to build something worthy of your early trust. This is just the beginning. — Huskie`,
+  
+  // Default message for pioneers 4-15
+  default: `You're one of the first 15 people to get Flowmaster. That makes you a Pioneer—someone who believed in this before it proved itself. I built this tool because I needed it, and now you're helping me turn it into something bigger. I don't take that lightly. Thank you for being here at the start. — Huskie`
+};
+
+function getPioneerMessage(sequence: number): string {
+  return pioneerMessages[sequence] || pioneerMessages.default;
+}
+
+/**
+ * Generate HTML email for license delivery
+ */
+export function generateLicenseEmail(data: LicenseEmailData): { subject: string; html: string } {
+  const { licenseKey, tierName, tierDisplayName, tierSequence, isPioneer } = data;
+
+  const pioneerSection = isPioneer && tierSequence ? `
+    <div style="background: linear-gradient(135deg, #1a1a1a 0%, #252525 100%); border: 1px solid #f43f43; border-radius: 12px; padding: 24px; margin: 24px 0;">
+      <div style="display: inline-block; background: #f43f43; color: white; font-weight: bold; padding: 6px 16px; border-radius: 20px; margin-bottom: 16px;">
+        🌟 Pioneer #${tierSequence}
+      </div>
+      <p style="color: #d4d4d4; font-style: italic; line-height: 1.6; margin: 0;">
+        ${getPioneerMessage(tierSequence)}
+      </p>
+    </div>
+  ` : '';
+
+  const subject = isPioneer 
+    ? `🌟 Pioneer #${tierSequence}: Your Flowmaster License Key`
+    : `Your Flowmaster License Key — ${tierDisplayName}`;
+
+  const html = `
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+<body style="margin: 0; padding: 0; background-color: #101010; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
+  <div style="max-width: 600px; margin: 0 auto; padding: 40px 20px;">
+    
+    <!-- Header -->
+    <div style="text-align: center; margin-bottom: 32px;">
+      <h1 style="color: #f2f2f2; font-size: 28px; margin: 0;">
+        Welcome to Flowmaster!
+      </h1>
+      <p style="color: #a3a3a3; margin-top: 8px;">
+        ${tierDisplayName}
+      </p>
+    </div>
+
+    <!-- Pioneer Special Section -->
+    ${pioneerSection}
+
+    <!-- Key Card -->
+    <div style="background: #1a1a1a; border: 2px solid #f43f43; border-radius: 12px; padding: 24px; text-align: center; margin-bottom: 24px;">
+      <div style="color: #a3a3a3; font-size: 12px; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px;">
+        Your License Key
+      </div>
+      <div style="background: #101010; padding: 16px; border-radius: 8px; margin-bottom: 16px;">
+        <code style="color: #f2f2f2; font-size: 18px; font-weight: bold; letter-spacing: 1px; word-break: break-all;">
+          ${licenseKey}
+        </code>
+      </div>
+      <p style="color: #737373; font-size: 14px; margin: 0;">
+        Copy this key and paste it when you launch Flowmaster
+      </p>
+    </div>
+
+    <!-- What's Included -->
+    <div style="background: #1a1a1a; border-radius: 12px; padding: 24px; margin-bottom: 24px;">
+      <h3 style="color: #f2f2f2; margin: 0 0 16px 0; font-size: 16px;">
+        What's Included
+      </h3>
+      <ul style="color: #d4d4d4; margin: 0; padding-left: 20px; line-height: 1.8;">
+        <li>Lifetime access to Flowmaster Pro</li>
+        <li>All future updates included forever</li>
+        <li>Community Discord access</li>
+        ${isPioneer ? '<li>Priority support channel</li>' : ''}
+      </ul>
+    </div>
+
+    <!-- Next Steps -->
+    <div style="text-align: center; margin-bottom: 32px;">
+      <a href="https://flowmaster.live/download" 
+         style="display: inline-block; background: #f43f43; color: white; text-decoration: none; padding: 14px 32px; border-radius: 8px; font-weight: 600;">
+        Download Flowmaster
+      </a>
+    </div>
+
+    <!-- Footer -->
+    <div style="text-align: center; border-top: 1px solid #252525; padding-top: 24px;">
+      <p style="color: #737373; font-size: 14px; margin: 0 0 8px 0;">
+        Questions? Reply to this email or join our 
+        <a href="https://discord.gg/flowmaster" style="color: #f43f43;">Discord</a>
+      </p>
+      <p style="color: #525252; font-size: 12px; margin: 0;">
+        Flowmaster by Alenzie Solutions
+      </p>
+    </div>
+
+  </div>
+</body>
+</html>
+  `;
+
+  return { subject, html };
+}
+
+/**
+ * Plain text fallback
+ */
+export function generatePlainTextEmail(data: LicenseEmailData): string {
+  const { licenseKey, tierDisplayName, tierSequence, isPioneer } = data;
+
+  let text = `Welcome to Flowmaster!
+
+${tierDisplayName}
+
+`;
+
+  if (isPioneer && tierSequence) {
+    text += `🌟 PIONEER #${tierSequence}
+
+${getPioneerMessage(tierSequence)}
+
+`;
+  }
+
+  text += `YOUR LICENSE KEY
+================
+${licenseKey}
+
+Copy this key and paste it when you launch Flowmaster.
+
+
+WHAT'S INCLUDED
+- Lifetime access to Flowmaster Pro
+- All future updates included forever
+- Community Discord access
+${isPioneer ? '- Priority support channel\n' : ''}
+
+DOWNLOAD: https://flowmaster.live/download
+
+Questions? Reply to this email or join Discord: https://discord.gg/flowmaster
+
+---
+Flowmaster by Alenzie Solutions
+`;
+
+  return text;
+}
+```
+
+3. EMAIL SENDING FUNCTION
+
+   Create: supabase/functions/send-license-email/index.ts
+
+```typescript
+import { serve } from 'https://deno.land/std@0.168.0/http/server.ts';
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+import { generateLicenseEmail, generatePlainTextEmail } from '../_shared/email-templates.ts';
+
+const RESEND_API_KEY = Deno.env.get('RESEND_API_KEY');
+
+const corsHeaders = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+};
+
+serve(async (req) => {
+  if (req.method === 'OPTIONS') {
+    return new Response('ok', { headers: corsHeaders });
+  }
+
+  try {
+    const { licenseId, customerEmail, licenseKey, tierName, tierDisplayName, tierSequence, isPioneer } = await req.json();
+
+    if (!customerEmail || !licenseKey) {
+      throw new Error('Missing required fields');
+    }
+
+    // Generate email content
+    const emailData = {
+      recipientEmail: customerEmail,
+      licenseKey,
+      tierName: tierName || 'standard',
+      tierDisplayName: tierDisplayName || 'Pro License',
+      tierSequence,
+      isPioneer: isPioneer || false,
+    };
+
+    const { subject, html } = generateLicenseEmail(emailData);
+    const text = generatePlainTextEmail(emailData);
+
+    // Send via Resend
+    const response = await fetch('https://api.resend.com/emails', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${RESEND_API_KEY}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        from: 'Flowmaster <hello@flowmaster.live>',
+        to: [customerEmail],
+        subject,
+        html,
+        text,
+        reply_to: 'support@flowmaster.live',
+      }),
+    });
+
+    const result = await response.json();
+
+    if (!response.ok) {
+      throw new Error(result.message || 'Failed to send email');
+    }
+
+    // Log email sent
+    const supabase = createClient(
+      Deno.env.get('SUPABASE_URL')!,
+      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
+    );
+
+    await supabase.from('audit_log').insert({
+      action: 'license_email_sent',
+      details: {
+        license_id: licenseId,
+        email: customerEmail,
+        tier: tierName,
+        is_pioneer: isPioneer,
+        resend_id: result.id,
+      },
+    });
+
+    return new Response(
+      JSON.stringify({ success: true, emailId: result.id }),
+      {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        status: 200,
+      }
+    );
+
+  } catch (error) {
+    console.error('Email error:', error);
+    return new Response(
+      JSON.stringify({ success: false, error: error.message }),
+      {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        status: 500,
+      }
+    );
+  }
+});
+```
+
+4. UPDATE STRIPE WEBHOOK TO TRIGGER EMAIL
+
+   Modify: supabase/functions/stripe-webhook/index.ts
+   
+   Add email trigger after successful key claim:
+
+```typescript
+// ... existing webhook code ...
+
+// After the key is claimed successfully, trigger email
+if (license?.key) {
+  // Trigger email delivery
+  try {
+    const emailResponse = await fetch(
+      `${Deno.env.get('SUPABASE_URL')}/functions/v1/send-license-email`,
+      {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          licenseId: license_id,
+          customerEmail: customerEmail,
+          licenseKey: license.key,
+          tierName: tier_name,
+          tierDisplayName: license.pricing_tiers?.display_name,
+          tierSequence: license.tier_sequence,
+          isPioneer: isPioneer,
+        }),
+      }
+    );
+
+    if (!emailResponse.ok) {
+      console.error('Failed to send email:', await emailResponse.text());
+    }
+  } catch (emailError) {
+    console.error('Email trigger error:', emailError);
+    // Don't throw - email failure shouldn't fail the webhook
+  }
+}
+```
+
+5. DEPLOY FUNCTIONS
+
+   ```bash
+   supabase functions deploy send-license-email
+   supabase functions deploy stripe-webhook  # Redeploy with email trigger
+   ```
+
+--------------------------------------------------------------------------------
+ACCEPTANCE CRITERIA
+--------------------------------------------------------------------------------
+
+[ ] Resend account created and domain verified
+[ ] RESEND_API_KEY added to Supabase secrets
+[ ] email-templates.ts created with HTML and plain text generators
+[ ] send-license-email edge function created and deployed
+[ ] stripe-webhook updated to trigger email on purchase
+[ ] Pioneer messages (1-3) have unique personalized text
+[ ] Standard pioneers (4-15) get default pioneer message
+[ ] Non-pioneers get standard welcome email
+[ ] Email includes license key prominently
+[ ] Email logs to audit_log table
+[ ] Emails send successfully on test purchase
+
+--------------------------------------------------------------------------------
+TESTING
+--------------------------------------------------------------------------------
+
+1. Test email template rendering locally:
+   - Copy template code to browser console
+   - Verify HTML renders correctly
+
+2. Test send function directly:
+   ```bash
+   curl -X POST https://zkmfjmzoqjcylvhxbwii.supabase.co/functions/v1/send-license-email \
+     -H "Authorization: Bearer SERVICE_ROLE_KEY" \
+     -H "Content-Type: application/json" \
+     -d '{
+       "customerEmail": "test@example.com",
+       "licenseKey": "FM-TEST-TEST-TEST-TEST",
+       "tierName": "pioneer",
+       "tierDisplayName": "Basically a beta tester",
+       "tierSequence": 1,
+       "isPioneer": true
+     }'
+   ```
+
+3. Complete test purchase and verify email arrives
+
+--------------------------------------------------------------------------------
+NOTES
+--------------------------------------------------------------------------------
+
+- Pioneer messages can be customized further per-buyer if desired
+- Consider adding a manual trigger in admin panel for resending emails
+- Stripe receipts will also be sent (can't disable), but our email is the "real" one
+- Rate limits: Resend free tier allows 100 emails/day, upgrade if needed
+
+--------------------------------------------------------------------------------
+AFTER COMPLETION
+--------------------------------------------------------------------------------
+
+1. Create 07_IMPLEMENTATION_SUMMARY.txt with:
+   - Resend setup confirmation
+   - Sample email screenshot
+   - Any template adjustments
+
+2. Update TASK_CHECKLIST.txt to mark this task complete
+
+================================================================================

@@ -1,0 +1,32 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(ls:*)",
+      "Bash(xargs:*)",
+      "Bash(supabase --version:*)",
+      "Bash(supabase db push:*)",
+      "Bash(npm install:*)",
+      "Bash(SUPABASE_SERVICE_ROLE_KEY=\"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imp3d2J3b3pqdmZpaGV1bmF2Ym5rIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc2NjgwMDU4MCwiZXhwIjoyMDgyMzc2NTgwfQ.LXvSmE-nBTmOYzIqvZONIUDxbNN-wed-NfsNZ6CXEyk\" npx ts-node:*)",
+      "Bash(npx tsx:*)",
+      "Bash(SUPABASE_SERVICE_ROLE_KEY=\"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imp3d2J3b3pqdmZpaGV1bmF2Ym5rIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc2NjgwMDU4MCwiZXhwIjoyMDgyMzc2NTgwfQ.LXvSmE-nBTmOYzIqvZONIUDxbNN-wed-NfsNZ6CXEyk\" npx tsx:*)",
+      "Bash(supabase functions deploy:*)",
+      "Bash(curl:*)",
+      "Bash(python3:*)",
+      "Bash(curl -s -X POST https://jwwbwozjvfiheunavbnk.supabase.co/functions/v1/get-tier-status)",
+      "Bash(supabase db execute:*)",
+      "Bash(1 <<'SQL'\nCREATE OR REPLACE FUNCTION get_current_tier_status\\(\\)\nRETURNS TABLE \\(\n  tier_id INTEGER,\n  tier_name TEXT,\n  display_name TEXT,\n  price_cents INTEGER,\n  total_keys INTEGER,\n  claimed_keys BIGINT,\n  available_keys BIGINT,\n  is_current BOOLEAN\n\\)\nLANGUAGE plpgsql\nSECURITY DEFINER\nAS $\nBEGIN\n  RETURN QUERY\n  WITH tier_counts AS \\(\n    SELECT\n      pt.id AS t_id,\n      pt.name AS t_name,\n      pt.display_name AS t_display_name,\n      pt.price_cents AS t_price_cents,\n      COALESCE\\(pt.key_range_end - pt.key_range_start + 1, 99999\\) AS t_total,\n      COUNT\\(l.id\\) FILTER \\(WHERE l.purchased_at IS NOT NULL\\) AS t_claimed,\n      pt.sort_order AS t_sort\n    FROM public.pricing_tiers pt\n    LEFT JOIN public.licenses l ON l.tier_id = pt.id\n    WHERE pt.is_active = true\n    GROUP BY pt.id\n  \\),\n  current_tier AS \\(\n    SELECT MIN\\(t_id\\) AS current_id\n    FROM tier_counts\n    WHERE t_claimed < t_total\n  \\)\n  SELECT\n    tc.t_id,\n    tc.t_name,\n    tc.t_display_name,\n    tc.t_price_cents,\n    tc.t_total::INTEGER,\n    tc.t_claimed,\n    \\(tc.t_total - tc.t_claimed\\)::BIGINT,\n    \\(tc.t_id = ct.current_id\\)\n  FROM tier_counts tc\n  CROSS JOIN current_tier ct\n  ORDER BY tc.t_sort;\nEND;\n$;\nSQL)",
+      "Bash(SUPABASE_SERVICE_ROLE_KEY=\"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imp3d2J3b3pqdmZpaGV1bmF2Ym5rIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc2NjgwMDU4MCwiZXhwIjoyMDgyMzc2NTgwfQ.LXvSmE-nBTmOYzIqvZONIUDxbNN-wed-NfsNZ6CXEyk\" npx tsx -e '\nimport { createClient } from \"\"@supabase/supabase-js\"\";\nconst supabase = createClient\\(\n  \"\"https://jwwbwozjvfiheunavbnk.supabase.co\"\",\n  process.env.SUPABASE_SERVICE_ROLE_KEY!\n\\);\n\nconst sql = `\nCREATE OR REPLACE FUNCTION get_current_tier_status\\(\\)\nRETURNS TABLE \\(\n  tier_id INTEGER,\n  tier_name TEXT,\n  display_name TEXT,\n  price_cents INTEGER,\n  total_keys INTEGER,\n  claimed_keys BIGINT,\n  available_keys BIGINT,\n  is_current BOOLEAN\n\\)\nLANGUAGE plpgsql\nSECURITY DEFINER\nAS \\\\$\\\\$\nBEGIN\n  RETURN QUERY\n  WITH tier_counts AS \\(\n    SELECT\n      pt.id AS t_id,\n      pt.name AS t_name,\n      pt.display_name AS t_display_name,\n      pt.price_cents AS t_price_cents,\n      COALESCE\\(pt.key_range_end - pt.key_range_start + 1, 99999\\) AS t_total,\n      COUNT\\(l.id\\) FILTER \\(WHERE l.purchased_at IS NOT NULL\\) AS t_claimed,\n      pt.sort_order AS t_sort\n    FROM public.pricing_tiers pt\n    LEFT JOIN public.licenses l ON l.tier_id = pt.id\n    WHERE pt.is_active = true\n    GROUP BY pt.id\n  \\),\n  current_tier AS \\(\n    SELECT MIN\\(t_id\\) AS current_id\n    FROM tier_counts\n    WHERE t_claimed < t_total\n  \\)\n  SELECT\n    tc.t_id,\n    tc.t_name,\n    tc.t_display_name,\n    tc.t_price_cents,\n    tc.t_total::INTEGER,\n    tc.t_claimed,\n    \\(tc.t_total - tc.t_claimed\\)::BIGINT,\n    \\(tc.t_id = ct.current_id\\)\n  FROM tier_counts tc\n  CROSS JOIN current_tier ct\n  ORDER BY tc.t_sort;\nEND;\n\\\\$\\\\$;\n`;\n\nconst { data, error } = await supabase.rpc\\(\"\"\"\", {}\\).then\\(\\(\\) => \\({ data: null, error: null }\\)\\).catch\\(\\(\\) => \\({ data: null, error: \"\"rpc failed\"\" }\\)\\);\n\n// Use raw SQL via the management API or pg_net\n// Actually lets just use supabase.from to test if existing function works\nconst result = await supabase.rpc\\(\"\"get_current_tier_status\"\"\\);\nconsole.log\\(\"\"Current result:\"\", JSON.stringify\\(result, null, 2\\)\\);\n')",
+      "Bash(stripe:*)",
+      "Bash(gpg --dearmor:*)",
+      "Bash(sudo tee:*)",
+      "Bash(sudo apt update:*)",
+      "Bash(sudo apt install:*)",
+      "Bash(supabase secrets set:*)",
+      "Bash(npx supabase:*)",
+      "Bash(npm i:*)",
+      "Bash(cmd.exe /c start http://localhost:4321/pricing)",
+      "Bash(npm run dev:*)",
+      "Bash(echo:*)"
+    ]
+  }
+}

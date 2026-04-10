@@ -16,7 +16,12 @@
       "Bash(1 <<'EOF'\n{\"cname\":\"flowmaster.live\",\"build_type\":\"workflow\",\"source\":{\"branch\":\"main\",\"path\":\"/\"}}\nEOF)",
       "Bash(git add:*)",
       "Bash(git commit:*)",
-      "Bash(git push:*)"
+      "Bash(git push:*)",
+      "Bash(find:*)",
+      "Bash(cd:*)",
+      "Bash(grep:*)",
+      "Bash(supabase:*)",
+      "Bash(python3:*)"
     ]
   }
 }

@@ -1,0 +1,361 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+---
+
+<BaseLayout title="Download" description="Download Flowmaster - Edit as you record video editing automation">
+  <!-- Hero Section -->
+  <section class="section-padding">
+    <div class="container-main text-center">
+      <h1 class="mb-4">Download <span class="text-gradient">Flowmaster</span></h1>
+      <p class="text-lg max-w-2xl mx-auto">
+        Get started with Flowmaster and transform your recording workflow.
+        Edit as you record with intelligent automation.
+      </p>
+    </div>
+  </section>
+
+  <!-- Platform Cards -->
+  <section class="pb-20">
+    <div class="container-main">
+      <div class="grid md:grid-cols-3 gap-6 max-w-4xl mx-auto">
+        <!-- Windows Card - Active -->
+        <div class="card text-center relative overflow-hidden group">
+          <div class="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-brand-red to-brand-red-bright"></div>
+          <div class="py-8">
+            <svg class="w-16 h-16 mx-auto mb-4 text-white" fill="currentColor" viewBox="0 0 24 24">
+              <path d="M0 3.449L9.75 2.1v9.451H0m10.949-9.602L24 0v11.4H10.949M0 12.6h9.75v9.451L0 20.699M10.949 12.6H24V24l-12.9-1.801"/>
+            </svg>
+            <h3 class="text-xl mb-2">Windows</h3>
+            <p class="text-sm text-gray-400 mb-6">Windows 10/11 (64-bit)</p>
+            <button
+              id="download-windows-btn"
+              class="btn-primary w-full gap-2"
+            >
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
+              </svg>
+              Download for Windows
+            </button>
+          </div>
+        </div>
+
+        <!-- macOS Card - Coming Soon -->
+        <div class="card text-center opacity-60 relative">
+          <div class="absolute top-3 right-3 bg-gray-700 text-gray-300 text-xs px-2 py-1 rounded-full">
+            Coming Soon
+          </div>
+          <div class="py-8">
+            <svg class="w-16 h-16 mx-auto mb-4 text-gray-500" fill="currentColor" viewBox="0 0 24 24">
+              <path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.81-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11z"/>
+            </svg>
+            <h3 class="text-xl mb-2 text-gray-400">macOS</h3>
+            <p class="text-sm text-gray-500 mb-6">Apple Silicon & Intel</p>
+            <button
+              disabled
+              class="btn-secondary w-full opacity-50 cursor-not-allowed"
+            >
+              Coming Soon
+            </button>
+          </div>
+        </div>
+
+        <!-- Linux Card - Coming Soon -->
+        <div class="card text-center opacity-60 relative">
+          <div class="absolute top-3 right-3 bg-gray-700 text-gray-300 text-xs px-2 py-1 rounded-full">
+            Coming Soon
+          </div>
+          <div class="py-8">
+            <svg class="w-16 h-16 mx-auto mb-4 text-gray-500" fill="currentColor" viewBox="0 0 24 24">
+              <path d="M12.504 0c-.155 0-.311.001-.465.003-.653.014-1.293.106-1.904.31-.59.199-1.117.487-1.565.856-.448.368-.826.815-1.116 1.323-.29.508-.48 1.073-.56 1.68-.08.607-.05 1.25.09 1.917.14.666.38 1.342.72 1.998.34.656.77 1.276 1.29 1.834.52.558 1.12 1.038 1.78 1.409a7.54 7.54 0 0 0 1.896.687c.183.038.369.062.556.073l-.001.004c.017.001.034.001.05.003.202.009.403.006.605-.008.202.014.403.017.605.008.016-.002.033-.002.05-.003l-.001-.004a7.54 7.54 0 0 0 2.452-.76c.66-.371 1.26-.851 1.78-1.409.52-.558.95-1.178 1.29-1.834.34-.656.58-1.332.72-1.998.14-.667.17-1.31.09-1.917-.08-.607-.27-1.172-.56-1.68-.29-.508-.668-.955-1.116-1.323-.448-.369-.975-.657-1.565-.856-.611-.204-1.251-.296-1.904-.31A18.6 18.6 0 0 0 12.504 0zM9.126 7.765c.238-.64.545-1.204.911-1.68.365-.476.785-.856 1.246-1.13.46-.273.952-.44 1.455-.498.502-.058 1.003-.01 1.485.142.48.152.932.411 1.33.77.398.359.737.812.995 1.35.258.538.424 1.158.483 1.848.024.281.026.575.005.879l.005.005c-.153.04-.306.085-.456.138-.538.188-1.046.467-1.506.83-.46.362-.868.805-1.207 1.317-.107.161-.205.33-.294.503-.089-.173-.187-.342-.294-.503-.339-.512-.747-.955-1.207-1.317-.46-.363-.968-.642-1.506-.83a5.28 5.28 0 0 0-.456-.138l.005-.005c-.021-.304-.019-.598.005-.879.059-.69.225-1.31.483-1.848.03-.063.062-.125.095-.184zm3.378 8.985c1.49 0 2.858.424 3.996 1.144 1.138.72 2.048 1.736 2.644 2.944h.006c-.094.028-.188.06-.28.097-.538.215-1.004.527-1.382.932-.378.404-.663.898-.843 1.474a4.96 4.96 0 0 0-.183 1.77c-.81.196-1.662.298-2.538.298-.876 0-1.728-.102-2.538-.298a4.96 4.96 0 0 0-.183-1.77c-.18-.576-.465-1.07-.843-1.474-.378-.405-.844-.717-1.382-.932a4.31 4.31 0 0 0-.28-.097h.006c.596-1.208 1.506-2.224 2.644-2.944 1.138-.72 2.506-1.144 3.996-1.144z"/>
+            </svg>
+            <h3 class="text-xl mb-2 text-gray-400">Linux</h3>
+            <p class="text-sm text-gray-500 mb-6">Ubuntu, Debian, Fedora</p>
+            <button
+              disabled
+              class="btn-secondary w-full opacity-50 cursor-not-allowed"
+            >
+              Coming Soon
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Beta Info Box -->
+  <section class="pb-20">
+    <div class="container-main">
+      <div class="max-w-2xl mx-auto">
+        <div class="card border-emerald-500/30 bg-emerald-500/5">
+          <div class="flex items-start gap-4">
+            <div class="flex-shrink-0 w-12 h-12 rounded-full bg-emerald-500/20 flex items-center justify-center">
+              <svg class="w-6 h-6 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+              </svg>
+            </div>
+            <div>
+              <h3 class="text-lg font-semibold mb-2">Free to Use</h3>
+              <p class="text-gray-300 mb-3">
+                Flowmaster is completely free to use. Help us shape the future of video editing automation by testing and providing feedback.
+              </p>
+              <div class="inline-flex items-center gap-2 bg-emerald-500/20 text-emerald-400 px-3 py-1.5 rounded-full text-sm font-medium">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                </svg>
+                Version 0.8.5
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- System Requirements -->
+  <section class="pb-20">
+    <div class="container-main">
+      <div class="max-w-2xl mx-auto">
+        <h2 class="text-2xl text-center mb-8">System Requirements</h2>
+        <div class="card">
+          <div class="grid md:grid-cols-2 gap-6">
+            <div>
+              <h4 class="font-semibold text-white mb-3 flex items-center gap-2">
+                <svg class="w-5 h-5 text-brand-red" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 3v2m6-2v2M9 19v2m6-2v2M5 9H3m2 6H3m18-6h-2m2 6h-2M7 19h10a2 2 0 002-2V7a2 2 0 00-2-2H7a2 2 0 00-2 2v10a2 2 0 002 2zM9 9h6v6H9V9z"/>
+                </svg>
+                Minimum
+              </h4>
+              <ul class="space-y-2 text-gray-300 text-sm">
+                <li class="flex items-start gap-2">
+                  <span class="text-gray-500">•</span>
+                  Windows 10 (64-bit)
+                </li>
+                <li class="flex items-start gap-2">
+                  <span class="text-gray-500">•</span>
+                  4GB RAM
+                </li>
+                <li class="flex items-start gap-2">
+                  <span class="text-gray-500">•</span>
+                  2GB available disk space
+                </li>
+                <li class="flex items-start gap-2">
+                  <span class="text-gray-500">•</span>
+                  OBS Studio 28.0+
+                </li>
+              </ul>
+            </div>
+            <div>
+              <h4 class="font-semibold text-white mb-3 flex items-center gap-2">
+                <svg class="w-5 h-5 text-alenzie-mint" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+                </svg>
+                Recommended
+              </h4>
+              <ul class="space-y-2 text-gray-300 text-sm">
+                <li class="flex items-start gap-2">
+                  <span class="text-gray-500">•</span>
+                  Windows 11 (64-bit)
+                </li>
+                <li class="flex items-start gap-2">
+                  <span class="text-gray-500">•</span>
+                  8GB+ RAM
+                </li>
+                <li class="flex items-start gap-2">
+                  <span class="text-gray-500">•</span>
+                  SSD with 10GB+ free space
+                </li>
+                <li class="flex items-start gap-2">
+                  <span class="text-gray-500">•</span>
+                  FFmpeg (auto-installed)
+                </li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Attribution Modal -->
+  <div id="attribution-modal" class="fixed inset-0 z-50 hidden">
+    <!-- Backdrop -->
+    <div id="modal-backdrop" class="absolute inset-0 bg-black/80 backdrop-blur-sm"></div>
+
+    <!-- Modal Content -->
+    <div class="relative flex items-center justify-center min-h-screen p-4">
+      <div id="modal-content" class="relative bg-bg-secondary border border-bg-tertiary rounded-xl max-w-md w-full p-6 shadow-2xl">
+        <!-- Close Button -->
+        <button id="modal-close" class="absolute top-4 right-4 text-gray-400 hover:text-white transition-colors" aria-label="Close modal">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+          </svg>
+        </button>
+
+        <div class="text-center mb-6">
+          <div class="w-16 h-16 mx-auto mb-4 rounded-full bg-brand-red/20 flex items-center justify-center">
+            <svg class="w-8 h-8 text-brand-red" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
+            </svg>
+          </div>
+          <h3 class="text-xl font-semibold mb-2">Download Flowmaster</h3>
+          <p class="text-gray-400 text-sm">Quick question before your download starts.</p>
+        </div>
+
+        <form id="download-form" class="space-y-4">
+          <div>
+            <label for="attribution" class="block text-sm font-medium text-gray-300 mb-1.5">
+              How did you hear about us?
+            </label>
+            <select
+              id="attribution"
+              name="attribution"
+              required
+              class="w-full px-4 py-2.5 bg-bg-tertiary border border-gray-700 rounded-lg text-white focus:outline-none focus:border-brand-red focus:ring-1 focus:ring-brand-red transition-colors"
+            >
+              <option value="" disabled selected>Select an option...</option>
+              <option value="youtube">YouTube</option>
+              <option value="linkedin">LinkedIn</option>
+              <option value="google">Google</option>
+              <option value="influencer">From somebody I follow</option>
+              <option value="referral">From a friend or colleague</option>
+              <option value="other">Other</option>
+            </select>
+          </div>
+
+          <button
+            type="submit"
+            id="submit-btn"
+            disabled
+            class="btn-primary w-full mt-6 disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            Continue to Download
+          </button>
+        </form>
+      </div>
+    </div>
+  </div>
+</BaseLayout>
+
+<script>
+  // TODO: Update with actual GitHub Releases URL when ready
+  const DOWNLOAD_URL = 'https://github.com/flowmaster-live/releases/latest/download/flowmaster-setup.exe';
+
+  // DOM Elements
+  const modal = document.getElementById('attribution-modal');
+  const modalBackdrop = document.getElementById('modal-backdrop');
+  const modalClose = document.getElementById('modal-close');
+  const downloadBtn = document.getElementById('download-windows-btn');
+  const form = document.getElementById('download-form') as HTMLFormElement;
+  const attributionSelect = document.getElementById('attribution') as HTMLSelectElement;
+  const submitBtn = document.getElementById('submit-btn') as HTMLButtonElement;
+
+  // Open modal
+  function openModal() {
+    modal?.classList.remove('hidden');
+    document.body.style.overflow = 'hidden';
+  }
+
+  // Close modal
+  function closeModal() {
+    modal?.classList.add('hidden');
+    document.body.style.overflow = '';
+    // Reset form after close
+    setTimeout(() => {
+      form?.reset();
+      if (submitBtn) submitBtn.disabled = true;
+    }, 300);
+  }
+
+  // Trigger download
+  function triggerDownload() {
+    const link = document.createElement('a');
+    link.href = DOWNLOAD_URL;
+    link.download = 'flowmaster-setup.exe';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  }
+
+  // Event Listeners
+  downloadBtn?.addEventListener('click', openModal);
+  modalBackdrop?.addEventListener('click', closeModal);
+  modalClose?.addEventListener('click', closeModal);
+
+  // Enable/disable submit button based on selection
+  attributionSelect?.addEventListener('change', () => {
+    if (submitBtn) {
+      submitBtn.disabled = !attributionSelect.value;
+    }
+  });
+
+  // Escape key closes modal
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && !modal?.classList.contains('hidden')) {
+      closeModal();
+    }
+  });
+
+  // Form submission
+  form?.addEventListener('submit', (e) => {
+    e.preventDefault();
+
+    const attribution = attributionSelect?.value;
+    if (!attribution) return;
+
+    // Log attribution data
+    const data = {
+      attribution,
+      timestamp: new Date().toISOString(),
+      page: window.location.pathname
+    };
+
+    // TODO: Send to analytics backend
+    console.log('[Attribution]', data);
+
+    // Trigger download and close modal
+    triggerDownload();
+    closeModal();
+  });
+</script>
+
+<style>
+  /* Modal animation */
+  #attribution-modal {
+    animation: fadeIn 0.2s ease-out;
+  }
+
+  #modal-content {
+    animation: slideUp 0.3s ease-out;
+  }
+
+  @keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+
+  @keyframes slideUp {
+    from {
+      opacity: 0;
+      transform: translateY(20px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  /* Select dropdown styling */
+  select {
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%23737373'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 0.75rem center;
+    background-size: 1.25rem;
+    padding-right: 2.5rem;
+  }
+
+  select option {
+    background-color: var(--color-bg-tertiary);
+    color: #f2f2f2;
+  }
+</style>

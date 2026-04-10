@@ -1,0 +1,104 @@
+---
+const navLinks = [
+  { href: '/features', label: 'Features' },
+  { href: '/future', label: 'Future' },
+  { href: '/about', label: 'About' },
+  { href: '/docs', label: 'Docs' },
+];
+---
+
+<header
+  id="main-nav"
+  class="fixed top-0 left-0 right-0 z-50 opacity-0 pointer-events-none transition-opacity duration-300"
+>
+  <nav class="bg-black/90 backdrop-blur-md border-b border-bg-tertiary">
+    <div class="container-main flex items-center justify-between h-16">
+      <!-- Logo -->
+      <a href="/" class="flex items-center gap-2">
+        <span class="text-xl font-heading font-bold text-white">Flowmaster</span>
+      </a>
+
+      <!-- Desktop Nav Links -->
+      <div class="hidden md:flex items-center gap-8">
+        {navLinks.map(link => (
+          <a
+            href={link.href}
+            class="text-gray-300 hover:text-white font-medium"
+          >
+            {link.label}
+          </a>
+        ))}
+      </div>
+
+      <!-- CTA Button -->
+      <a href="/download" class="hidden sm:inline-flex btn-primary text-sm py-2 px-4">
+        Download
+      </a>
+
+      <!-- Mobile Menu Button -->
+      <button
+        id="mobile-menu-btn"
+        class="md:hidden p-2 text-gray-300 hover:text-white"
+        aria-label="Toggle menu"
+      >
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
+        </svg>
+      </button>
+    </div>
+  </nav>
+
+  <!-- Mobile Menu -->
+  <div id="mobile-menu" class="md:hidden hidden bg-bg-secondary border-b border-bg-tertiary">
+    <div class="container-main py-4 flex flex-col gap-4">
+      {navLinks.map(link => (
+        <a
+          href={link.href}
+          class="text-gray-300 hover:text-white font-medium py-2"
+        >
+          {link.label}
+        </a>
+      ))}
+      <a href="/download" class="btn-primary text-center py-2 px-4">
+        Download
+      </a>
+    </div>
+  </div>
+</header>
+
+<script>
+  // Nav fade-in on scroll
+  const nav = document.getElementById('main-nav');
+  const hero = document.getElementById('hero');
+
+  if (nav && hero) {
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          nav.classList.add('opacity-0', 'pointer-events-none');
+          nav.classList.remove('opacity-100', 'pointer-events-auto');
+        } else {
+          nav.classList.remove('opacity-0', 'pointer-events-none');
+          nav.classList.add('opacity-100', 'pointer-events-auto');
+        }
+      },
+      { threshold: 0.5 }
+    );
+
+    observer.observe(hero);
+  } else if (nav) {
+    // No hero on page, show nav immediately
+    nav.classList.remove('opacity-0', 'pointer-events-none');
+    nav.classList.add('opacity-100', 'pointer-events-auto');
+  }
+
+  // Mobile menu toggle
+  const mobileMenuBtn = document.getElementById('mobile-menu-btn');
+  const mobileMenu = document.getElementById('mobile-menu');
+
+  if (mobileMenuBtn && mobileMenu) {
+    mobileMenuBtn.addEventListener('click', () => {
+      mobileMenu.classList.toggle('hidden');
+    });
+  }
+</script>

@@ -1,0 +1,310 @@
+================================================================================
+FLOWMASTER TIERED PRICING - MASTER TASK LIST
+================================================================================
+
+Created: 2026-02-11
+Total Tasks: 8
+Estimated Total Time: 12-16 hours
+
+================================================================================
+TASK CATEGORIZATION LEGEND
+================================================================================
+
+🟢 EXECUTE  = Task is fully specified. Follow instructions directly.
+🟡 DESIGN   = Task needs design decisions before implementation.
+⚪ HYBRID   = Some design decisions needed, but mostly executable.
+
+================================================================================
+EXECUTION ORDER & DEPENDENCIES
+================================================================================
+
+PHASE 1: Backend Foundation (Tasks 01-03)
+─────────────────────────────────────────
+These must complete sequentially before any frontend work.
+
+PHASE 2: API Layer (Task 04)
+─────────────────────────────────────────
+Creates the bridge between Stripe and your database.
+
+PHASE 3: Frontend & Polish (Tasks 05-08)
+─────────────────────────────────────────
+Can be partially parallelized after Phase 2.
+
+    ┌─────────────────────────────────────────────────────────────────┐
+    │                                                                 │
+    │   [01 DB] ──► [02 Keys] ──► [03 Stripe] ──► [04 Functions]     │
+    │                                                    │            │
+    │                              ┌─────────────────────┼────────┐   │
+    │                              │                     │        │   │
+    │                              ▼                     ▼        ▼   │
+    │                         [05 UI]              [06 Success]  [08] │
+    │                              │                     │            │
+    │                              └──────────┬──────────┘            │
+    │                                         │                       │
+    │                                         ▼                       │
+    │                                    [07 Email]                   │
+    │                                                                 │
+    └─────────────────────────────────────────────────────────────────┘
+
+================================================================================
+TASK LIST WITH CATEGORIZATION
+================================================================================
+
+┌──────┬─────────────────────────────┬────────┬──────────┬───────────────────┐
+│ TASK │ NAME                        │ TYPE   │ EST TIME │ BLOCKING?         │
+├──────┼─────────────────────────────┼────────┼──────────┼───────────────────┤
+│  01  │ Database Schema             │ 🟢 EXE │ 30 min   │ Blocks 02, 04     │
+├──────┼─────────────────────────────┼────────┼──────────┼───────────────────┤
+│  02  │ Key Generation Script       │ 🟢 EXE │ 30 min   │ Blocks 03         │
+├──────┼─────────────────────────────┼────────┼──────────┼───────────────────┤
+│  03  │ Stripe Configuration        │ ⚪ HYB │ 45 min   │ Blocks 04         │
+│      │ (manual steps required)     │        │          │                   │
+├──────┼─────────────────────────────┼────────┼──────────┼───────────────────┤
+│  04  │ Edge Functions              │ 🟢 EXE │ 1 hr     │ Blocks 05,06,07   │
+├──────┼─────────────────────────────┼────────┼──────────┼───────────────────┤
+│  05  │ Tier Selector UI            │ 🟡 DES │ 3-4 hr   │ Non-blocking      │
+│      │ (arcade carousel)           │        │          │                   │
+├──────┼─────────────────────────────┼────────┼──────────┼───────────────────┤
+│  06  │ Purchase Success Page       │ 🟢 EXE │ 1 hr     │ Non-blocking      │
+├──────┼─────────────────────────────┼────────┼──────────┼───────────────────┤
+│  07  │ Tier 1 Pioneer Email        │ 🟡 DES │ 1.5 hr   │ Non-blocking      │
+│      │ (personalized messages)     │        │          │                   │
+├──────┼─────────────────────────────┼────────┼──────────┼───────────────────┤
+│  08  │ Admin Dashboard Updates     │ 🟢 EXE │ 1.5 hr   │ Non-blocking      │
+└──────┴─────────────────────────────┴────────┴──────────┴───────────────────┘
+
+================================================================================
+🟢 EXECUTE DIRECTLY (No Design Phase Needed)
+================================================================================
+
+These tasks have complete specifications. Claude Code can execute them as-is.
+
+TASK 01: DATABASE SCHEMA
+─────────────────────────────────────────
+Why Execute: SQL is fully written, table schemas defined, functions specified
+Risk Level: Low (migrations are reversible)
+Input Required: None
+Just Run: Copy migration SQL, deploy to Supabase
+
+TASK 02: KEY GENERATION SCRIPT  
+─────────────────────────────────────────
+Why Execute: TypeScript script fully provided, configuration clear
+Risk Level: Low (can regenerate if needed)
+Input Required: SUPABASE_SERVICE_ROLE_KEY env var
+Just Run: npx ts-node scripts/generate-tier-keys.ts
+
+TASK 04: EDGE FUNCTIONS
+─────────────────────────────────────────
+Why Execute: All three functions are fully coded
+Risk Level: Medium (test thoroughly before going live)
+Input Required: Stripe secrets configured in Task 03
+Just Run: supabase functions deploy [function-name]
+
+TASK 06: PURCHASE SUCCESS PAGE
+─────────────────────────────────────────
+Why Execute: Page structure, confetti animation, copy all specified
+Risk Level: Low (can iterate after initial deployment)
+Input Required: Task 04 edge functions deployed
+Just Run: Create files, test with Stripe test mode
+
+TASK 08: ADMIN DASHBOARD
+─────────────────────────────────────────
+Why Execute: Components are incremental additions to existing UI
+Risk Level: Low (additive changes only)
+Input Required: Task 01 database function (get_revenue_metrics)
+Just Run: Add RevenueStats component, update types, modify existing components
+
+================================================================================
+🟡 DESIGN PHASE REQUIRED
+================================================================================
+
+These tasks need design decisions or content creation before implementation.
+
+TASK 05: TIER SELECTOR UI (ARCADE CAROUSEL)
+─────────────────────────────────────────
+DESIGN DECISIONS NEEDED:
+
+  1. Animation Timing & Easing
+     - Float animation duration (spec says 3s, confirm)
+     - Shine effect speed (spec says 3s, may feel slow)
+     - Card transition timing when selecting
+
+  2. Mobile Behavior
+     - Touch/swipe gesture support?
+     - Card sizing on small screens
+     - Navigation arrows vs swipe-only on mobile
+
+  3. Color Tuning
+     - Exact glow intensity for active tier
+     - Gray-out level for sold-out tiers
+     - Particle color/density balance
+
+  4. Edge Cases
+     - What if ALL tiers are sold out?
+     - What if user has slow connection during checkout redirect?
+     - What happens on checkout cancellation redirect?
+
+  5. Accessibility
+     - Keyboard navigation (arrow keys) - specified but verify
+     - Screen reader announcements for tier changes
+     - Focus management after modal/checkout
+
+RECOMMENDED APPROACH:
+  → Build static version first (no animations)
+  → Add animations incrementally
+  → Test on actual hardware before polish pass
+  → Consider creating a Storybook/preview page for iteration
+
+───────────────────────────────────────────────────────────────────────────────
+
+TASK 07: TIER 1 PIONEER EMAIL (PERSONALIZED MESSAGES)
+─────────────────────────────────────────
+DESIGN DECISIONS NEEDED:
+
+  1. Pioneer Message Content
+     The spec provides messages for pioneers 1-3 plus a default.
+     QUESTION: Do you want unique messages for all 15 pioneers?
+     
+     Option A: Keep spec (3 unique + 1 default) - simpler
+     Option B: Write all 15 unique messages - more personal
+     Option C: Template with mad-libs style personalization
+
+  2. Message Tone & Voice
+     Current spec messages use casual, grateful tone:
+     "I can't tell you how much this means..."
+     "Grateful doesn't cover it..."
+     
+     CONFIRM: Is this the right voice for Huskie brand?
+     Should messages be shorter/longer? More/less emotional?
+
+  3. Email Rendering Testing
+     - Test in Gmail, Outlook, Apple Mail
+     - Mobile rendering verification
+     - Dark mode compatibility
+
+  4. Resend Setup
+     - Domain verification (flowmaster.live)
+     - Reply-to address setup (support@flowmaster.live)
+     - Rate limit awareness (100/day on free tier)
+
+  5. Future-Proofing
+     - What about Tier 2+ buyers who upgrade later?
+     - Resend email capability for support?
+
+RECOMMENDED APPROACH:
+  → Finalize message content BEFORE coding
+  → Set up Resend account and verify domain first
+  → Test with a single manual send before wiring up webhook
+
+================================================================================
+⚪ HYBRID (Some Manual Steps)
+================================================================================
+
+TASK 03: STRIPE CONFIGURATION
+─────────────────────────────────────────
+This task is mostly manual Stripe Dashboard work:
+
+MANUAL STEPS (cannot be automated):
+  ✋ Create 4 products in Stripe Dashboard
+  ✋ Create webhook endpoint in Stripe Dashboard
+  ✋ Copy API keys and webhook secret
+  ✋ Add secrets to Supabase Edge Functions settings
+
+AUTOMATED STEPS:
+  🤖 Update pricing_tiers table with stripe_price_id
+  🤖 Create .env files
+  🤖 Install @stripe/stripe-js
+
+RECOMMENDED APPROACH:
+  → Do manual Stripe steps yourself (10-15 min)
+  → Record all IDs in a scratch file
+  → Then have Claude Code run the automated steps
+
+================================================================================
+SITE-WIDE MODIFICATIONS (Across Multiple Tasks)
+================================================================================
+
+These files need updates but aren't tied to a single task:
+
+FILE: src/components/Header.astro
+────────────────────────────────
+Change: Add "Pricing" nav link
+When: After Task 05 (pricing page exists)
+Complexity: 1 line addition
+
+FILE: src/components/Hero.astro
+────────────────────────────────
+Change: Update "Free to use" → early adopter messaging
+When: Before launch
+Complexity: Copy change, verify layout still works
+
+FILE: src/components/CTASection.astro
+────────────────────────────────
+Change: Point CTA to /pricing instead of /download
+When: After Task 05
+Complexity: href change + copy update
+
+FILE: src/styles/global.css
+────────────────────────────────
+Change: Add tier selector theme tokens
+When: During Task 05
+Complexity: Add CSS custom properties
+
+FILE: package.json
+────────────────────────────────
+Change: Add @stripe/stripe-js dependency
+When: Task 03
+Complexity: npm install
+
+================================================================================
+PRE-FLIGHT CHECKLIST (Before Starting)
+================================================================================
+
+Confirm you have access to:
+  [ ] Supabase Dashboard (database + edge functions)
+  [ ] Stripe Dashboard (test mode enabled)
+  [ ] flowmaster-site repository
+  [ ] flowmastersuite repository
+  [ ] Resend account (create if needed)
+  [ ] DNS access for flowmaster.live (for Resend domain verification)
+
+Environment variables ready:
+  [ ] SUPABASE_URL
+  [ ] SUPABASE_SERVICE_ROLE_KEY  
+  [ ] SUPABASE_ANON_KEY
+  [ ] STRIPE_SECRET_KEY (test mode)
+  [ ] STRIPE_PUBLISHABLE_KEY (test mode)
+  [ ] STRIPE_WEBHOOK_SECRET
+  [ ] RESEND_API_KEY
+
+================================================================================
+RECOMMENDED EXECUTION ORDER
+================================================================================
+
+SESSION 1: Backend Foundation (2 hours)
+───────────────────────────────────────
+  1. Run Task 01 migration
+  2. Run Task 02 key generation
+  3. Do Task 03 Stripe manual setup
+  4. Have Claude Code finish Task 03 automation
+
+SESSION 2: API Layer (1.5 hours)
+───────────────────────────────────────
+  1. Deploy Task 04 edge functions
+  2. Test checkout flow with Stripe test cards
+  3. Verify webhook receives events
+
+SESSION 3: Frontend Core (3-4 hours)
+───────────────────────────────────────
+  1. Task 05 - Build pricing page (iterative)
+  2. Task 06 - Build success page
+  3. End-to-end test: browse → checkout → success
+
+SESSION 4: Polish & Admin (2-3 hours)
+───────────────────────────────────────
+  1. Task 07 - Set up email delivery
+  2. Task 08 - Admin dashboard updates
+  3. Update Header, Hero, CTA components
+  4. Full regression test
+
+================================================================================

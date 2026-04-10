@@ -1,0 +1,338 @@
+================================================================================
+TASK 02: PRE-GENERATE TIERED LICENSE KEYS
+================================================================================
+
+Objective: Create a script to generate license keys for each pricing tier and 
+insert them into the database with proper tier attribution.
+
+--------------------------------------------------------------------------------
+CONTEXT
+--------------------------------------------------------------------------------
+
+Tier Key Quantities:
+- Tier 1 (pioneer): 15 keys
+- Tier 2 (early_adopter): 385 keys (16-400)
+- Tier 3 (believer): 1600 keys (401-2000)
+- Tier 4 (standard): 1000 keys initially (can generate more later)
+
+Total initial generation: 3000 keys
+
+Key Format (existing pattern): FM-XXXXX-XXXXX-XXXXX-XXXXX
+- 4 segments of 5 alphanumeric characters
+- Uppercase letters and numbers only
+- Prefix: FM-
+
+--------------------------------------------------------------------------------
+DELIVERABLES
+--------------------------------------------------------------------------------
+
+1. KEY GENERATION SCRIPT
+   Location: scripts/generate-tier-keys.ts
+
+```typescript
+/**
+ * Flowmaster Tiered Key Generation Script
+ * 
+ * Generates pre-allocated license keys for each pricing tier.
+ * Run once to populate the database with purchasable keys.
+ * 
+ * Usage: npx ts-node scripts/generate-tier-keys.ts
+ * 
+ * Environment variables required:
+ *   SUPABASE_URL
+ *   SUPABASE_SERVICE_ROLE_KEY
+ */
+
+import { createClient } from '@supabase/supabase-js';
+
+// Configuration
+const SUPABASE_URL = process.env.SUPABASE_URL || 'https://zkmfjmzoqjcylvhxbwii.supabase.co';
+const SUPABASE_SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
+
+if (!SUPABASE_SERVICE_KEY) {
+  console.error('ERROR: SUPABASE_SERVICE_ROLE_KEY environment variable required');
+  process.exit(1);
+}
+
+const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY);
+
+// Tier configuration
+const TIERS = [
+  { id: 1, name: 'pioneer', count: 15 },
+  { id: 2, name: 'early_adopter', count: 385 },
+  { id: 3, name: 'believer', count: 1600 },
+  { id: 4, name: 'standard', count: 1000 },
+];
+
+/**
+ * Generate a random alphanumeric segment
+ */
+function generateSegment(length: number = 5): string {
+  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; // Excluded confusing chars: I, O, 0, 1
+  let result = '';
+  for (let i = 0; i < length; i++) {
+    result += chars.charAt(Math.floor(Math.random() * chars.length));
+  }
+  return result;
+}
+
+/**
+ * Generate a license key in FM-XXXXX-XXXXX-XXXXX-XXXXX format
+ */
+function generateKey(): string {
+  return `FM-${generateSegment()}-${generateSegment()}-${generateSegment()}-${generateSegment()}`;
+}
+
+/**
+ * Generate keys for a single tier
+ */
+async function generateKeysForTier(
+  tierId: number, 
+  tierName: string, 
+  count: number,
+  startSequence: number
+): Promise<number> {
+  console.log(`\nGenerating ${count} keys for tier: ${tierName}...`);
+  
+  const keys: any[] = [];
+  const existingKeys = new Set<string>();
+  
+  // Fetch existing keys to avoid duplicates
+  const { data: existing } = await supabase
+    .from('licenses')
+    .select('key');
+  
+  if (existing) {
+    existing.forEach(row => existingKeys.add(row.key));
+  }
+  
+  // Generate unique keys
+  let generated = 0;
+  let attempts = 0;
+  const maxAttempts = count * 10;
+  
+  while (generated < count && attempts < maxAttempts) {
+    const key = generateKey();
+    attempts++;
+    
+    if (!existingKeys.has(key)) {
+      existingKeys.add(key);
+      keys.push({
+        key,
+        type: 'pro', // All tiered keys are 'pro' type
+        tier_id: tierId,
+        tier_sequence: startSequence + generated,
+        is_revoked: false,
+        metadata: {
+          generated_at: new Date().toISOString(),
+          tier_name: tierName,
+          batch: 'initial_generation'
+        }
+      });
+      generated++;
+    }
+  }
+  
+  if (generated < count) {
+    console.warn(`WARNING: Only generated ${generated}/${count} keys after ${maxAttempts} attempts`);
+  }
+  
+  // Insert in batches of 100
+  const batchSize = 100;
+  let inserted = 0;
+  
+  for (let i = 0; i < keys.length; i += batchSize) {
+    const batch = keys.slice(i, i + batchSize);
+    const { error } = await supabase
+      .from('licenses')
+      .insert(batch);
+    
+    if (error) {
+      console.error(`Error inserting batch ${i / batchSize + 1}:`, error);
+      throw error;
+    }
+    
+    inserted += batch.length;
+    process.stdout.write(`  Inserted ${inserted}/${keys.length}\r`);
+  }
+  
+  console.log(`  ✓ Inserted ${inserted} keys for ${tierName}`);
+  return inserted;
+}
+
+/**
+ * Main execution
+ */
+async function main() {
+  console.log('='.repeat(60));
+  console.log('FLOWMASTER TIERED KEY GENERATION');
+  console.log('='.repeat(60));
+  
+  // Verify tier configuration exists
+  const { data: tiers, error: tierError } = await supabase
+    .from('pricing_tiers')
+    .select('*')
+    .order('sort_order');
+  
+  if (tierError || !tiers || tiers.length === 0) {
+    console.error('ERROR: No pricing tiers found. Run Task 01 migration first.');
+    process.exit(1);
+  }
+  
+  console.log('\nFound tiers:', tiers.map(t => t.name).join(', '));
+  
+  // Check for existing tiered keys
+  const { count: existingCount } = await supabase
+    .from('licenses')
+    .select('*', { count: 'exact', head: true })
+    .not('tier_id', 'is', null);
+  
+  if (existingCount && existingCount > 0) {
+    console.log(`\nWARNING: ${existingCount} tiered keys already exist.`);
+    console.log('This script will ADD more keys, not replace existing ones.');
+    console.log('Press Ctrl+C within 5 seconds to cancel...\n');
+    await new Promise(resolve => setTimeout(resolve, 5000));
+  }
+  
+  // Generate keys for each tier
+  let totalGenerated = 0;
+  let globalSequence = 1;
+  
+  for (const tier of TIERS) {
+    const tierConfig = tiers.find(t => t.id === tier.id);
+    if (!tierConfig) {
+      console.warn(`Tier ID ${tier.id} not found in database, skipping...`);
+      continue;
+    }
+    
+    const count = await generateKeysForTier(
+      tier.id,
+      tier.name,
+      tier.count,
+      globalSequence
+    );
+    
+    totalGenerated += count;
+    globalSequence += tier.count;
+  }
+  
+  console.log('\n' + '='.repeat(60));
+  console.log(`COMPLETE: Generated ${totalGenerated} total keys`);
+  console.log('='.repeat(60));
+  
+  // Print summary
+  const { data: summary } = await supabase
+    .from('licenses')
+    .select('tier_id, pricing_tiers(name)')
+    .not('tier_id', 'is', null);
+  
+  if (summary) {
+    const counts: Record<string, number> = {};
+    summary.forEach((row: any) => {
+      const name = row.pricing_tiers?.name || `tier_${row.tier_id}`;
+      counts[name] = (counts[name] || 0) + 1;
+    });
+    
+    console.log('\nKeys per tier:');
+    Object.entries(counts).forEach(([name, count]) => {
+      console.log(`  ${name}: ${count}`);
+    });
+  }
+}
+
+main().catch(console.error);
+```
+
+2. PACKAGE.JSON UPDATE
+   Add to scripts section:
+
+```json
+{
+  "scripts": {
+    "generate-keys": "ts-node scripts/generate-tier-keys.ts"
+  },
+  "devDependencies": {
+    "ts-node": "^10.9.2",
+    "typescript": "^5.0.0"
+  }
+}
+```
+
+3. VERIFICATION QUERIES
+
+After running the script, verify with:
+
+```sql
+-- Count keys per tier
+SELECT 
+  pt.name as tier,
+  pt.price_cents / 100.0 as price,
+  COUNT(l.id) as total_keys,
+  COUNT(l.id) FILTER (WHERE l.purchased_at IS NOT NULL) as sold,
+  COUNT(l.id) FILTER (WHERE l.purchased_at IS NULL) as available
+FROM pricing_tiers pt
+LEFT JOIN licenses l ON l.tier_id = pt.id
+GROUP BY pt.id, pt.name, pt.price_cents
+ORDER BY pt.sort_order;
+
+-- Verify sequence numbers are correct
+SELECT tier_id, MIN(tier_sequence), MAX(tier_sequence), COUNT(*)
+FROM licenses
+WHERE tier_id IS NOT NULL
+GROUP BY tier_id
+ORDER BY tier_id;
+
+-- Sample keys from each tier
+SELECT tier_id, key, tier_sequence
+FROM licenses
+WHERE tier_id IS NOT NULL
+ORDER BY tier_sequence
+LIMIT 5;
+```
+
+--------------------------------------------------------------------------------
+ACCEPTANCE CRITERIA
+--------------------------------------------------------------------------------
+
+[ ] Script file created at scripts/generate-tier-keys.ts
+[ ] Script generates keys in correct FM-XXXXX-XXXXX-XXXXX-XXXXX format
+[ ] Keys exclude confusing characters (I, O, 0, 1)
+[ ] Correct number of keys per tier (15, 385, 1600, 1000)
+[ ] tier_sequence is globally sequential (1-15, 16-400, etc.)
+[ ] All keys have type = 'pro'
+[ ] Keys have proper metadata with generation timestamp
+[ ] Script handles duplicates gracefully
+[ ] Script can be re-run without breaking existing data
+[ ] Verification queries return expected counts
+
+--------------------------------------------------------------------------------
+EXECUTION INSTRUCTIONS
+--------------------------------------------------------------------------------
+
+1. Ensure Task 01 migration has been run first
+2. Set environment variable: SUPABASE_SERVICE_ROLE_KEY
+3. Run: npm run generate-keys (or npx ts-node scripts/generate-tier-keys.ts)
+4. Verify with SQL queries above
+
+--------------------------------------------------------------------------------
+NOTES
+--------------------------------------------------------------------------------
+
+- Keys are generated but NOT claimed—purchased_at, customer_email, etc. remain NULL
+- The tier_sequence creates a global ordering: key #1 is tier 1, key #16 is tier 2, etc.
+- The 'standard' tier gets 1000 keys initially—more can be generated later
+- If you need to regenerate, delete existing tiered keys first:
+  DELETE FROM licenses WHERE tier_id IS NOT NULL AND purchased_at IS NULL;
+
+--------------------------------------------------------------------------------
+AFTER COMPLETION
+--------------------------------------------------------------------------------
+
+1. Create 02_IMPLEMENTATION_SUMMARY.txt with:
+   - Total keys generated per tier
+   - Any adjustments to the script
+   - Sample output from verification queries
+
+2. Update TASK_CHECKLIST.txt to mark this task complete
+
+================================================================================

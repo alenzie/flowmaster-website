@@ -1,0 +1,365 @@
+================================================================================
+TASK 07: TIER 1 PIONEER EMAIL - DESIGN DOCUMENT
+================================================================================
+
+🟡 DESIGN PHASE REQUIRED
+
+This task creates personalized email delivery for license purchases, with 
+special treatment for the first 15 buyers (Pioneers). Before implementing,
+finalize the personalized message content.
+
+--------------------------------------------------------------------------------
+EMAIL SYSTEM OVERVIEW
+--------------------------------------------------------------------------------
+
+Provider: Resend (https://resend.com)
+From Address: Flowmaster <hello@flowmaster.live>
+Reply-To: support@flowmaster.live
+Domain: flowmaster.live (needs DNS verification)
+
+RATE LIMITS:
+  - Free tier: 100 emails/day, 3,000 emails/month
+  - If launching with >100 sales/day expected, upgrade Resend plan
+
+--------------------------------------------------------------------------------
+DESIGN DECISION 1: PIONEER MESSAGE STRATEGY
+--------------------------------------------------------------------------------
+
+The spec calls for personalized messages for Tier 1 (Pioneer) buyers.
+Currently provides 3 unique + 1 default message.
+
+OPTION A: 3 Unique + Default (Current Spec)
+  - Pioneers 1, 2, 3 get unique messages
+  - Pioneers 4-15 get same default message
+  - Simpler to maintain
+  
+OPTION B: All 15 Unique Messages
+  - Every pioneer gets a truly unique message
+  - More personal, more memorable
+  - Requires writing 15 messages now
+  
+OPTION C: Template with Variables
+  - Single template with dynamic elements
+  - "You're Pioneer #[X] of 15..."
+  - Less personal but consistent
+
+OPTION D: Tiered Uniqueness
+  - Pioneers 1-5: fully unique
+  - Pioneers 6-10: semi-unique (2-3 variations)
+  - Pioneers 11-15: shared template
+  - Balance of personalization and effort
+
+▶ MESSAGE STRATEGY: _____________ (A / B / C / D)
+
+--------------------------------------------------------------------------------
+DESIGN DECISION 2: MESSAGE TONE & VOICE
+--------------------------------------------------------------------------------
+
+Current spec tone: Casual, grateful, emotional
+
+Example from spec:
+"You're Pioneer #1. The absolute first. I can't tell you how much this means. 
+When I started Flowmaster, I never imagined someone would trust it enough to 
+be first..."
+
+QUESTIONS:
+  1. Is this tone on-brand for Huskie/Flowmaster?
+  2. Should messages be shorter (40-50 words) or longer (80-100)?
+  3. Should messages mention specific features or keep it personal?
+  4. Sign-off: "— Huskie" or something else?
+
+TONE OPTIONS:
+
+A) EMOTIONAL GRATITUDE (Current)
+   "I can't tell you how much this means..."
+   
+B) CONFIDENT CREATOR
+   "You're about to be part of something special..."
+   
+C) FRIEND TO FRIEND
+   "Hey, real talk - you being here this early is huge..."
+   
+D) PROFESSIONAL WITH WARMTH
+   "Thank you for being among the first to support Flowmaster..."
+
+▶ TONE: _____________ (A / B / C / D)
+▶ TARGET LENGTH: _____________ words
+
+--------------------------------------------------------------------------------
+PIONEER MESSAGES TO WRITE/CONFIRM
+--------------------------------------------------------------------------------
+
+If choosing Option B (all 15 unique), fill in messages below.
+If choosing Option A (3 + default), confirm the provided messages.
+
+PIONEER #1:
+───────────────────────────────────────────────────────────────────────────────
+[CURRENT SPEC]:
+You're Pioneer #1. The absolute first. I can't tell you how much this means. 
+When I started Flowmaster, I never imagined someone would trust it enough to 
+be first. You took a chance on something brand new, and I won't forget that. 
+Thank you for believing before anyone else did. — Huskie
+
+▶ APPROVED AS-IS? [ ] YES  [ ] NO - REVISED VERSION BELOW:
+___________________________________________________________________________
+___________________________________________________________________________
+___________________________________________________________________________
+
+PIONEER #2:
+───────────────────────────────────────────────────────────────────────────────
+[CURRENT SPEC]:
+Pioneer #2. You're right there at the beginning with me. The fact that you saw 
+what Flowmaster could become and jumped in this early—that's incredible. Every 
+feature I build from here, I'll be thinking about making sure it works 
+perfectly for you. Grateful doesn't cover it. — Huskie
+
+▶ APPROVED AS-IS? [ ] YES  [ ] NO - REVISED VERSION BELOW:
+___________________________________________________________________________
+___________________________________________________________________________
+___________________________________________________________________________
+
+PIONEER #3:
+───────────────────────────────────────────────────────────────────────────────
+[CURRENT SPEC]:
+#3. Three is a magic number, right? You're part of the founding crew now. The 
+people who saw potential when Flowmaster was just getting started. I promise 
+to build something worthy of your early trust. This is just the beginning. 
+— Huskie
+
+▶ APPROVED AS-IS? [ ] YES  [ ] NO - REVISED VERSION BELOW:
+___________________________________________________________________________
+___________________________________________________________________________
+___________________________________________________________________________
+
+PIONEERS #4-15 (Default):
+───────────────────────────────────────────────────────────────────────────────
+[CURRENT SPEC]:
+You're one of the first 15 people to get Flowmaster. That makes you a 
+Pioneer—someone who believed in this before it proved itself. I built this 
+tool because I needed it, and now you're helping me turn it into something 
+bigger. I don't take that lightly. Thank you for being here at the start. 
+— Huskie
+
+▶ APPROVED AS-IS? [ ] YES  [ ] NO - REVISED VERSION BELOW:
+___________________________________________________________________________
+___________________________________________________________________________
+___________________________________________________________________________
+
+================================================================================
+IF WRITING ALL 15 UNIQUE MESSAGES:
+================================================================================
+
+PIONEER #4:
+___________________________________________________________________________
+___________________________________________________________________________
+___________________________________________________________________________
+
+PIONEER #5:
+___________________________________________________________________________
+___________________________________________________________________________
+___________________________________________________________________________
+
+PIONEER #6:
+___________________________________________________________________________
+___________________________________________________________________________
+___________________________________________________________________________
+
+PIONEER #7:
+___________________________________________________________________________
+___________________________________________________________________________
+___________________________________________________________________________
+
+PIONEER #8:
+___________________________________________________________________________
+___________________________________________________________________________
+___________________________________________________________________________
+
+PIONEER #9:
+___________________________________________________________________________
+___________________________________________________________________________
+___________________________________________________________________________
+
+PIONEER #10:
+___________________________________________________________________________
+___________________________________________________________________________
+___________________________________________________________________________
+
+PIONEER #11:
+___________________________________________________________________________
+___________________________________________________________________________
+___________________________________________________________________________
+
+PIONEER #12:
+___________________________________________________________________________
+___________________________________________________________________________
+___________________________________________________________________________
+
+PIONEER #13:
+___________________________________________________________________________
+___________________________________________________________________________
+___________________________________________________________________________
+
+PIONEER #14:
+___________________________________________________________________________
+___________________________________________________________________________
+___________________________________________________________________________
+
+PIONEER #15:
+___________________________________________________________________________
+___________________________________________________________________________
+___________________________________________________________________________
+
+--------------------------------------------------------------------------------
+DESIGN DECISION 3: EMAIL TEMPLATE DESIGN
+--------------------------------------------------------------------------------
+
+Current spec email includes:
+  - Welcome header with tier name
+  - Pioneer special message box (if applicable)
+  - License key display (prominent)
+  - "What's Included" benefits list
+  - Download CTA button
+  - Footer with support links
+
+QUESTIONS:
+  1. Should pioneer section be above or below the key?
+  2. Include hero image/logo in email?
+  3. Dark theme (matching site) or light theme (better email compat)?
+
+▶ PIONEER SECTION POSITION: _____________ (above key / below key)
+▶ INCLUDE LOGO: _____________ (yes / no)
+▶ EMAIL THEME: _____________ (dark / light / hybrid)
+
+--------------------------------------------------------------------------------
+DESIGN DECISION 4: SUBJECT LINES
+--------------------------------------------------------------------------------
+
+Current spec:
+  - Pioneer: "🌟 Pioneer #[X]: Your Flowmaster License Key"
+  - Others: "Your Flowmaster License Key — [Tier Display Name]"
+
+ALTERNATIVES:
+
+OPTION A: Current Spec
+  Pioneer: "🌟 Pioneer #3: Your Flowmaster License Key"
+  Regular: "Your Flowmaster License Key — Early Adopter Deal"
+
+OPTION B: Simpler
+  Pioneer: "You're Pioneer #3 — Here's Your Key"
+  Regular: "Your Flowmaster License Key"
+
+OPTION C: Action-Focused
+  Pioneer: "🎉 Pioneer #3: Download Flowmaster Now"
+  Regular: "Ready to Download: Your Flowmaster Key Inside"
+
+OPTION D: Personal
+  Pioneer: "Thank you, Pioneer #3"
+  Regular: "Thanks for joining Flowmaster"
+
+▶ SUBJECT LINE STYLE: _____________ (A / B / C / D)
+
+--------------------------------------------------------------------------------
+DESIGN DECISION 5: NON-PIONEER EMAILS
+--------------------------------------------------------------------------------
+
+Tiers 2-4 don't get personalized messages, but should still feel special.
+
+TIER-SPECIFIC NOTES (shown in email):
+
+EARLY ADOPTER ($19):
+  "Lock in early adopter pricing before it increases."
+  
+  ▶ KEEP OR CHANGE: _________________________________________
+
+BELIEVER ($29):
+  "Better than full price. Smart move."
+  
+  ▶ KEEP OR CHANGE: _________________________________________
+
+STANDARD ($39):
+  "The early bird deals are gone, but you still get lifetime value."
+  
+  ▶ KEEP OR CHANGE: _________________________________________
+
+--------------------------------------------------------------------------------
+TECHNICAL SETUP CHECKLIST
+--------------------------------------------------------------------------------
+
+Before implementation, complete these steps:
+
+[ ] Create Resend account at https://resend.com
+[ ] Verify flowmaster.live domain
+    - Add MX record
+    - Add SPF record  
+    - Add DKIM record
+[ ] Create API key in Resend dashboard
+[ ] Add RESEND_API_KEY to Supabase Edge Function secrets
+[ ] Test single email send via Resend dashboard
+
+--------------------------------------------------------------------------------
+TESTING PLAN
+--------------------------------------------------------------------------------
+
+PRE-LAUNCH TESTS:
+
+1. Send test email to yourself for each tier:
+   [ ] Pioneer #1 message renders correctly
+   [ ] Pioneer #2 message renders correctly
+   [ ] Pioneer #3 message renders correctly
+   [ ] Pioneer #4-15 default renders correctly
+   [ ] Early Adopter email renders correctly
+   [ ] Believer email renders correctly
+   [ ] Standard email renders correctly
+
+2. Test email clients:
+   [ ] Gmail (web)
+   [ ] Gmail (mobile app)
+   [ ] Apple Mail
+   [ ] Outlook (web)
+   [ ] Outlook (desktop)
+   [ ] Dark mode rendering
+
+3. Test content:
+   [ ] License key displays correctly and is copyable
+   [ ] Download button works
+   [ ] Support links work
+   [ ] Unsubscribe compliant (if required)
+
+--------------------------------------------------------------------------------
+FUTURE CONSIDERATIONS
+--------------------------------------------------------------------------------
+
+QUESTION: What about email resend capability?
+
+If a customer loses their email, they'll contact support. Options:
+  A) Manual resend via Supabase dashboard query
+  B) Add "Resend Email" button to admin panel
+  C) Self-service via email lookup on site
+
+▶ RESEND CAPABILITY: _____________ (A / B / C / defer)
+
+QUESTION: What about upgrade emails?
+
+If a trial user upgrades to paid, should they get a welcome email?
+If so, should it differ from a fresh purchase email?
+
+▶ UPGRADE EMAIL: _____________ (same as purchase / different / none)
+
+--------------------------------------------------------------------------------
+SIGN-OFF
+--------------------------------------------------------------------------------
+
+Before implementing, confirm:
+
+[ ] Pioneer message strategy decided
+[ ] All pioneer messages written/approved
+[ ] Tone and length confirmed
+[ ] Subject line style chosen
+[ ] Tier-specific notes finalized
+[ ] Resend account setup complete
+[ ] Domain verified
+
+Content Owner: _______________________
+Date: _______________________
+
+================================================================================
