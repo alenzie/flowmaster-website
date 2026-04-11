@@ -1,17 +1,42 @@
-# dependencies
+# ── Generated / build output ──────────────────────────────────────────────────
 node_modules/
-
-# build output
 dist/
 .astro/
 
-# environment
+# ── Environment variables ──────────────────────────────────────────────────────
+# Ignore all .env files...
 .env
 .env.*
+# ...except the example template, which must be committed
+!.env.example
 
-# macOS
+# ── OS junk ───────────────────────────────────────────────────────────────────
 .DS_Store
+Thumbs.db
 
-# IDEs
+# ── IDE / editor config ────────────────────────────────────────────────────────
 .vscode/
 .idea/
+
+# ── Internal planning & task docs ─────────────────────────────────────────────
+# Claude Code task packets, implementation checklists, planning notes.
+# Not relevant to contributors; exposes internal decision-making.
+tasks/
+docs/plans/
+
+# ── Internal business documents ───────────────────────────────────────────────
+# Pricing strategy, roadmap, and project brief packets.
+# Sensitive — not for public consumption.
+flowmaster-tiered-pricing-packet-v2/
+FLOWMASTER_FUTURE_VISION.md
+FLOWMASTER_WEBSITE_PACKET.txt
+PROJECT_COMPLETION_CHECKLIST.md
+
+# ── Non-web assets ────────────────────────────────────────────────────────────
+# Design files, mobile mockups, and reference material used internally.
+# Not part of the site source; would bloat the repo.
+extra/
+mobilemock/
+
+# ── Stray files ───────────────────────────────────────────────────────────────
+url.txt
