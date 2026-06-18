@@ -17,7 +17,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
   <!-- Platform Cards -->
   <section class="pb-20">
     <div class="container-main">
-      <div class="grid md:grid-cols-3 gap-6 max-w-4xl mx-auto">
+      <div class="grid md:grid-cols-2 gap-6 max-w-3xl mx-auto">
         <!-- Windows Card - Active -->
         <div class="card text-center relative overflow-hidden group">
           <div class="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-brand-red to-brand-red-bright"></div>
@@ -50,26 +50,6 @@ import BaseLayout from '../layouts/BaseLayout.astro';
             </svg>
             <h3 class="text-xl mb-2 text-gray-400">macOS</h3>
             <p class="text-sm text-gray-500 mb-6">Apple Silicon & Intel</p>
-            <button
-              disabled
-              class="btn-secondary w-full opacity-50 cursor-not-allowed"
-            >
-              Coming Soon
-            </button>
-          </div>
-        </div>
-
-        <!-- Linux Card - Coming Soon -->
-        <div class="card text-center opacity-60 relative">
-          <div class="absolute top-3 right-3 bg-gray-700 text-gray-300 text-xs px-2 py-1 rounded-full">
-            Coming Soon
-          </div>
-          <div class="py-8">
-            <svg class="w-16 h-16 mx-auto mb-4 text-gray-500" fill="currentColor" viewBox="0 0 24 24">
-              <path d="M12.504 0c-.155 0-.311.001-.465.003-.653.014-1.293.106-1.904.31-.59.199-1.117.487-1.565.856-.448.368-.826.815-1.116 1.323-.29.508-.48 1.073-.56 1.68-.08.607-.05 1.25.09 1.917.14.666.38 1.342.72 1.998.34.656.77 1.276 1.29 1.834.52.558 1.12 1.038 1.78 1.409a7.54 7.54 0 0 0 1.896.687c.183.038.369.062.556.073l-.001.004c.017.001.034.001.05.003.202.009.403.006.605-.008.202.014.403.017.605.008.016-.002.033-.002.05-.003l-.001-.004a7.54 7.54 0 0 0 2.452-.76c.66-.371 1.26-.851 1.78-1.409.52-.558.95-1.178 1.29-1.834.34-.656.58-1.332.72-1.998.14-.667.17-1.31.09-1.917-.08-.607-.27-1.172-.56-1.68-.29-.508-.668-.955-1.116-1.323-.448-.369-.975-.657-1.565-.856-.611-.204-1.251-.296-1.904-.31A18.6 18.6 0 0 0 12.504 0zM9.126 7.765c.238-.64.545-1.204.911-1.68.365-.476.785-.856 1.246-1.13.46-.273.952-.44 1.455-.498.502-.058 1.003-.01 1.485.142.48.152.932.411 1.33.77.398.359.737.812.995 1.35.258.538.424 1.158.483 1.848.024.281.026.575.005.879l.005.005c-.153.04-.306.085-.456.138-.538.188-1.046.467-1.506.83-.46.362-.868.805-1.207 1.317-.107.161-.205.33-.294.503-.089-.173-.187-.342-.294-.503-.339-.512-.747-.955-1.207-1.317-.46-.363-.968-.642-1.506-.83a5.28 5.28 0 0 0-.456-.138l.005-.005c-.021-.304-.019-.598.005-.879.059-.69.225-1.31.483-1.848.03-.063.062-.125.095-.184zm3.378 8.985c1.49 0 2.858.424 3.996 1.144 1.138.72 2.048 1.736 2.644 2.944h.006c-.094.028-.188.06-.28.097-.538.215-1.004.527-1.382.932-.378.404-.663.898-.843 1.474a4.96 4.96 0 0 0-.183 1.77c-.81.196-1.662.298-2.538.298-.876 0-1.728-.102-2.538-.298a4.96 4.96 0 0 0-.183-1.77c-.18-.576-.465-1.07-.843-1.474-.378-.405-.844-.717-1.382-.932a4.31 4.31 0 0 0-.28-.097h.006c.596-1.208 1.506-2.224 2.644-2.944 1.138-.72 2.506-1.144 3.996-1.144z"/>
-            </svg>
-            <h3 class="text-xl mb-2 text-gray-400">Linux</h3>
-            <p class="text-sm text-gray-500 mb-6">Ubuntu, Debian, Fedora</p>
             <button
               disabled
               class="btn-secondary w-full opacity-50 cursor-not-allowed"
