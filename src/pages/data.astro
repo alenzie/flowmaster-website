@@ -4,9 +4,9 @@ import BaseLayout from '../layouts/BaseLayout.astro';
 <BaseLayout title="Trial data" description="What Flowmaster uses to verify the free trial and operate the app.">
   <section class="section-padding"><div class="container-main max-w-2xl mx-auto space-y-6">
     <h1>What the trial service receives</h1>
-    <p>Flowmaster derives a fingerprint from hardware information on your PC and sends the resulting hash to the trial service. The service keeps the machine record, action counts, reservations, and blocking status so reinstalling does not restart the trial.</p>
+    <p>Flowmaster derives hashed device identifiers from hardware information on your PC and sends those hashes to the trial service. Your signed-in account is associated with the machine record. Raw hardware serial numbers are not uploaded. The service keeps the machine record, action counts, reservations, and blocking status so reinstalling does not restart the trial.</p>
     <p>The app also reports usage events such as app launches, saved marks, completed exports, and update checks. These can include the app version, action type, clip counts and durations. Requests reveal the connecting IP address. Crash reports can include operating-system details and error information.</p>
-    <p>Marking, clipping, and playback process your recordings locally. These trial checks do not upload the recordings. Existing license records can link a machine to an earlier account; each trial user signs in with a free account.</p>
+    <p>Marking, clipping, and playback process your recordings locally. These trial checks do not upload the recordings. Each trial user signs in with a free account. Account messages record whether you explicitly acknowledge them.</p>
     <p>Authorized administrators can review machine usage, block access, and review interrupted trial reservations. A hardware hash is a persistent identifier, not a promise of anonymity.</p>
     <p>To ask about your trial record, use the contact details on this site. A free account is required. Paid trials and upgrades are disabled.</p>
     <a class="btn-primary" href="/download">Trial and release details</a>
