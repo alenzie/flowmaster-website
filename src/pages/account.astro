@@ -1,0 +1,90 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+---
+<BaseLayout title="Your Flowmaster account" description="Create a free Flowmaster account, confirm your email, or reset your password. Paid upgrades are unavailable.">
+  <section class="account-shell">
+    <div class="account-intro"><p class="eyebrow">FLOWMASTER ACCOUNT</p><h1>One account.<br />Your recording workflow.</h1><p>Create a free account to use Flowmaster. Each PC has a 30-action trial. Creating another account or reinstalling keeps that PC’s existing usage.</p><p>Paid trials and upgrades are unavailable.</p></div>
+    <div class="account-card">
+      <h2 id="account-title">Sign in</h2>
+      <p id="account-message" role="status" aria-live="polite"></p>
+      <form id="account-form">
+        <label for="account-email">Email</label><input id="account-email" type="email" autocomplete="email" required />
+        <label for="account-password">Password</label><input id="account-password" type="password" autocomplete="current-password" required minlength="8" />
+        <button id="account-submit" type="submit">Sign in</button>
+      </form>
+      <div id="account-options"><button id="account-switch" type="button">Create a free account</button><button id="account-recover" type="button">Forgot your password?</button></div>
+      <form id="password-form" hidden>
+        <label for="new-password">New password</label><input id="new-password" type="password" autocomplete="new-password" required minlength="8" />
+        <label for="confirm-password">Confirm password</label><input id="confirm-password" type="password" autocomplete="new-password" required minlength="8" />
+        <button type="submit">Save password</button>
+      </form>
+      <div id="account-signed-in" hidden><p>Your account is ready. Open Flowmaster and sign in with the same email and password.</p><a href="/download">Download and trial details →</a><button id="account-signout" type="button">Sign out of this browser</button></div>
+      <p class="account-note">An internet connection is required to sign in and verify trial usage. <a href="/data">How we use your data</a></p>
+    </div>
+  </section>
+</BaseLayout>
+<script>
+  import { createClient } from '@supabase/supabase-js';
+  import config from '../data/supabase.json';
+  let recovery = new URLSearchParams(location.hash.slice(1)).get('type') === 'recovery';
+  const db = createClient(config.url, config.publishableKey, { auth: { storage: sessionStorage } });
+  const $ = (id: string) => document.getElementById(id)!;
+  const input = (id: string) => $(id) as HTMLInputElement;
+  const message = (text: string) => { $('account-message').textContent = text; };
+  let signup = false;
+  function showSession(signedIn: boolean, reset = false) {
+    $('account-form').hidden = signedIn;
+    $('account-options').hidden = signedIn;
+    $('password-form').hidden = !reset;
+    $('account-signed-in').hidden = !signedIn || reset;
+    $('account-title').textContent = reset ? 'Set a new password' : signedIn ? 'You’re signed in' : signup ? 'Create a free account' : 'Sign in';
+  }
+  db.auth.onAuthStateChange((event, session) => { showSession(!!session, !!session && (event === 'PASSWORD_RECOVERY' || recovery)); });
+  db.auth.getSession().then(({ data, error }) => { if (error) message(error.message); else showSession(!!data.session, !!data.session && recovery); });
+  $('account-switch').addEventListener('click', () => {
+    signup = !signup;
+    $('account-title').textContent = signup ? 'Create a free account' : 'Sign in';
+    $('account-submit').textContent = signup ? 'Create account' : 'Sign in';
+    $('account-switch').textContent = signup ? 'Already have an account? Sign in' : 'Create a free account';
+    input('account-password').autocomplete = signup ? 'new-password' : 'current-password';
+    message('');
+  });
+  $('account-form').addEventListener('submit', async (event) => {
+    event.preventDefault();
+    const button = $('account-submit') as HTMLButtonElement; button.disabled = true; message('');
+    try {
+      const credentials = { email: input('account-email').value.trim(), password: input('account-password').value };
+      const { error } = signup ? await db.auth.signUp({ ...credentials, options: { emailRedirectTo: 'https://flowmaster.live/account' } }) : await db.auth.signInWithPassword(credentials);
+      if (error) throw error;
+      input('account-password').value = '';
+      if (signup) message('Check your email to confirm your account, then sign in to Flowmaster.');
+    } catch (error) { message(error instanceof Error ? error.message : 'Could not complete your request. Please retry.'); }
+    finally { button.disabled = false; }
+  });
+  $('account-recover').addEventListener('click', async () => {
+    const email = input('account-email').value.trim();
+    if (!email || !input('account-email').checkValidity()) { message('Enter your email address first.'); return; }
+    const button = $('account-recover') as HTMLButtonElement; button.disabled = true;
+    try {
+      const { error } = await db.auth.resetPasswordForEmail(email, { redirectTo: 'https://flowmaster.live/account' });
+      message(error ? error.message : 'If this account exists, you’ll receive a password-reset email.');
+    } catch { message('Could not send the reset email. Check your connection and retry.'); }
+    finally { button.disabled = false; }
+  });
+  $('password-form').addEventListener('submit', async (event) => {
+    event.preventDefault();
+    if (input('new-password').value !== input('confirm-password').value) { message('Passwords do not match.'); return; }
+    const button = $('password-form').querySelector('button')!; button.disabled = true;
+    try {
+      const { error } = await db.auth.updateUser({ password: input('new-password').value });
+      if (error) throw error;
+      input('new-password').value = ''; input('confirm-password').value = '';
+      recovery = false; await db.auth.signOut(); showSession(false); message('Password updated. Sign in to Flowmaster with your new password.');
+    } catch (error) { message(error instanceof Error ? error.message : 'Could not change your password.'); }
+    finally { button.disabled = false; }
+  });
+  $('account-signout').addEventListener('click', async () => { const { error } = await db.auth.signOut(); if (error) message(error.message); else showSession(false); });
+</script>
+<style>
+.account-shell{max-width:1100px;margin:auto;padding:100px 24px;display:grid;grid-template-columns:1.1fr 1fr;gap:72px;align-items:start}.eyebrow{font-size:12px;letter-spacing:.18em;color:#a6ffba;margin-bottom:24px}.account-intro h1{font-size:clamp(38px,5vw,64px);line-height:1.06;margin-bottom:30px}.account-intro p:not(.eyebrow){color:#b3b7bf;line-height:1.7;margin-top:20px}.account-card{background:#15181b;border:1px solid #34393f;border-radius:16px;padding:30px}.account-card h2{font-size:25px;margin-bottom:18px}.account-card label{display:block;font-size:13px;margin:18px 0 7px}.account-card input{width:100%;background:#0b0d10;border:1px solid #42484f;border-radius:6px;padding:12px;color:white}.account-card button[type=submit]{display:block;width:100%;background:#a6ffba;color:#0a1710;padding:12px;margin-top:24px;border-radius:6px;font-weight:650}.account-card button:disabled{opacity:.5}.account-card button[type=button]{display:block;color:#a6ffba;text-align:left;margin-top:17px}.account-card a{color:#a6ffba}.account-card [hidden]{display:none!important}#account-message{color:#cbd0d9;font-size:14px;line-height:1.5}.account-note{font-size:12px;line-height:1.6;color:#979fa9;margin-top:30px}.account-card input:focus-visible,.account-card button:focus-visible{outline:2px solid #a6ffba;outline-offset:3px}@media(max-width:760px){.account-shell{grid-template-columns:1fr;gap:36px;padding:60px 20px}.account-card{padding:24px}}
+</style>

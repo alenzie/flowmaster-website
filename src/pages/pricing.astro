@@ -1,64 +1,11 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
-import TierSelector from '../components/TierSelector.astro';
-
-// Fetch tier data at build time
-let tiers = [];
-let currentTierId = 1;
-
-try {
-  const response = await fetch(
-    'https://jwwbwozjvfiheunavbnk.supabase.co/functions/v1/get-tier-status',
-    { method: 'POST' }
-  );
-  const data = await response.json();
-  tiers = data.tiers || [];
-  currentTierId = data.currentTier?.tier_id || 1;
-} catch (err) {
-  console.error('Failed to fetch tier data:', err);
-}
 ---
-
-<BaseLayout title="Pricing" description="Get your Flowmaster Pro license. Early adopter pricing - the earlier you join, the less you pay.">
-  <main>
-    <TierSelector tiers={tiers} currentTierId={currentTierId} />
-
-    <!-- FAQ Section -->
-    <section class="section-padding">
-      <div class="container-main">
-        <h2 class="text-center mb-8">Questions?</h2>
-        <div class="max-w-2xl mx-auto space-y-4">
-          <details class="card cursor-pointer">
-            <summary class="font-semibold">Why does the price increase?</summary>
-            <p class="mt-3 text-gray-400">
-              Early supporters take the biggest risk on a new product. They deserve
-              the best deal. As Flowmaster proves itself and grows, the price
-              reflects that value.
-            </p>
-          </details>
-          <details class="card cursor-pointer">
-            <summary class="font-semibold">Is this really lifetime access?</summary>
-            <p class="mt-3 text-gray-400">
-              Yes. One payment, yours forever. All future updates included. No
-              subscriptions, no upgrade fees.
-            </p>
-          </details>
-          <details class="card cursor-pointer">
-            <summary class="font-semibold">What if I miss my tier?</summary>
-            <p class="mt-3 text-gray-400">
-              You can still purchase at the next tier's price. The core product
-              is identical — only the price changes.
-            </p>
-          </details>
-          <details class="card cursor-pointer">
-            <summary class="font-semibold">How do I activate my key?</summary>
-            <p class="mt-3 text-gray-400">
-              After purchase, you'll receive your license key instantly. Download
-              Flowmaster, enter your key on first launch, and you're all set.
-            </p>
-          </details>
-        </div>
-      </div>
-    </section>
-  </main>
+<BaseLayout title="Free trial" description="Flowmaster is preparing a free 30-action trial for Windows. Paid trials and purchases are unavailable.">
+  <section class="section-padding"><div class="container-main max-w-2xl mx-auto text-center">
+    <h1 class="mb-6">Try the workflow. No payment card.</h1>
+    <p class="text-lg mb-6">Flowmaster’s trial includes 30 actions per PC. It requires an internet connection to verify usage, and a free account, with no time limit.</p>
+    <p class="mb-8">Accounts are free. Paid trials and upgrades are currently unavailable. See the download page for the release status and exact trial rules.</p>
+    <a class="btn-primary" href="/download">Free trial details</a>
+  </div></section>
 </BaseLayout>
