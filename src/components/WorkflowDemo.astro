@@ -1,11 +1,11 @@
 ---
 // The owner's portfolio26 workflow composition, hosted with its own media here.
-const demoUrl = '/demos/flowmaster-ux-story/index.html';
+const demoUrl = '/demos/flowmaster-ux-story/index.html?v=mobile-2';
 ---
 <section id="workflow-demo" aria-label="See Flowmaster in action" class="workflow-demo">
   <figure>
     <div class="workflow-window" data-workflow-window>
-      <iframe data-workflow-frame data-src={`${demoUrl}?embed=1`}
+      <iframe data-workflow-frame data-src={`${demoUrl}&embed=1`}
         title="Flowmaster walkthrough: record in OBS, mark highlights, extract clips, and clean up"
         scrolling="no" allow="fullscreen" allowfullscreen></iframe>
     </div>
@@ -17,6 +17,7 @@ const demoUrl = '/demos/flowmaster-ux-story/index.html';
       <div class="workflow-actions">
         <button type="button" data-workflow-play disabled aria-controls="workflow-player">Loading walkthrough…</button>
         <a href={demoUrl} target="_blank" rel="noopener">Open full view <span aria-hidden="true">↗</span><span class="sr-only"> (new tab)</span></a>
+        <span data-workflow-status role="status" class="workflow-status"></span>
       </div>
     </figcaption>
   </figure>
@@ -30,7 +31,9 @@ const demoUrl = '/demos/flowmaster-ux-story/index.html';
   figcaption { display: flex; justify-content: space-between; align-items: center; gap: 1.5rem; padding-top: 1.25rem; }
   h2 { font-size: 1.25rem; line-height: 1.4; margin: 0 0 .35rem; }
   p { font-size: .875rem; color: #a3a3a3; margin: 0; max-width: 36rem; }
-  .workflow-actions { display: flex; align-items: center; gap: 1.25rem; flex-shrink: 0; }
+  .workflow-actions { display: flex; align-items: center; gap: 1.25rem; flex-shrink: 0; flex-wrap: wrap; }
+  .workflow-status { flex-basis: 100%; color: #b6bcc6; font-size: .8rem; max-width: 22rem; }
+  .workflow-status:empty { display: none; }
   button, a { font: inherit; font-size: .875rem; }
   button { min-height: 44px; padding: .65rem 1rem; border: 1px solid #484848; border-radius: 6px; background: #1a1a1a; color: #f2f2f2; cursor: pointer; }
   button:hover:not(:disabled) { border-color: #f43f43; }
@@ -50,25 +53,49 @@ const demoUrl = '/demos/flowmaster-ux-story/index.html';
   const viewport = document.querySelector<HTMLElement>('[data-workflow-window]');
   const frame = document.querySelector<HTMLIFrameElement>('[data-workflow-frame]');
   const button = document.querySelector<HTMLButtonElement>('[data-workflow-play]');
-  if (viewport && frame && button) {
+  const status = document.querySelector<HTMLElement>('[data-workflow-status]');
+  if (viewport && frame && button && status) {
     frame.id = 'workflow-player';
     let loaded = false;
     let playing = false;
-    const command = (action: 'play' | 'pause') => frame.contentWindow?.postMessage({ type: 'flowmaster:playback', action }, location.origin);
+    let failed = false;
+    let loadTimer: ReturnType<typeof setTimeout>;
+    const fail = (message: string) => {
+      failed = true;
+      playing = false;
+      button.disabled = false;
+      button.textContent = 'Retry walkthrough';
+      status.textContent = message;
+    };
+    // Synchronous same-origin dispatch preserves the tap for media.play().
+    const command = (action: 'play' | 'pause') => {
+      try { frame.contentWindow?.dispatchEvent(new CustomEvent('flowmaster:playback', {detail:{action}})); }
+      catch { /* The frame can briefly be unavailable during a retry. */ }
+    };
     const load = () => {
       if (loaded) return;
       loaded = true;
+      failed = false;
+      button.disabled = true;
+      button.textContent = 'Loading walkthrough…';
+      status.textContent = '';
+      clearTimeout(loadTimer);
+      loadTimer = setTimeout(() => fail('The walkthrough couldn’t load. Please try again.'), 20000);
       frame.src = frame.dataset.src!;
     };
     window.addEventListener('message', event => {
       if (event.source !== frame.contentWindow || event.origin !== location.origin) return;
-      if (event.data?.type === 'flowmaster:ready') { button.disabled = false; button.textContent = 'Play walkthrough'; }
+      if (event.data?.type === 'flowmaster:ready') { clearTimeout(loadTimer); failed = false; status.textContent = ''; button.disabled = false; button.textContent = 'Play walkthrough'; }
+      if (event.data?.type === 'flowmaster:error') fail('The footage couldn’t load. Please try again.');
       if (event.data?.type === 'flowmaster:state') {
         playing = event.data.playing === true;
-        if (!button.disabled) button.textContent = playing ? 'Pause walkthrough' : 'Play walkthrough';
+        if (!button.disabled && !failed) button.textContent = playing ? 'Pause walkthrough' : 'Play walkthrough';
       }
     });
-    button.addEventListener('click', () => command(playing ? 'pause' : 'play'));
+    button.addEventListener('click', () => {
+      if (failed) { loaded = false; load(); }
+      else command(playing ? 'pause' : 'play');
+    });
     document.addEventListener('visibilitychange', () => { if (document.hidden) command('pause'); });
     if ('IntersectionObserver' in window) {
       const lazy = new IntersectionObserver(entries => {

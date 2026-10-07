@@ -1,0 +1,6 @@
+{
+  "scenario": "Media unavailable; old full-buffer gate",
+  "disabled": true,
+  "button": "Loading walkthrough…",
+  "gate": "GAME CAPTURE · 2560×1440 · 60 FPS\nOBS Studio 30.2.3\nWebSocket :4455\nRecording\n00:00:00\nDisplay Capture\nWebcam\nMic\nDesktop Audio\nF9\nMark 0 saved\n00:00:00\nFlowmaster Beta 0.2.1\n—\n□\n✕\n☰\nFLOWMASTER\nMARK\nCLIP\nCLEAN\nOBS: Connected\nIDLE\nRECENT SESSIONS\n2:41:12\n0:21:48\n2026-07-27 12-19-04.mkv\n11 marks\nJul 27, 2026, 12:19 PM\n1:34:47\n2026-07-14 21-54-39.mkv\n1 mark\nJul 14, 2026, 9:54 PM\n3:11:07\n2026-07-09 19-02-11.mkv\n24 marks\nJul 9, 2026, 7:02 PM\nOpen Project Assembler\nPress F9 during recording to create timestamp markers.\n◀\nFLOWMASTER\n▶\nOBS\nChrome\nDiscord\nFlowmaster\n21:54\n00 / 14\nGet set up\nIt’s time to get started!\nHOW IT WORKS\nBuffering footage + music… 0%"
+}

@@ -1,0 +1,49 @@
+{
+  "url": "http://127.0.0.1:4342/",
+  "checks": [
+    {
+      "width": 1440,
+      "reducedMotion": false,
+      "placement": "workflow-demo",
+      "media": [
+        {
+          "ready": 0,
+          "width": 0,
+          "paused": true,
+          "src": "/demos/flowmaster-ux-story/uploads/gameplay-h264.mp4"
+        }
+      ],
+      "geometry": {
+        "width": 1152,
+        "height": 648,
+        "top": 0
+      },
+      "playPause": true,
+      "offscreenPause": true,
+      "errors": [],
+      "failures": []
+    },
+    {
+      "width": 390,
+      "reducedMotion": true,
+      "placement": "workflow-demo",
+      "media": [
+        {
+          "ready": 0,
+          "width": 0,
+          "paused": true,
+          "src": "/demos/flowmaster-ux-story/uploads/gameplay-h264.mp4"
+        }
+      ],
+      "geometry": {
+        "width": 357.33331298828125,
+        "height": 201,
+        "top": 0
+      },
+      "playPause": true,
+      "offscreenPause": true,
+      "errors": [],
+      "failures": []
+    }
+  ]
+}
