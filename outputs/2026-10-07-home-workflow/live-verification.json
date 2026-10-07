@@ -1,0 +1,61 @@
+{
+  "url": "https://flowmaster.live/",
+  "checks": [
+    {
+      "width": 1440,
+      "reducedMotion": false,
+      "placement": "workflow-demo",
+      "media": [
+        {
+          "ready": 4,
+          "width": 1920,
+          "paused": true,
+          "src": "/demos/flowmaster-ux-story/uploads/2026-03-08%2000-27-29_clip_005_0m12s-0m32s_1080p30.webm"
+        },
+        {
+          "ready": 4,
+          "width": 1920,
+          "paused": true,
+          "src": "/demos/flowmaster-ux-story/uploads/2026-03-08%2000-27-29_clip_005_0m12s-0m32s_1080p30.webm"
+        }
+      ],
+      "geometry": {
+        "width": 1152,
+        "height": 648,
+        "top": 0
+      },
+      "playPause": true,
+      "offscreenPause": true,
+      "errors": [],
+      "failures": []
+    },
+    {
+      "width": 390,
+      "reducedMotion": true,
+      "placement": "workflow-demo",
+      "media": [
+        {
+          "ready": 4,
+          "width": 1920,
+          "paused": true,
+          "src": "/demos/flowmaster-ux-story/uploads/2026-03-08%2000-27-29_clip_005_0m12s-0m32s_1080p30.webm"
+        },
+        {
+          "ready": 4,
+          "width": 1920,
+          "paused": true,
+          "src": "/demos/flowmaster-ux-story/uploads/2026-03-08%2000-27-29_clip_005_0m12s-0m32s_1080p30.webm"
+        }
+      ],
+      "geometry": {
+        "width": 357.33331298828125,
+        "height": 201,
+        "top": 0
+      },
+      "playPause": true,
+      "offscreenPause": true,
+      "errors": [],
+      "failures": []
+    }
+  ]
+}
