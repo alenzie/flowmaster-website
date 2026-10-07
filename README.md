@@ -167,3 +167,7 @@ The workflow file is at `.github/workflows/deploy.yml`.
 ## License Types
 
 Current license tiers recognized by the system: `trial | beta | scout | supporter | pro | pioneer | early_adopter | believer | standard`
+
+## Transactional emails
+
+See [TRANSACTIONAL_EMAILS.md](TRANSACTIONAL_EMAILS.md) for approved designs, sender identity and live account-email setup status.
