@@ -46,6 +46,8 @@ for (const [name,engine] of [['chromium',chromium],['webkit',webkit]]) {
    }
    assert.equal(await button.textContent(),'Play walkthrough');
    const frame=page.frames().find(f=>f.url().includes('/demos/flowmaster-ux-story/'));
+   assert.equal(new URL(frame.url()).searchParams.get('v'),'mobile-2');
+   assert.ok((await frame.locator('video').first().getAttribute('src')).endsWith('/gameplay-h264.mp4'));
    assert.equal(await frame.locator('video,audio').evaluateAll(els=>els.every(v=>v.paused)),true);
    if(scenario==='no-preload') assert.equal(await frame.locator('video').evaluate(v=>v.readyState),0);
    assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false);
