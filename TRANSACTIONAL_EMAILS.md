@@ -37,3 +37,7 @@ Resend is the selected transactional delivery provider. Sending identities do no
 Domain administration recorded by owner: alexanderblair.com → Cloudflare; spindle.chat → GoDaddy; flowmaster.live → Namecheap. These are historical setup notes, not a current DNS verification. Check the relevant Resend domain and actual DNS authority before deployment; do not overwrite mailbox MX records based on this note.
 
 Keep provider credentials server-side in the deployment secret store or a gitignored local environment file. Never copy keys into these notes, browser assets, email HTML or screenshots. A credential configured for one project does not establish configuration in another.
+
+## Gmail dark-mode correction
+
+2026-10-07: owner-reported Gmail iOS inversion made the original transparent white logo unreadable on a light background. The suite’s shared Auth email frame now preserves backgrounds and text using Gmail-targeted CSS; both live templates were updated and read back. 24 browser simulation cases passed; real Gmail appearance remains pending owner review of a fresh preview. Original approved PNGs above remain historical design references, not cross-client proof. See `flowmastersuite/docs/email/README.md` on the integration branch for evidence and current status.
