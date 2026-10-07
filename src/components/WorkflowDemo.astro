@@ -1,0 +1,84 @@
+---
+// The owner's portfolio26 workflow composition, hosted with its own media here.
+const demoUrl = '/demos/flowmaster-ux-story/index.html';
+---
+<section id="workflow-demo" aria-label="See Flowmaster in action" class="workflow-demo">
+  <figure>
+    <div class="workflow-window" data-workflow-window>
+      <iframe data-workflow-frame data-src={`${demoUrl}?embed=1`}
+        title="Flowmaster walkthrough: record in OBS, mark highlights, extract clips, and clean up"
+        scrolling="no" allow="fullscreen" allowfullscreen></iframe>
+    </div>
+    <figcaption>
+      <div class="workflow-caption">
+        <h2>See Flowmaster in action.</h2>
+        <p>Record, mark, clip, and clean. An animated walkthrough with example footage.</p>
+      </div>
+      <div class="workflow-actions">
+        <button type="button" data-workflow-play disabled aria-controls="workflow-player">Loading walkthrough…</button>
+        <a href={demoUrl} target="_blank" rel="noopener">Open full view <span aria-hidden="true">↗</span><span class="sr-only"> (new tab)</span></a>
+      </div>
+    </figcaption>
+  </figure>
+</section>
+
+<style>
+  .workflow-demo { max-width: 1200px; margin: 0 auto; padding: 0 1.5rem 5rem; scroll-margin-top: 6rem; }
+  figure { margin: 0; }
+  .workflow-window { position: relative; width: 100%; aspect-ratio: 16 / 9; overflow: hidden; border-radius: 12px; background: #07080b; }
+  iframe { position: absolute; inset: 0; display: block; width: 100%; height: 100%; border: 0; background: #07080b; }
+  figcaption { display: flex; justify-content: space-between; align-items: center; gap: 1.5rem; padding-top: 1.25rem; }
+  h2 { font-size: 1.25rem; line-height: 1.4; margin: 0 0 .35rem; }
+  p { font-size: .875rem; color: #a3a3a3; margin: 0; max-width: 36rem; }
+  .workflow-actions { display: flex; align-items: center; gap: 1.25rem; flex-shrink: 0; }
+  button, a { font: inherit; font-size: .875rem; }
+  button { min-height: 44px; padding: .65rem 1rem; border: 1px solid #484848; border-radius: 6px; background: #1a1a1a; color: #f2f2f2; cursor: pointer; }
+  button:hover:not(:disabled) { border-color: #f43f43; }
+  button:disabled { color: #a3a3a3; cursor: wait; }
+  a { color: #d4d4d4; padding: .7rem 0; }
+  a:hover { color: #ff5959; }
+  button:focus-visible, a:focus-visible { outline: 2px solid #ff5959; outline-offset: 4px; }
+  @media (max-width: 767px) {
+    .workflow-demo { padding: 1.5rem 1rem 3rem; }
+    .workflow-window { border-radius: 8px; }
+    figcaption { align-items: flex-start; flex-direction: column; gap: 1rem; }
+    .workflow-actions { flex-wrap: wrap; }
+  }
+</style>
+
+<script>
+  const viewport = document.querySelector<HTMLElement>('[data-workflow-window]');
+  const frame = document.querySelector<HTMLIFrameElement>('[data-workflow-frame]');
+  const button = document.querySelector<HTMLButtonElement>('[data-workflow-play]');
+  if (viewport && frame && button) {
+    frame.id = 'workflow-player';
+    let loaded = false;
+    let playing = false;
+    const command = (action: 'play' | 'pause') => frame.contentWindow?.postMessage({ type: 'flowmaster:playback', action }, location.origin);
+    const load = () => {
+      if (loaded) return;
+      loaded = true;
+      frame.src = frame.dataset.src!;
+    };
+    window.addEventListener('message', event => {
+      if (event.source !== frame.contentWindow || event.origin !== location.origin) return;
+      if (event.data?.type === 'flowmaster:ready') { button.disabled = false; button.textContent = 'Play walkthrough'; }
+      if (event.data?.type === 'flowmaster:state') {
+        playing = event.data.playing === true;
+        if (!button.disabled) button.textContent = playing ? 'Pause walkthrough' : 'Play walkthrough';
+      }
+    });
+    button.addEventListener('click', () => command(playing ? 'pause' : 'play'));
+    document.addEventListener('visibilitychange', () => { if (document.hidden) command('pause'); });
+    if ('IntersectionObserver' in window) {
+      const lazy = new IntersectionObserver(entries => {
+        if (entries.some(entry => entry.isIntersecting)) { load(); lazy.disconnect(); }
+      }, {rootMargin:'200px 0px'});
+      lazy.observe(viewport);
+      const visibility = new IntersectionObserver(entries => {
+        if (!entries[0].isIntersecting) command('pause');
+      });
+      visibility.observe(viewport);
+    } else load();
+  }
+</script>
