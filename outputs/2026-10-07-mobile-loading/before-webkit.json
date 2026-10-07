@@ -1,0 +1,49 @@
+{
+  "errors": [],
+  "button": "Play walkthrough",
+  "media": [
+    {
+      "tag": "VIDEO",
+      "src": "https://flowmaster.live/demos/flowmaster-ux-story/uploads/2026-03-08%2000-27-29_clip_005_0m12s-0m32s_1080p30.webm",
+      "ready": 4,
+      "network": 1,
+      "duration": 20.007,
+      "buffered": [
+        [
+          0,
+          20.007
+        ]
+      ],
+      "error": null,
+      "webm": "probably",
+      "mp4": "probably"
+    },
+    {
+      "tag": "VIDEO",
+      "src": "https://flowmaster.live/demos/flowmaster-ux-story/uploads/2026-03-08%2000-27-29_clip_005_0m12s-0m32s_1080p30.webm",
+      "ready": 4,
+      "network": 1,
+      "duration": 20.007,
+      "buffered": [
+        [
+          0,
+          20.007
+        ]
+      ],
+      "error": null,
+      "webm": "probably",
+      "mp4": "probably"
+    },
+    {
+      "tag": "AUDIO",
+      "src": "https://flowmaster.live/demos/flowmaster-ux-story/uploads/space-rent-f44e5985.webm",
+      "ready": 4,
+      "network": 1,
+      "duration": 197.107,
+      "buffered": [],
+      "error": null,
+      "webm": "probably",
+      "mp4": "probably"
+    }
+  ]
+}

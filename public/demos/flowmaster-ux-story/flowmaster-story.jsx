@@ -53,94 +53,52 @@ const fmt = (n) => (n < 10 ? '0' + n : '' + n);
 const mmss = (s) => Math.floor(s / 60) + ':' + fmt(Math.floor(s % 60));
 
 /* ── CSS stand-ins for the WebGL presets ──────────────────────── */
-/* ── ready gate: hold at start until both clips are fully buffered ─ */
+/* Mobile browsers may decline preloading. A user tap starts media; never
+   require complete video/audio downloads before exposing the Play control. */
 function ReadyGate({ rootRef, needsVideo = true }) {
   const tl = useTimeline();
-  const [buffered, setBuffered] = React.useState(false);
-  const [prog, setProg] = React.useState(0);
-  const [elapsed, setElapsed] = React.useState(0);
-  const startRef = React.useRef(null);
   const [dismissed, setDismissed] = React.useState(false);
-  const showReady = buffered && elapsed >= 2;
+  const [error, setError] = React.useState(false);
   React.useEffect(() => {
-    if (!showReady) return;
     window.__fmReady = true;
     window.parent.postMessage({type:'flowmaster:ready'}, location.origin);
-  }, [showReady]);
-  /* minimum 2s sweep so a cached reload still shows the bar fill */
+    return () => { window.__fmReady = false; };
+  }, []);
   React.useEffect(() => {
-    if (showReady || dismissed) return;
-    if (startRef.current === null) startRef.current = performance.now();
-    const iv = setInterval(() => setElapsed((performance.now() - startRef.current) / 1000), 50);
-    return () => clearInterval(iv);
-  }, [showReady, dismissed]);
-  const t0Ref = React.useRef(null);
-  const ticksRef = React.useRef(0);
+    if (tl.playing || tl.extPlaying || tl.time > .1) setDismissed(true);
+  }, [tl.playing, tl.extPlaying, tl.time]);
   React.useEffect(() => {
-    if (buffered) return;
-    if (!needsVideo) { setBuffered(true); return; }
-    const iv = setInterval(() => {
-      const vids = rootRef.current ? [...rootRef.current.querySelectorAll('video, audio')] : [];
-      if (!vids.length) return;
-      ticksRef.current++;
-      let sum = 0, allReady = vids.length >= 3;
-      vids.forEach(v => {
-        const d = v.duration && isFinite(v.duration) ? v.duration : 0;
-        const end = v.buffered && v.buffered.length ? v.buffered.end(v.buffered.length - 1) : 0;
-        sum += d ? Math.min(1, end / d) : 0;
-        if (!(v.readyState >= 4 || (d && end >= d - 0.75))) allReady = false;
-      });
-      setProg(p => Math.max(p, sum / vids.length));
-      /* fallback: after ~14s, if everything is at least playable, call it ready */
-      if (allReady || (ticksRef.current > 40 && vids.length >= 3 && vids.every(v => v.readyState >= 3))) setBuffered(true);
-    }, 350);
-    return () => clearInterval(iv);
-  }, [buffered]);
-  React.useEffect(() => {
-    if (dismissed) return;
-    if (tl.playing || tl.extPlaying) { setDismissed(true); return; }
-    if (t0Ref.current === null) t0Ref.current = tl.time;
-    else if (Math.abs(tl.time - t0Ref.current) > 0.01) setDismissed(true);
-  }, [tl.playing, tl.extPlaying, tl.time, dismissed]);
-  if (dismissed) return null;
+    if (!needsVideo || !tl.playing) return;
+    const root = rootRef.current;
+    const fail = () => {
+      tl.setPlaying(false);
+      root.querySelectorAll('video,audio').forEach(media => media.pause());
+      setError(true);
+      window.parent.postMessage({type:'flowmaster:error'}, location.origin);
+    };
+    // Music is optional. A failed or stalled video gets a usable retry.
+    const onError = event => { if (event.target.tagName === 'VIDEO') fail(); };
+    root.addEventListener('error', onError, true);
+    const timeout = setTimeout(() => {
+      if ([...root.querySelectorAll('video')].some(v => v.readyState < 2 || v.error)) fail();
+    }, 12000);
+    return () => { clearTimeout(timeout); root.removeEventListener('error', onError, true); };
+  }, [tl.playing, needsVideo]);
+  if (dismissed && !error) return null;
   return (
-    <div style={{
-      position: 'absolute', inset: 0, zIndex: 90, display: 'flex', alignItems: 'center', justifyContent: 'center',
-      background: '#07080b',
-      fontFamily: 'system-ui,-apple-system,Segoe UI,Roboto,sans-serif',
-    }}>
-      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 24 }}>
-        <img src="assets/logo-horizontal-lockup.svg" alt="Flowmaster — Live Studio" style={{ width: 380, display: 'block', animation: 'fmfadeup .6s ease-out both' }} />
-        <div style={{ fontSize: 17, fontWeight: 600, color: '#b6bcc6', letterSpacing: '.24em', textTransform: 'uppercase', animation: 'fmfadeup .6s ease-out .12s both' }}>How it works</div>
-        {!showReady ? (
-          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 16, animation: 'fmfadeup .6s ease-out .24s both' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 13, color: '#b6bcc6', fontSize: 17, fontVariantNumeric: 'tabular-nums' }}>
-              <span style={{
-                width: 22, height: 22, borderRadius: '50%', flexShrink: 0,
-                border: '3px solid rgba(255,255,255,.18)', borderTopColor: '#ff3333',
-                animation: 'fmspin .9s linear infinite',
-              }} />
-              Buffering footage + music… {Math.round(clamp(Math.min(elapsed / 2, buffered ? 1 : Math.max(prog, elapsed > 1 ? prog : elapsed / 2)), 0, 1) * 100)}%
-            </div>
-            <div style={{ width: 340, height: 6, borderRadius: 3, background: 'rgba(255,255,255,.12)', overflow: 'hidden' }}>
-              <div style={{ width: (clamp(Math.min(elapsed / 2, buffered ? 1 : Math.max(prog, elapsed > 1 ? prog : elapsed / 2)), 0, 1) * 100) + '%', height: '100%', background: '#ff3333', borderRadius: 3 }} />
-            </div>
-          </div>
-        ) : (
-          <button type="button" aria-label="Play Flowmaster walkthrough"
-            onClick={() => { window.__fmAudioOK = true; setDismissed(true); tl.setTime(0); tl.setPlaying(true); }}
-            style={{
-              border: 0, fontFamily: 'inherit', cursor: 'pointer', width: 420, boxSizing: 'border-box', display: 'flex', alignItems: 'center',
-              justifyContent: 'center', gap: 12, padding: 16, borderRadius: 8, background: '#ff3333',
-              color: '#fff', fontSize: 19, fontWeight: 600, boxShadow: '0 12px 36px rgba(255,51,51,.3)',
-              animation: 'fmfadeup .45s ease-out both',
-            }}
-          >
-            <span style={{ width: 0, height: 0, borderTop: '8px solid transparent', borderBottom: '8px solid transparent', borderLeft: '13px solid #fff' }} />
-            <span>Play</span>
-            <span style={{ opacity: .75, fontWeight: 500 }}>· 1:49</span>
-          </button>
-        )}
+    <div style={{position:'absolute', inset:0, zIndex:90, display:'flex', alignItems:'center', justifyContent:'center', background:'#07080b', fontFamily:'system-ui,-apple-system,Segoe UI,Roboto,sans-serif'}}>
+      <div style={{display:'flex', flexDirection:'column', alignItems:'center', gap:24}}>
+        <img src="assets/logo-horizontal-lockup.svg" alt="Flowmaster — Live Studio" style={{width:380, display:'block', animation:'fmfadeup .6s ease-out both'}} />
+        <div role="status" style={{fontSize:19, color:'#b6bcc6'}}>{error ? 'The footage couldn’t load. Please try again.' : 'How it works'}</div>
+        <button type="button" aria-label={error ? 'Retry Flowmaster walkthrough' : 'Play Flowmaster walkthrough'}
+          onClick={() => {
+            if (error) { location.reload(); return; }
+            tl.setTime(0);
+            window.dispatchEvent(new CustomEvent('flowmaster:playback', {detail:{action:'play'}}));
+          }}
+          style={{border:0, fontFamily:'inherit', cursor:'pointer', width:420, padding:16, borderRadius:8, background:'#ff3333', color:'#fff', fontSize:19, fontWeight:600, boxShadow:'0 12px 36px rgba(255,51,51,.3)', animation:'fmfadeup .45s ease-out both'}}>
+          {error ? 'Retry walkthrough' : '▶ Play · 1:49'}
+        </button>
       </div>
     </div>
   );
@@ -171,7 +129,7 @@ function GameVideo({ src, T, offset = 0, vt = null, hold = false, volume = 0.65,
     } else if (!v.paused) v.pause();
   });
   return (
-    <video ref={ref} src={src} muted playsInline preload="auto"
+    <video ref={ref} src={src} muted playsInline preload="metadata"
       style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', ...style }} />
   );
 }
@@ -818,7 +776,7 @@ function PlayerModal({ c, T, o, preset, presetName, playhead, t0, marks, jumpFla
               <GameHUD T={4 + playhead * 0.2} events={[5.2, 7.4, 9.8, 11.6]} />
             </React.Fragment>
           ) : (
-            <GameVideo src="uploads/2026-03-08 00-27-29_clip_005_0m12s-0m32s_1080p30.webm" T={T} offset={t0} vt={playhead * 0.2} hold={paused} volume={0.7 * o} />
+            <GameVideo src="uploads/gameplay-h264.mp4" T={T} offset={t0} vt={playhead * 0.2} hold={paused} volume={0.7 * o} />
           )}
           <div style={{
             position: 'absolute', left: 12, top: 12, padding: '4px 10px', borderRadius: 4,
@@ -1001,7 +959,7 @@ function MusicTrack({ src, on, T, duck }) {
     if (a.readyState >= 1 && (jumped || Math.abs(a.currentTime - want) > 3)) a.currentTime = want;
     if (a.paused) { const p = a.play(); if (p && p.catch) p.catch(() => {}); }
   });
-  return <audio ref={ref} src={src} loop preload="auto" />;
+  return <audio ref={ref} src={src} loop preload="metadata" />;
 }
 
 function Piece({ webgl }) {
@@ -1178,11 +1136,6 @@ function Piece({ webgl }) {
 
   return (
     <div ref={rootRef} style={{ position: 'absolute', inset: 0, background: '#07080b', overflow: 'hidden' }}>
-      {/* buffer the player clip before its scene arrives */}
-      {!webgl && (
-        <video src="uploads/2026-03-08 00-27-29_clip_005_0m12s-0m32s_1080p30.webm" preload="auto" muted playsInline
-          style={{ position: 'absolute', width: 2, height: 2, opacity: 0, pointerEvents: 'none' }} />
-      )}
       {/* desk backdrop */}
       <div style={{
         position: 'absolute', inset: 0,
@@ -1325,7 +1278,7 @@ function Piece({ webgl }) {
             <GameHUD T={T} events={[markTimes[0] - 0.6, markTimes[1] - 0.6, markTimes[2] - 0.6]} />
           </React.Fragment>
         ) : (
-          <GameVideo src="uploads/2026-03-08 00-27-29_clip_005_0m12s-0m32s_1080p30.webm" T={T} offset={CUES.Idle - 8} volume={0.65 * gameIn * (1 - gameOut)} />
+          <GameVideo src="uploads/gameplay-h264.mp4" T={T} offset={CUES.Idle - 8} volume={0.65 * gameIn * (1 - gameOut)} />
         )}
         <div style={{ position: 'absolute', inset: 0, background: 'radial-gradient(70% 60% at 50% 45%, rgba(0,0,0,0) 0%, rgba(0,0,0,.55) 100%)' }} />
         <div style={{
@@ -1743,7 +1696,7 @@ function Piece({ webgl }) {
           }}>
             {Ed && (
               <Ed sec={sec} dur={20} marks={[10, 16.9]} clipName="2026-07-27 12-41-50.mkv">
-                <GameVideo src="uploads/2026-03-08 00-27-29_clip_005_0m12s-0m32s_1080p30.webm" T={T} offset={0} vt={sec}
+                <GameVideo src="uploads/gameplay-h264.mp4" T={T} offset={0} vt={sec}
                   hold={T < CUES.Editor + 1.8} volume={0.5 * eIn} style={{ objectFit: 'contain' }} />
               </Ed>
             )}
@@ -1758,7 +1711,7 @@ function Piece({ webgl }) {
       }} />
 
       {/* music: Space Rent, −11 dB, ducked −6 dB under game audio */}
-      <MusicTrack src="uploads/space-rent-f44e5985.webm" on={true} T={T} duck={Math.max(gameIn * (1 - gameOut), playerO, clamp((T - (CUES.Editor + 1.4)) / 0.6, 0, 1))} />
+      <MusicTrack src="uploads/space-rent-aac.m4a" on={true} T={T} duck={Math.max(gameIn * (1 - gameOut), playerO, clamp((T - (CUES.Editor + 1.4)) / 0.6, 0, 1))} />
 
       <ReadyGate rootRef={rootRef} needsVideo={!webgl} />
     </div>

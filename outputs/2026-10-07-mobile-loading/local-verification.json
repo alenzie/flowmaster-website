@@ -1,0 +1,114 @@
+{
+  "url": "http://127.0.0.1:4342/",
+  "realIOSDevice": false,
+  "results": [
+    {
+      "engine": "chromium",
+      "scenario": "normal",
+      "playableBeforeFullDownload": true,
+      "footageTimes": [
+        9.899999,
+        10.469587
+      ],
+      "gesturePreserved": true,
+      "offscreenPause": true,
+      "errors": []
+    },
+    {
+      "engine": "chromium",
+      "scenario": "no-preload",
+      "playableBeforeFullDownload": true,
+      "footageTimes": [
+        9.899999,
+        10.463928
+      ],
+      "gesturePreserved": true,
+      "offscreenPause": true,
+      "errors": []
+    },
+    {
+      "engine": "chromium",
+      "scenario": "music-failed",
+      "playableBeforeFullDownload": true,
+      "footageTimes": [
+        9.899999,
+        10.469623
+      ],
+      "gesturePreserved": true,
+      "offscreenPause": true,
+      "errors": []
+    },
+    {
+      "engine": "chromium",
+      "scenario": "video-stalled",
+      "playableBeforeFullDownload": true,
+      "footageTimes": [
+        9.899999,
+        10.461087
+      ],
+      "gesturePreserved": true,
+      "offscreenPause": true,
+      "errors": []
+    },
+    {
+      "engine": "chromium",
+      "scenario": "runtime-failed",
+      "retryRecovered": true,
+      "errors": []
+    },
+    {
+      "engine": "webkit",
+      "scenario": "normal",
+      "playableBeforeFullDownload": true,
+      "footageTimes": [
+        9.908987529,
+        10.715254025
+      ],
+      "gesturePreserved": true,
+      "offscreenPause": true,
+      "errors": []
+    },
+    {
+      "engine": "webkit",
+      "scenario": "no-preload",
+      "playableBeforeFullDownload": true,
+      "footageTimes": [
+        9.91014004,
+        10.716796264
+      ],
+      "gesturePreserved": true,
+      "offscreenPause": true,
+      "errors": []
+    },
+    {
+      "engine": "webkit",
+      "scenario": "music-failed",
+      "playableBeforeFullDownload": true,
+      "footageTimes": [
+        9.91511095,
+        10.721425923
+      ],
+      "gesturePreserved": true,
+      "offscreenPause": true,
+      "errors": []
+    },
+    {
+      "engine": "webkit",
+      "scenario": "video-stalled",
+      "playableBeforeFullDownload": true,
+      "footageTimes": [
+        9.908216381,
+        10.713685849
+      ],
+      "gesturePreserved": true,
+      "offscreenPause": true,
+      "errors": []
+    },
+    {
+      "engine": "webkit",
+      "scenario": "runtime-failed",
+      "retryRecovered": true,
+      "errors": []
+    }
+  ]
+}

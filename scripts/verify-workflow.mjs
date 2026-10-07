@@ -2,7 +2,7 @@ const { chromium } = await import(process.env.PLAYWRIGHT_MODULE || 'playwright')
 import { mkdir, writeFile } from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
 const base = process.env.SITE_URL || 'http://127.0.0.1:4337/';
-const output = new URL('../outputs/2026-10-07-home-workflow/', import.meta.url);
+const output = new URL(process.env.WORKFLOW_OUTPUT || '../outputs/2026-10-07-home-workflow/', import.meta.url);
 await mkdir(output,{recursive:true});
 const browser = await chromium.launch({headless:true});
 const checks=[];
@@ -20,7 +20,7 @@ try {
     const frame = page.frames().find(f=>f.url().includes('/demos/flowmaster-ux-story/'));
     if(!frame || !frame.url().includes('embed=1'))throw Error('Demo embed mode not loaded');
     const media=await frame.locator('video').evaluateAll(vids=>vids.map(v=>({ready:v.readyState,width:v.videoWidth,paused:v.paused,src:new URL(v.currentSrc).pathname})));
-    if(!media.length || media.some(v=>v.ready<2 || !v.width || !v.paused))throw Error('Video was not ready or unexpectedly autoplayed');
+    if(!media.length || media.some(v=>!v.paused))throw Error('Video missing or unexpectedly autoplayed');
     if(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth))throw Error('Horizontal page overflow');
     const placement=await page.evaluate(()=>document.querySelector('#hero').nextElementSibling.id);
     if(placement!=='workflow-demo')throw Error('Demo is not immediately below hero');

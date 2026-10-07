@@ -396,20 +396,35 @@ function Stage({
 
   // Flowmaster site embed: user-controlled playback and background pause.
   React.useEffect(() => {
-    const onMessage = (event) => {
-      if (event.source !== window.parent || event.origin !== location.origin) return;
-      if (event.data?.type !== 'flowmaster:playback') return;
-      if (event.data.action === 'pause') setPlaying(false);
-      if (event.data.action === 'play' && window.__fmReady) {
+    const command = action => {
+      if (action === 'pause') {
+        stageRef.current?.querySelectorAll('video,audio').forEach(media => media.pause());
+        setPlaying(false);
+      }
+      if (action === 'play' && window.__fmReady) {
         window.__fmAudioOK = true;
+        // Called synchronously from the same-origin parent's click handler:
+        // play() keeps the trusted gesture even inside an iOS in-app browser.
+        stageRef.current?.querySelectorAll('video,audio').forEach(media => {
+          media.muted = false;
+          if (media.error) media.load();
+          media.play()?.catch(() => {});
+        });
         setTime(t => t >= duration - .1 ? 0 : t);
         setPlaying(true);
       }
     };
+    const onDirect = event => command(event.detail?.action);
+    const onMessage = event => {
+      if (event.source !== window.parent || event.origin !== location.origin) return;
+      if (event.data?.type === 'flowmaster:playback') command(event.data.action);
+    };
     const onVisibility = () => { if (document.hidden) setPlaying(false); };
+    window.addEventListener('flowmaster:playback', onDirect);
     window.addEventListener('message', onMessage);
     document.addEventListener('visibilitychange', onVisibility);
     return () => {
+      window.removeEventListener('flowmaster:playback', onDirect);
       window.removeEventListener('message', onMessage);
       document.removeEventListener('visibilitychange', onVisibility);
     };
@@ -496,10 +511,10 @@ function Stage({
   // Keyboard: space = play/pause, ← → = seek
   React.useEffect(() => {
     const onKey = (e) => {
-      if (e.target && (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA')) return;
+      if (e.target && ['INPUT', 'TEXTAREA', 'BUTTON', 'A'].includes(e.target.tagName)) return;
       if (e.code === 'Space') {
         e.preventDefault();
-        setPlaying(p => !p);
+        window.dispatchEvent(new CustomEvent('flowmaster:playback', {detail:{action:playing ? 'pause' : 'play'}}));
       } else if (e.code === 'ArrowLeft') {
         setTime(t => clamp(t - (e.shiftKey ? 1 : 0.1), 0, duration));
       } else if (e.code === 'ArrowRight') {
@@ -510,7 +525,7 @@ function Stage({
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, [duration]);
+  }, [duration, playing]);
 
   // Video-export protocol + the editor's play bar: hosts dispatch this
   // event per frame; pause + sync the playhead so the frame shows exactly
@@ -663,7 +678,7 @@ function Stage({
         actualTime={time}
         duration={duration}
         playing={playing}
-        onPlayPause={() => setPlaying(p => !p)}
+        onPlayPause={() => window.dispatchEvent(new CustomEvent('flowmaster:playback', {detail:{action:playing ? 'pause' : 'play'}}))}
         onReset={() => { setTime(0); }}
         onSeek={(t) => setTime(t)}
         onHover={(t) => setHoverTime(t)}
