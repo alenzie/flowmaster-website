@@ -1,0 +1,25 @@
+{
+  "source_repository": "portfolio26",
+  "source_path": "public/demos/flowmaster-ux-story",
+  "source_head": "cbccdd60238b5e9192983c313bae22b7f8ce9c46",
+  "snapshot": "Owner-requested working-tree animation, including existing local edits; source unchanged.",
+  "copied_on": "2026-10-07",
+  "sha256": {
+    "animations-v3.jsx": "06ae64d470d6db9c1292d885551f2cf13eaba0fab9d6d53a5577516f23e6cc7d",
+    "editor-ui.jsx": "7eacb1930be20f949d4f778e0085ad57bfcc5562fff191e9f762ff1af1b3c96e",
+    "flowmaster-story.jsx": "5c73c17de1818d6e1a4ed5ad12b016f17a96d7e9341df8d520d182e0953fe1cb",
+    "index.html": "dc2bef9f093145a3d270cd359ac49e559714af9e234200466e85301a854324d5",
+    "obs-studio.jsx": "ef756b8c8c2c9d2b669249326b9a0209419714a78f563dcbcd79a2a5e77bebe4",
+    "support.js": "8fe7df74405f3c55f49b7249c74ea1397e65d07dea2b1bd3b4a489bec2e28cbe",
+    "assets/DaVinciR.png": "b8cb49f533aa13fdb8050bd627d58e469c0af770302ed48f0eb92705c603835c",
+    "assets/FCPRO.png": "769067f449cd67dead2b96b2bc9cb17a949890128334c01bc23bac53653fbc9d",
+    "assets/logo-emblem.png": "3f00cee30c07a203f0a5647fe5931658b6ee4c3dd4deec406c944e85b7df3cc4",
+    "assets/logo-emblem.svg": "dc14d10da77af60830fc2fa94b76f6bc85dcb358c5a7395c05c7d53fcd226fee",
+    "assets/logo-horizontal-lockup.svg": "de62acf99fd79f8ba33f5b842ea29c6c26454b8cbd1782a0f2f299ca6de9d521",
+    "assets/obs-logo.svg": "42f7c81bc54231f2a0df1aef8ac486a90cad5d1042c4dd7436ffa048483ac4f8",
+    "assets/Pr.png": "ed7ccc40da01229d27fef6e223b9d14b5160c8b4d968e331f047161a36cc4a2e",
+    "uploads/2026-03-08 00-27-29_clip_005_0m12s-0m32s_1080p30.webm": "1a7025a672751fc592ff4816f176ffabc85851cbb0ed4d86da6d06282af3f824",
+    "uploads/space-rent-f44e5985.webm": "f44e5985a72e3685f45d93c35313b30c0e78c267232b08809bc076c2c793bfc8",
+    "assets/sounds/mark-default.wav": "a40e1b861f12c19b929e76da41ff97d3bc23063cdcb339d07f3825aef4de9aa5"
+  }
+}
