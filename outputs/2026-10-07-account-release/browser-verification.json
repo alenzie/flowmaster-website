@@ -1,0 +1,30 @@
+{
+  "url": "https://flowmaster.live/account",
+  "checkedAt": "2026-10-07T08:57:01.387Z",
+  "results": [
+    {
+      "width": 390,
+      "signupEnabled": true,
+      "recoveryEnabled": true,
+      "staleBannerRemoved": true,
+      "requests": [
+        "signup",
+        "recover"
+      ],
+      "submissions": "intercepted, no real emails sent",
+      "browserErrors": []
+    },
+    {
+      "width": 1440,
+      "signupEnabled": true,
+      "recoveryEnabled": true,
+      "staleBannerRemoved": true,
+      "requests": [
+        "signup",
+        "recover"
+      ],
+      "submissions": "intercepted, no real emails sent",
+      "browserErrors": []
+    }
+  ]
+}
