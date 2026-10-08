@@ -1,0 +1,10 @@
+{
+  "url": "http://127.0.0.1:4346/email-preferences/",
+  "passed": 3,
+  "checks": [
+    "No-login explicit confirmation, failed response retry, success and token hygiene at390px",
+    "No-login explicit confirmation, failed response retry, success and token hygiene at1440px",
+    "Missing, malformed, uppercase and query-string tokens cannot send requests"
+  ],
+  "network": "Provider requests intercepted; no account or email changes"
+}

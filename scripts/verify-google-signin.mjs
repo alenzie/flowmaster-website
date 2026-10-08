@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import {mkdir,writeFile} from 'node:fs/promises';
 const {chromium}=await import(process.env.PLAYWRIGHT_MODULE || 'playwright');
 const base=process.env.ACCOUNT_URL || 'http://127.0.0.1:4345/account';
-const out='outputs/2026-10-07-google-signin';await mkdir(out,{recursive:true});
+const out=process.env.GOOGLE_SIGNIN_OUT||'outputs/2026-10-07-google-signin';await mkdir(out,{recursive:true});
 const browser=await chromium.launch({headless:true,...(process.env.CHROMIUM_PATH?{executablePath:process.env.CHROMIUM_PATH}:{})});
 const checks=[];
 const uid='00000000-0000-4000-8000-000000000042';
@@ -13,6 +13,7 @@ const session={access_token:jwt,refresh_token:'fixture-refresh',expires_in:3600,
 async function setup({enabled=true,settingsFail=false}={}){
  const page=await browser.newPage({viewport:{width:1440,height:1000}});const requests=[],errors=[];
  page.on('pageerror',e=>errors.push(e.message));
+ await page.route('https://wwuafjftlttmkvhzgtxh.supabase.co/functions/v1/account-email-preferences',route=>route.fulfill({status:200,headers:{'access-control-allow-origin':'*','access-control-allow-headers':'*'},json:{enabled:false,blocked:false,consentVersion:'release-updates-v1',consentText:'Email me Flowmaster release announcements and product updates. I can unsubscribe at any time.'}}));
  await page.route('https://wwuafjftlttmkvhzgtxh.supabase.co/auth/v1/**',async route=>{
   const req=route.request(),url=new URL(req.url()),action=url.pathname.split('/').pop();
   const headers={'access-control-allow-origin':'*','access-control-allow-headers':'*','access-control-allow-methods':'GET,POST,PUT,OPTIONS'};

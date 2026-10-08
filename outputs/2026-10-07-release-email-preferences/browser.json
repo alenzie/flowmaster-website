@@ -1,0 +1,17 @@
+{
+  "url": "http://127.0.0.1:4346/account/",
+  "passed": 10,
+  "checks": [
+    "Explicit opt-in, saved readback, unsubscribe and layout at 390px",
+    "Explicit opt-in, saved readback, unsubscribe and layout at 1440px",
+    "Signed-out visitor has no preferences request or signup opt-in",
+    "Unverified session cannot show subscription controls",
+    "Failed preference read never implies subscription; unsubscribe stays available",
+    "401 save response never displays confirmed subscription",
+    "503 save response never displays confirmed subscription",
+    "Delivery suppression prevents self-service re-enable while unsubscribe works",
+    "Late read from signed-out account cannot repopulate preferences",
+    "Late save response cannot display success after signout"
+  ],
+  "network": "All Supabase requests intercepted; no emails or live account changes"
+}
