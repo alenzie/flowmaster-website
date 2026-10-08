@@ -1,0 +1,3 @@
+Source: flowmaster-site/docs/email/flowmaster-lockup.svg (owner-approved composition).
+Export: uniform scaling only; centered on #101010; original spacing, lettering, and RGB square proportions preserved.
+Use Flowmaster-Google-logo-512.png for Google upload. 120px fallback included. No credentials are included.

@@ -1,0 +1,72 @@
+FLOWMASTER · PRIVACY
+
+Privacy Policy
+
+This Privacy Policy explains how Flowmaster handles information when you use flowmaster.live, create an account, or use our desktop app and related services.
+
+Effective October 7, 2026 · Last updated October 7, 2026
+
+The essentials
+
+Your recordings are processed locally by Flowmaster’s recording and editing tools. Google sign-in provides basic identity information. Account and device records help us operate the service and enforce the shared device trial.
+
+1. Who handles your information
+
+Flowmaster is an Alenzie product. This policy covers Flowmaster’s website, account services, desktop application, and administration of accounts, licenses, and trials. For privacy questions or requests, email support@flowmastersuite.com.
+
+2. Information we receive
+Account information. Your email address, account identifier, verification status, sign-in provider, and account/sign-in timestamps. Email-and-password authentication is handled by Supabase. If you use Google, we may also receive your name and profile picture.
+Device and trial information. Hashed device identifiers, account-to-device associations, app version, trial action counts, reservations, and access/blocking status. Raw hardware serial numbers are not uploaded by the trial identification process. A hardware hash is a persistent identifier, not a guarantee of anonymity.
+Usage and diagnostics. Events such as app launches, saved marks, exports, and update checks, with associated technical details such as action type, clip counts, durations, operating-system details, and errors. Requests may record your IP address and timestamps. Diagnostics or support material may contain file paths or other details you include.
+Licenses and communications. License assignments, activation/revocation status, service-message acknowledgments, and messages or attachments you choose to send us. Email providers process delivery and failure information for service messages.
+3. Sign in with Google
+
+When you choose “Continue with Google,” Google shares basic identity information with Flowmaster through Supabase: your Google account identifier, email address and verification information, and available profile information such as your name and picture. We use it to create or sign into your Flowmaster account, recognize you on later visits, and keep the account secure.
+
+This sign-in requests basic identity scopes only. It does not request access to your Gmail messages, Google Calendar, Drive files, or contacts. Flowmaster does not receive your Google password. A Flowmaster password you choose separately is for Flowmaster’s password-login screens.
+
+We do not sell Google user data, use it for advertising targeting, or use it to train AI models. Flowmaster’s use and transfer of information received from Google APIs adheres to the Google API Services User Data Policy, including its Limited Use requirements.
+
+You can remove Flowmaster’s access in your Google Account connections. Disconnecting Google does not automatically delete your Flowmaster account or existing service records. Contact us to request account deletion.
+
+4. Why we use information
+
+We use this information to authenticate accounts, provide recording and editing features, manage licenses, measure and enforce trial allowances, prevent repeated trial resets and abuse, investigate errors, provide support, send necessary account/service messages, and maintain the security of Flowmaster.
+
+Authorized administrators can review accounts, associated device activity, trial operations, and licensing status to support users and control access. Creating an account or signing in with Google does not subscribe you to release announcements or marketing emails.
+
+5. Your recordings and local files
+
+Flowmaster’s marking, clipping, playback, and export tools process recordings on your computer. Account and trial checks do not upload your recordings. Files you deliberately share with support are handled as support material. Third-party applications or services you use alongside Flowmaster have their own privacy practices.
+
+6. Service providers and disclosures
+
+We use providers to operate Flowmaster:
+
+Supabase provides account authentication, database storage, and backend services.
+Google provides optional Google sign-in. Website fonts may also be loaded from Google’s font service.
+Resend delivers transactional account emails, receiving the email address and message information needed for delivery.
+GitHub Pages and Vercel host the public website and administrative interface respectively and process normal hosting and connection information.
+
+We share information needed for these services and for support you request. We may also disclose information when legally required, to protect users and service security, or as part of a business transfer subject to applicable protections. We do not sell your personal information. Google user data remains subject to the limitations described above.
+
+7. Storage, security, and retention
+
+The account website uses browser session storage to keep you signed in within that browser session. The desktop app also stores local settings and authentication information needed to operate. Google and our infrastructure providers may use their own cookies or storage when you use their services.
+
+We use access controls and encrypted connections to protect information. No service can guarantee absolute security. Providers may process information outside your country.
+
+We retain account and operational records as needed to provide the service, handle support and security issues, enforce trial/license limits, and meet legal obligations. There is no single automatic deletion period for all records. After an account-deletion request, some restricted device/trial, audit, security, or legally required records may need to remain; backup copies may persist until replaced under the provider’s backup lifecycle. Reinstalling Flowmaster or creating another account does not reset the device trial.
+
+8. Your choices and requests
+
+You can sign out, disconnect Google, and choose whether to send support material. To request access to, correction of, or deletion of account information, contact support@flowmastersuite.com. We may need to verify that you control the account before acting. Do not send us your password, sign-in codes, or API keys.
+
+Depending on your location, you may have additional privacy rights, including rights to object to or restrict some processing or complain to a relevant privacy authority. We assess requests according to applicable law and explain any information we need to retain. Deleting an account or disconnecting its only sign-in method can affect access to Flowmaster.
+
+9. Changes to this policy
+
+We will update this page when our practices change and revise the date above. Where required, we will provide additional notice or request consent before using information for a new purpose.
+
+Your Flowmaster account →
+More about trial data →

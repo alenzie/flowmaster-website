@@ -1,0 +1,40 @@
+FLOWMASTER — GOOGLE BRANDING KIT
+Prepared October 7, 2026
+
+UPLOAD THIS LOGO
+Flowmaster-Google-logo-512.png
+The approved Flowmaster logo is centered on a dark square so the white lettering stays readable.
+If Google specifically requests 120 x 120, use Flowmaster-Google-logo-120.png.
+Original PNG/SVG files are included for reference; keep their proportions intact.
+
+GOOGLE BRANDING PAGE
+https://console.cloud.google.com/auth/branding?project=flowmaster-511000
+
+FIELDS TO ENTER
+App name: Flowmaster
+App homepage: https://flowmaster.live/
+Privacy policy: https://flowmaster.live/privacy/
+Authorized domain: flowmaster.live
+Support email: choose your verified support address from Google's dropdown.
+Privacy/data request contact published on the website: support@flowmastersuite.com
+Terms of service: leave blank if optional. A terms page has not been published; do not use the privacy page as terms.
+
+EXISTING CLIENT SETTINGS — KEEP THESE
+Project: flowmaster-511000
+App type: Web application
+JavaScript origin: https://flowmaster.live
+Authorized redirect URI: https://wwuafjftlttmkvhzgtxh.supabase.co/auth/v1/callback
+Scopes: basic identity only (openid, email, profile).
+No Gmail, Drive, Calendar or Contacts access is needed.
+The client secret is already configured in Supabase. This kit contains no passwords, secrets or tokens.
+
+AFTER UPLOADING
+Save the branding. If Google shows Verify branding, follow that process, then Publish branding when approved.
+Uploading alone does not guarantee the new name/logo is live. Google may ask you to verify ownership of flowmaster.live in Search Console.
+Do not replace the callback with auth.flowmaster.live: that custom hostname has not been configured.
+Google branding and the Supabase authentication hostname are separate settings.
+The custom-domain add-on is optional and has not been purchased or enabled.
+
+PRIVACY PAGE STATUS
+The policy is being built and deployed with this kit. Wait for Codex's live deployment confirmation before submitting the URL to Google.
+Do not claim Google has approved the app until its Branding/Verification screen confirms that.

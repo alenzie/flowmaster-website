@@ -17,7 +17,7 @@ const {
   ogImage = "/og-image.png"
 } = Astro.props;
 
-const siteUrl = "https://flowmastersuite.com";
+const siteUrl = Astro.site?.origin ?? 'https://flowmaster.live';
 const fullTitle = `${title} | Flowmaster`;
 const canonicalUrl = new URL(Astro.url.pathname, siteUrl).href;
 ---
