@@ -1,0 +1,46 @@
+{
+  "date": "2026-10-08",
+  "environment": "preview",
+  "browserToNeon": [
+    {
+      "site": "flowmaster",
+      "events": 2,
+      "kinds": [
+        "page_view"
+      ],
+      "paths": [
+        "/",
+        "/download"
+      ]
+    },
+    {
+      "site": "spindle",
+      "events": 2,
+      "kinds": [
+        "page_view"
+      ],
+      "paths": [
+        "/",
+        "/about"
+      ]
+    },
+    {
+      "site": "portfolio",
+      "events": 1,
+      "kinds": [
+        "page_view"
+      ],
+      "paths": [
+        "/"
+      ]
+    }
+  ],
+  "collectorUnitTests": 7,
+  "appBridgeTests": 6,
+  "liveCollectorChecks": 6,
+  "atomicRateLimit": "30 accepted; 31st rejected",
+  "siteBuilds": "3 passed",
+  "sourceSupabaseAnalyticsRows": 0,
+  "productionCutover": false,
+  "adminSignIn": "UI rendered; role/token checks tested; owner sign-in pending"
+}

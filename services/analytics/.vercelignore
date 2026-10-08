@@ -1,0 +1,6 @@
+.env*
+work/
+node_modules/
+test/
+tools/
+migrations/

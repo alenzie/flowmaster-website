@@ -1,0 +1,5 @@
+services/
+work/
+.env*
+node_modules/
+.git/

@@ -1,0 +1,20 @@
+[
+  {
+    "id": "01d9a87a-ce1c-4044-b194-b2fc8499c34e",
+    "site": "flowmaster",
+    "kind": "page_view",
+    "path": "/",
+    "referrer": "",
+    "device": "desktop",
+    "campaign": ""
+  },
+  {
+    "id": "517022cb-c72c-4936-b113-2f1925be6a94",
+    "site": "flowmaster",
+    "kind": "page_view",
+    "path": "/download",
+    "referrer": "",
+    "device": "desktop",
+    "campaign": ""
+  }
+]

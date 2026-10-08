@@ -14,7 +14,7 @@ const ready = release.available && !!release.downloadUrl && !!release.sha256;
         <h2 class="text-2xl mb-3">Flowmaster for Windows</h2>
         {ready ? <>
           <p class="mb-6">Version {release.version} · {Math.ceil((release.bytes ?? 0) / 1048576)} MB</p>
-          <a id="download-windows-btn" class="btn-primary" href={release.downloadUrl!}>Download free trial for Windows</a>
+          <a id="download-windows-btn" data-analytics="download_click" class="btn-primary" href={release.downloadUrl!}>Download free trial for Windows</a>
           <p class="mt-4 text-sm"><a href={release.releaseUrl!} class="underline">Release notes and installer details</a></p>
           <details class="mt-5 text-sm"><summary>SHA-256 checksum</summary><code class="block break-all mt-3">{release.sha256}</code></details>
         </> : <p role="status" class="text-gray-300">{release.message}</p>}

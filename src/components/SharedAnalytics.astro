@@ -1,0 +1,9 @@
+---
+// Public routes only. The endpoint is a public URL; credentials stay in the collector.
+const endpoint = import.meta.env.PUBLIC_ANALYTICS_ENDPOINT;
+const paths = ["/", "/about", "/data", "/download", "/features", "/future", "/pricing", "/privacy", "/terms", "/docs", "/docs/obs-setup", "/scout"];
+const path = Astro.url.pathname.replace(/\/+$/, '') || '/';
+const { disabled = false } = Astro.props;
+const enabled = !disabled && typeof endpoint === 'string' && endpoint.startsWith('https://') && paths.includes(path);
+---
+{enabled && <script is:inline defer src="/shared-analytics.js" data-site="flowmaster" data-endpoint={endpoint} data-paths={paths.join(',')} data-campaigns="launch"></script>}

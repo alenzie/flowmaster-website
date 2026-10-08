@@ -1,0 +1,71 @@
+{
+  "flowmaster": {
+    "origins": [
+      "https://flowmaster.live",
+      "http://localhost:4321",
+      "https://flowmaster-site-preview-8m2q4nkly-alexblair63-6415s-projects.vercel.app"
+    ],
+    "paths": [
+      "/",
+      "/about",
+      "/data",
+      "/download",
+      "/features",
+      "/future",
+      "/pricing",
+      "/privacy",
+      "/terms",
+      "/docs",
+      "/docs/obs-setup",
+      "/scout"
+    ],
+    "campaigns": [
+      "launch"
+    ]
+  },
+  "spindle": {
+    "origins": [
+      "https://spindle.chat",
+      "https://spindle-www.vercel.app",
+      "http://localhost:4322",
+      "https://spindle-9g74dt154-alexblair63-6415s-projects.vercel.app"
+    ],
+    "paths": [
+      "/",
+      "/about",
+      "/compliance",
+      "/enterprise",
+      "/freelance",
+      "/inbound",
+      "/outbound",
+      "/pricing",
+      "/privacy",
+      "/small_business",
+      "/terms"
+    ],
+    "campaigns": [
+      "launch"
+    ]
+  },
+  "portfolio": {
+    "origins": [
+      "https://alexanderblair.vercel.app",
+      "http://localhost:4323",
+      "https://portfolio26-hlf40lbyj-alexblair63-6415s-projects.vercel.app"
+    ],
+    "paths": [
+      "/",
+      "/about",
+      "/studio",
+      "/work/flowmaster",
+      "/work/ophthalytics",
+      "/work/orchestra",
+      "/work/rentraiser",
+      "/work/scriptgen",
+      "/work/spindle"
+    ],
+    "campaigns": [
+      "launch"
+    ]
+  }
+}
