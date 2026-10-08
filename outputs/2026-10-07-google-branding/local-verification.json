@@ -1,0 +1,27 @@
+{
+  "base": "http://127.0.0.1:4346",
+  "checks": [
+    {
+      "width": 390,
+      "publicPage": true,
+      "canonicalCorrect": true,
+      "policySections": 9,
+      "contactCorrect": true,
+      "googleRevocationLinked": true,
+      "noOverflow": true,
+      "homeAccountTrialLinks": true,
+      "browserErrors": []
+    },
+    {
+      "width": 1440,
+      "publicPage": true,
+      "canonicalCorrect": true,
+      "policySections": 9,
+      "contactCorrect": true,
+      "googleRevocationLinked": true,
+      "noOverflow": true,
+      "homeAccountTrialLinks": true,
+      "browserErrors": []
+    }
+  ]
+}
