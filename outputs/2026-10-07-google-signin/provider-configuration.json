@@ -1,0 +1,17 @@
+{
+  "google_project": "flowmaster-511000",
+  "supabase_project": "wwuafjftlttmkvhzgtxh",
+  "google_enabled": true,
+  "client_id_verified": true,
+  "secret_saved_in": "Supabase Auth protected provider settings",
+  "site_url_preserved": "https://flowmaster.live/account",
+  "allowed_redirects_preserved": "https://flowmaster.live/account",
+  "public_provider_enabled": true,
+  "authorize_redirect": {
+    "status": 302,
+    "host": "accounts.google.com",
+    "client_and_callback_verified": true
+  },
+  "real_google_signin": "pending owner test",
+  "propagation": "initial public settings read was stale; subsequent read confirms enabled"
+}
