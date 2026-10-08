@@ -1,0 +1,11 @@
+{
+  "pull_request": "https://github.com/alenzie/flowmaster-website/pull/8",
+  "merge_commit": "ef0de3affb2b02032b986d7a8eff7779d2f1b215",
+  "deployment_run": "https://github.com/alenzie/flowmaster-website/actions/runs/37708239417",
+  "deployment": "success",
+  "url": "https://flowmaster.live/privacy/",
+  "focused_astro_check": "6 files; zero errors, warnings, hints",
+  "browser_checks": "passed at 390px and 1440px locally and in production",
+  "desktop_kit_files": 9,
+  "google_brand_verification": "owner upload/verification still pending"
+}
