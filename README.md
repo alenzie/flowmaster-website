@@ -30,6 +30,10 @@ If you're making changes that touch API calls (pricing, checkout, stats), you li
 
 ---
 
+## Account sign in
+
+The account page supports email signup/login and Google sign-in once its provider is configured. See [Google sign-in setup and verification](docs/GOOGLE_SIGN_IN.md) for the Cloud project, callback addresses, desktop password compatibility, and remaining live setup.
+
 ## Getting Started
 
 ### Prerequisites

@@ -2,13 +2,21 @@
 import BaseLayout from '../layouts/BaseLayout.astro';
 import service from '../data/supabase.json';
 ---
-<BaseLayout title="Your Flowmaster account" description="Create a free Flowmaster account, confirm your email, or reset your password. Paid upgrades are unavailable.">
+<BaseLayout title="Your Flowmaster account" description="Sign in or create a free Flowmaster account with Google or email. Paid upgrades are unavailable.">
   <section class="account-shell">
     <div class="account-intro"><h1>One account.<br />Every Moment.</h1><p>Create a free account to use Flowmaster. Each PC has a 30-action trial. Creating another account or reinstalling keeps that PC’s existing usage.</p><p>Paid trials and upgrades are unavailable.</p></div>
     <div class="account-card">
       <h2 id="account-title">Sign in</h2>
       {!service.emailReady && <p class="account-service-status" role="status">Free account signup and password-reset emails are being connected. These options will open when email delivery is verified. Existing accounts can still sign in.</p>}
       <p id="account-message" role="status" aria-live="polite"></p>
+      <div id="account-google-options">
+        <button id="account-google" type="button" disabled aria-describedby="account-google-status">
+          <svg aria-hidden="true" width="20" height="20" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5Z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65Z"/><path fill="#FBBC05" d="M10.53 28.59A14.4 14.4 0 0 1 9.75 24c0-1.59.27-3.13.78-4.59l-7.98-6.19A23.9 23.9 0 0 0 0 24c0 3.87.93 7.53 2.56 10.78l7.97-6.19Z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.91-5.8l-7.73-6c-2.15 1.45-4.92 2.3-8.18 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48Z"/></svg>
+          <span>Continue with Google</span>
+        </button>
+        <p id="account-google-status" role="status">Checking Google sign-in…</p>
+        <div class="account-divider"><span>or use email</span></div>
+      </div>
       <form id="account-form">
         <label for="account-email">Email</label><input id="account-email" type="email" autocomplete="email" required />
         <label for="account-password">Password</label><input id="account-password" type="password" autocomplete="current-password" required minlength="8" />
@@ -19,14 +27,15 @@ import service from '../data/supabase.json';
         <label for="new-password">New password</label><input id="new-password" type="password" autocomplete="new-password" required minlength="8" />
         <label for="confirm-password">Confirm password</label><input id="confirm-password" type="password" autocomplete="new-password" required minlength="8" />
         <button type="submit">Save password</button>
+        <button id="password-cancel" type="button" hidden>Back to your account</button>
       </form>
-      <div id="account-signed-in" hidden><p>Your account is ready. Open Flowmaster and sign in with the same email and password.</p><a href="/download">Download and trial details →</a><button id="account-signout" type="button">Sign out of this browser</button></div>
+      <div id="account-signed-in" hidden><p id="account-ready">Your account is ready. Open Flowmaster and sign in with the same email and password.</p><button id="account-set-password" type="button" hidden>Set a Flowmaster password</button><a href="/download">Download and trial details →</a><button id="account-signout" type="button">Sign out of this browser</button></div>
       <p class="account-note">An internet connection is required to sign in and verify trial usage. <a href="/data">How we use your data</a></p>
     </div>
   </section>
 </BaseLayout>
 <script>
-  import { createClient } from '@supabase/supabase-js';
+  import { createClient, type Session } from '@supabase/supabase-js';
   import config from '../data/supabase.json';
   let recovery = new URLSearchParams(location.hash.slice(1)).get('type') === 'recovery';
   const db = createClient(config.url, config.publishableKey, { auth: { storage: sessionStorage } });
@@ -34,15 +43,64 @@ import service from '../data/supabase.json';
   const input = (id: string) => $(id) as HTMLInputElement;
   const message = (text: string) => { $('account-message').textContent = text; };
   let signup = false;
-  function showSession(signedIn: boolean, reset = false) {
+  let settingPassword = false;
+  let activeSession: Session | null = null;
+  const callbackError = new URLSearchParams(location.hash.slice(1)).get('error');
+  if (callbackError) {
+    message(callbackError === 'access_denied' ? 'Google sign-in wasn’t completed. Try again or use email below.' : 'Sign-in could not be completed. Please try again.');
+    history.replaceState(null, '', location.pathname + location.search);
+  }
+  function showSession(session: Session | null, reset = false) {
+    activeSession = session;
+    const signedIn = !!session;
+    if (!signedIn) settingPassword = false;
+    const passwordScreen = reset || (signedIn && settingPassword);
+    // This only chooses guidance; account permissions remain server-side.
+    const googleAccount = session?.user.identities?.some(identity => identity.provider === 'google');
     $('account-form').hidden = signedIn;
     $('account-options').hidden = signedIn;
-    $('password-form').hidden = !reset;
-    $('account-signed-in').hidden = !signedIn || reset;
-    $('account-title').textContent = reset ? 'Set a new password' : signedIn ? 'You’re signed in' : signup ? 'Create a free account' : 'Sign in';
+    $('account-google-options').hidden = signedIn;
+    $('password-form').hidden = !passwordScreen;
+    $('password-cancel').hidden = !settingPassword;
+    $('account-signed-in').hidden = !signedIn || passwordScreen;
+    $('account-set-password').hidden = !googleAccount;
+    $('account-ready').textContent = googleAccount
+      ? 'You’re signed in with Google. The desktop app and admin panel currently use a Flowmaster password. Set one here for this same account, or use your existing Flowmaster password. Never enter your Google password into Flowmaster.'
+      : 'Your account is ready. Open Flowmaster and sign in with the same email and password.';
+    $('account-title').textContent = passwordScreen ? 'Set a Flowmaster password' : signedIn ? 'You’re signed in' : signup ? 'Create a free account' : 'Sign in';
   }
-  db.auth.onAuthStateChange((event, session) => { showSession(!!session, !!session && (event === 'PASSWORD_RECOVERY' || recovery)); });
-  db.auth.getSession().then(({ data, error }) => { if (error) message(error.message); else showSession(!!data.session, !!data.session && recovery); });
+  db.auth.onAuthStateChange((event, session) => { showSession(session, !!session && (event === 'PASSWORD_RECOVERY' || recovery)); });
+  db.auth.getSession().then(({ data, error }) => { if (error) message('Sign-in could not be completed. Please try again.'); else showSession(data.session, !!data.session && recovery); });
+  async function googleAvailable() {
+    const response = await fetch(`${config.url}/auth/v1/settings`, { headers: { apikey: config.publishableKey }, signal: AbortSignal.timeout(8000) });
+    if (!response.ok) throw new Error('Settings unavailable');
+    return (await response.json()).external?.google === true;
+  }
+  async function checkGoogle() {
+    try {
+      const enabled = await googleAvailable();
+      ($('account-google') as HTMLButtonElement).disabled = !enabled;
+      $('account-google-status').textContent = enabled ? 'For new and existing accounts.' : 'Google sign-in is being connected. You can use email below for now.';
+    } catch {
+      $('account-google-status').textContent = 'Google sign-in is unavailable right now. Refresh to retry, or use email below.';
+    }
+  }
+  void checkGoogle();
+  $('account-google').addEventListener('click', async () => {
+    const button = $('account-google') as HTMLButtonElement;
+    button.disabled = true; message('Opening Google…');
+    try {
+      if (!await googleAvailable()) throw new Error('Google unavailable');
+      const { error } = await db.auth.signInWithOAuth({ provider: 'google', options: { redirectTo: 'https://flowmaster.live/account', queryParams: { prompt: 'select_account' } } });
+      if (error) throw error;
+    } catch {
+      message('Google sign-in could not start. Please try again or use email below.');
+      await checkGoogle();
+    }
+  });
+  window.addEventListener('pageshow', event => { if (event.persisted) { message(''); void checkGoogle(); } });
+  $('account-set-password').addEventListener('click', () => { settingPassword = true; message('Choose a separate password for Flowmaster. Your Google sign-in will still work.'); showSession(activeSession); input('new-password').focus(); });
+  $('password-cancel').addEventListener('click', () => { settingPassword = false; input('new-password').value = ''; input('confirm-password').value = ''; message(''); showSession(activeSession); });
   $('account-switch').addEventListener('click', () => {
     signup = !signup;
     $('account-title').textContent = signup ? 'Create a free account' : 'Sign in';
@@ -81,12 +139,16 @@ import service from '../data/supabase.json';
       const { error } = await db.auth.updateUser({ password: input('new-password').value });
       if (error) throw error;
       input('new-password').value = ''; input('confirm-password').value = '';
-      recovery = false; await db.auth.signOut(); showSession(false); message('Password updated. Sign in to Flowmaster with your new password.');
+      recovery = false; settingPassword = false;
+      const { error: signoutError } = await db.auth.signOut();
+      if (signoutError) { showSession(activeSession); message('Password saved. You’re still signed in to this browser.'); }
+      else { showSession(null); message('Password saved. Sign in to Flowmaster with your email and this password.'); }
     } catch (error) { message(error instanceof Error ? error.message : 'Could not change your password.'); }
     finally { button.disabled = false; }
   });
-  $('account-signout').addEventListener('click', async () => { const { error } = await db.auth.signOut(); if (error) message(error.message); else showSession(false); });
+  $('account-signout').addEventListener('click', async () => { const { error } = await db.auth.signOut(); if (error) message(error.message); else { recovery = false; message(''); showSession(null); } });
 </script>
 <style>
+.account-card #account-google{display:flex;align-items:center;justify-content:center;gap:12px;width:100%;min-height:44px;margin:16px 0 0;padding:12px 18px;background:#f2f2f2;color:#1f1f1f;border:1px solid #747775;border-radius:6px;font-family:Arial,sans-serif;font-size:14px;font-weight:500;text-align:center}.account-card #account-google:not(:disabled):hover{background:#e5e5e5}.account-card #account-google svg{flex-shrink:0}#account-google-status{font-size:12px;color:#b3b7bf;line-height:1.5;margin-top:10px}.account-divider{display:flex;align-items:center;gap:12px;margin:22px 0;color:#979fa9;font-size:12px}.account-divider::before,.account-divider::after{content:'';height:1px;flex:1;background:#34393f}#account-ready{line-height:1.65;color:#cbd0d9}#account-signed-in>a{display:block;margin-top:20px}
 .account-shell{max-width:1100px;margin:auto;padding:100px 24px;display:grid;grid-template-columns:1.1fr 1fr;gap:72px;align-items:start}.eyebrow{font-size:12px;letter-spacing:.18em;color:#a6ffba;margin-bottom:24px}.account-intro h1{font-size:clamp(38px,5vw,64px);line-height:1.06;margin-bottom:30px}.account-intro p:not(.eyebrow){color:#b3b7bf;line-height:1.7;margin-top:20px}.account-card{background:#15181b;border:1px solid #34393f;border-radius:16px;padding:30px}.account-card h2{font-size:25px;margin-bottom:18px}.account-card label{display:block;font-size:13px;margin:18px 0 7px}.account-card input{width:100%;background:#0b0d10;border:1px solid #42484f;border-radius:6px;padding:12px;color:white}.account-card button[type=submit]{display:block;width:100%;background:#a6ffba;color:#0a1710;padding:12px;margin-top:24px;border-radius:6px;font-weight:650}.account-card button:disabled{opacity:.5;cursor:not-allowed}.account-service-status{padding:14px;background:#252516;border:1px solid #62603c;border-radius:6px;color:#e3dfb3;font-size:14px;line-height:1.5;margin-bottom:20px}.account-card button[type=button]{display:block;color:#a6ffba;text-align:left;margin-top:17px}.account-card a{color:#a6ffba}.account-card [hidden]{display:none!important}#account-message{color:#cbd0d9;font-size:14px;line-height:1.5}.account-note{font-size:12px;line-height:1.6;color:#979fa9;margin-top:30px}.account-card input:focus-visible,.account-card button:focus-visible{outline:2px solid #a6ffba;outline-offset:3px}@media(max-width:760px){.account-shell{grid-template-columns:1fr;gap:36px;padding:60px 20px}.account-card{padding:24px}}
 </style>
