@@ -1,0 +1,66 @@
+---
+import service from '../data/supabase.json';
+const policy = `default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self'; connect-src ${service.url}; base-uri 'none'; object-src 'none'; form-action 'none'`;
+---
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="referrer" content="no-referrer" />
+    <meta name="robots" content="noindex,nofollow" />
+    <meta http-equiv="Content-Security-Policy" content={policy} />
+    <title>Release email preferences — Flowmaster</title>
+    <link rel="canonical" href="https://flowmaster.live/email-preferences/" />
+  </head>
+  <body>
+    <main>
+      <a class="brand" href="/" aria-label="Flowmaster home"><img src="/images/email/flowmaster-lockup-v1.png" alt="Flowmaster Live Studio" width="224" height="114" /></a>
+      <section aria-labelledby="preference-title">
+        <p class="eyebrow">EMAIL PREFERENCES</p>
+        <h1 id="preference-title">Make room for what matters.</h1>
+        <p>Stop receiving Flowmaster release announcements and product updates. Your account stays active, and necessary account and security emails will continue.</p>
+        <button id="unsubscribe" type="button" hidden>Unsubscribe from release emails</button>
+        <p id="unsubscribe-status" role="status" aria-live="polite">Checking your unsubscribe link…</p>
+        <noscript><p>Please enable JavaScript to use this link, or manage release emails from your Flowmaster account.</p></noscript>
+        <a class="account-link" href="/account/">Manage preferences in your account →</a>
+      </section>
+      <footer><a href="/privacy/">Privacy Policy</a> · <a href="mailto:support@flowmastersuite.com">Contact support</a></footer>
+    </main>
+    <script>
+      import config from '../data/supabase.json';
+      let token = new URLSearchParams(location.hash.slice(1)).get('token') ?? '';
+      // The token stays in this page's memory only, never storage or navigation history.
+      history.replaceState(null, '', location.pathname);
+      const button = document.getElementById('unsubscribe') as HTMLButtonElement;
+      const status = document.getElementById('unsubscribe-status')!;
+      let busy = false;
+      if (/^[a-f0-9]{64}$/.test(token)) {
+        button.hidden = false;
+        status.textContent = 'No sign-in needed. Select unsubscribe to confirm your choice.';
+      } else {
+        token = '';
+        status.textContent = 'This link is incomplete or invalid. Open the unsubscribe link from your release email again, or use your account preferences.';
+      }
+      button.addEventListener('click', async () => {
+        if (busy || !token) return;
+        busy = true; button.disabled = true; status.textContent = 'Updating your email preference…';
+        try {
+          const response = await fetch(`${config.url}/functions/v1/account-email-preferences?token=${token}`, {
+            method: 'POST', credentials: 'omit', referrerPolicy: 'no-referrer',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: 'List-Unsubscribe=One-Click', signal: AbortSignal.timeout(12000),
+          });
+          if (!response.ok) throw new Error('Unsubscribe not confirmed');
+          token = ''; button.hidden = true;
+          status.textContent = 'You’re unsubscribed from Flowmaster release emails. Account and security emails are unaffected.';
+        } catch {
+          status.textContent = 'We couldn’t confirm your unsubscribe. Please try again, or use your account preferences.';
+        } finally { busy = false; button.disabled = false; }
+      });
+    </script>
+  </body>
+</html>
+<style>
+  :global(*){box-sizing:border-box} :global(body){margin:0;background:#101112;color:#f1f2f3;font-family:Arial,Helvetica,sans-serif} main{max-width:640px;margin:0 auto;padding:64px 24px}.brand{display:inline-block;margin-bottom:36px}.brand img{width:168px;height:auto;display:block}section{padding:32px;border:1px solid #34393f;border-radius:16px;background:#15181b}.eyebrow{font-size:11px;letter-spacing:.15em;color:#a6ffba;margin:0 0 16px}h1{font-size:clamp(30px,6vw,42px);line-height:1.1;letter-spacing:-.03em;margin:0 0 24px}p{font-size:15px;line-height:1.7;color:#c5c9ce}button{width:100%;padding:15px 18px;background:#a6ffba;border:0;border-radius:7px;color:#0a1710;font-size:15px;font-weight:650;cursor:pointer;margin-top:12px}button:disabled{opacity:.6;cursor:wait}button[hidden]{display:none}#unsubscribe-status{font-size:13px;margin:20px 0}a{color:#a6ffba}a:focus-visible,button:focus-visible{outline:2px solid #a6ffba;outline-offset:5px}.account-link{display:inline-block;font-size:13px;line-height:1.6;text-decoration:none;margin-top:6px}footer{color:#858c94;font-size:12px;margin:24px 0}footer a{color:#aeb5bd}@media(max-width:480px){main{padding:36px 20px}section{padding:24px}}
+</style>

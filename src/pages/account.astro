@@ -29,7 +29,19 @@ import service from '../data/supabase.json';
         <button type="submit">Save password</button>
         <button id="password-cancel" type="button" hidden>Back to your account</button>
       </form>
-      <div id="account-signed-in" hidden><p id="account-ready">Your account is ready. Open Flowmaster and sign in with the same email and password.</p><button id="account-set-password" type="button" hidden>Set a Flowmaster password</button><a href="/download">Download and trial details →</a><button id="account-signout" type="button">Sign out of this browser</button></div>
+      <div id="account-signed-in" hidden><p id="account-ready">Your account is ready. Open Flowmaster and sign in with the same email and password.</p><button id="account-set-password" type="button" hidden>Set a Flowmaster password</button><a href="/download">Download and trial details →</a>
+        <section id="release-preferences" class="release-preferences" aria-labelledby="release-preferences-title" hidden>
+          <h3 id="release-preferences-title">Release emails</h3>
+          <p>Occasional news when Flowmaster has something new. This is optional and separate from account and security emails.</p>
+          <form id="release-preferences-form">
+            <label class="release-preferences-choice" for="release-email-enabled"><input id="release-email-enabled" type="checkbox" disabled /><span id="release-consent-text">Email me Flowmaster release announcements and product updates. I can unsubscribe at any time.</span></label>
+            <button id="release-preferences-save" type="submit" disabled>Save email preference</button>
+          </form>
+          <button id="release-preferences-unsubscribe" type="button">Unsubscribe from release emails</button>
+          <button id="release-preferences-retry" type="button" hidden>Try loading preferences again</button>
+          <p id="release-preferences-message" role="status" aria-live="polite"></p>
+        </section>
+        <button id="account-signout" type="button">Sign out of this browser</button></div>
       <p class="account-note">An internet connection is required to sign in and verify trial usage. <a href="/privacy">How we use your data</a> · <a href="/terms">Terms of Service</a></p>
     </div>
   </section>
@@ -45,6 +57,80 @@ import service from '../data/supabase.json';
   let signup = false;
   let settingPassword = false;
   let activeSession: Session | null = null;
+  let preferenceEpoch = 0;
+  let preferenceSessionKey = '';
+  let consentVersion = '';
+  let preferenceLoaded = false;
+  let preferenceBlocked = false;
+  const preferenceMessage = (text: string) => { $('release-preferences-message').textContent = text; };
+  const preferenceButton = (id: string) => $(id) as HTMLButtonElement;
+  function preferenceControls(busy = false) {
+    input('release-email-enabled').disabled = busy || !preferenceLoaded || preferenceBlocked;
+    preferenceButton('release-preferences-save').disabled = busy || !preferenceLoaded || preferenceBlocked;
+    preferenceButton('release-preferences-unsubscribe').disabled = busy;
+  }
+  async function preferenceRequest(session: Session, payload: Record<string, unknown>) {
+    const response = await fetch(`${config.url}/functions/v1/account-email-preferences`, {
+      method: 'POST', headers: { apikey: config.publishableKey, Authorization: `Bearer ${session.access_token}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload), signal: AbortSignal.timeout(12000),
+    });
+    if (!response.ok) throw new Error(response.status === 401 ? 'Your sign-in has expired. Sign in again to manage release emails.' : 'Your email preference could not be confirmed. Please try again.');
+    const result = await response.json();
+    if (typeof result.enabled !== 'boolean' || typeof result.blocked !== 'boolean' || result.consentVersion !== 'release-updates-v1' || typeof result.consentText !== 'string') throw new Error('Your email preference could not be confirmed. Please try again.');
+    return result as { enabled: boolean; blocked: boolean; consentVersion: string; consentText: string };
+  }
+  function applyPreference(result: { enabled: boolean; blocked: boolean; consentVersion: string; consentText: string }) {
+    preferenceLoaded = true; preferenceBlocked = result.blocked; consentVersion = result.consentVersion;
+    input('release-email-enabled').checked = result.enabled;
+    $('release-consent-text').textContent = result.consentText;
+    $('release-preferences-retry').hidden = true;
+  }
+  async function loadPreference(session: Session) {
+    const epoch = ++preferenceEpoch;
+    preferenceLoaded = false; preferenceBlocked = false; consentVersion = '';
+    input('release-email-enabled').checked = false; preferenceControls();
+    preferenceMessage('Loading your email preference…'); $('release-preferences-retry').hidden = true;
+    try {
+      const result = await preferenceRequest(session, { operation: 'get' });
+      if (epoch !== preferenceEpoch || activeSession?.access_token !== session.access_token) return;
+      applyPreference(result);
+      preferenceMessage(result.blocked ? 'Release emails are paused because of a delivery issue. Contact support@flowmastersuite.com if you want to receive them again.' : result.enabled ? 'You’re subscribed to release emails.' : 'You’re not subscribed to release emails.');
+    } catch (error) {
+      if (epoch !== preferenceEpoch || activeSession?.access_token !== session.access_token) return;
+      preferenceMessage(error instanceof Error ? error.message : 'Could not load your preference. Please try again.');
+      $('release-preferences-retry').hidden = false;
+    } finally { if (epoch === preferenceEpoch) preferenceControls(); }
+  }
+  function syncPreference(session: Session | null) {
+    const verified = !!session?.user.email_confirmed_at;
+    $('release-preferences').hidden = !verified;
+    const key = verified ? session!.access_token : '';
+    if (key === preferenceSessionKey) return;
+    preferenceSessionKey = key; ++preferenceEpoch;
+    preferenceLoaded = false; consentVersion = ''; input('release-email-enabled').checked = false; preferenceMessage('');
+    if (verified) void loadPreference(session!);
+  }
+  async function savePreference(enabled: boolean) {
+    const session = activeSession;
+    if (!session?.user.email_confirmed_at || (enabled && (!preferenceLoaded || preferenceBlocked))) return;
+    const epoch = ++preferenceEpoch; preferenceControls(true); preferenceMessage('Saving your email preference…');
+    try {
+      const result = await preferenceRequest(session, { operation: 'set', enabled, consentVersion: enabled ? consentVersion : 'release-updates-v1' });
+      if (epoch !== preferenceEpoch || activeSession?.access_token !== session.access_token) return;
+      applyPreference(result);
+      preferenceMessage(result.enabled ? 'You’re subscribed to release emails. You can unsubscribe here at any time.' : 'You’re unsubscribed from release emails. Account and security emails are unaffected.');
+    } catch (error) {
+      if (epoch !== preferenceEpoch || activeSession?.access_token !== session.access_token) return;
+      // A timeout may follow a committed change. Do not show the desired checkbox
+      // value as confirmed; require a fresh read before another opt-in attempt.
+      preferenceLoaded = false; input('release-email-enabled').checked = false;
+      preferenceMessage(error instanceof Error ? error.message : 'Your email preference could not be confirmed. Please try again.');
+      $('release-preferences-retry').hidden = false;
+    } finally { if (epoch === preferenceEpoch) preferenceControls(); }
+  }
+  $('release-preferences-form').addEventListener('submit', event => { event.preventDefault(); void savePreference(input('release-email-enabled').checked); });
+  $('release-preferences-unsubscribe').addEventListener('click', () => { void savePreference(false); });
+  $('release-preferences-retry').addEventListener('click', () => { if (activeSession) void loadPreference(activeSession); });
   const callbackError = new URLSearchParams(location.hash.slice(1)).get('error');
   if (callbackError) {
     message(callbackError === 'access_denied' ? 'Google sign-in wasn’t completed. Try again or use email below.' : 'Sign-in could not be completed. Please try again.');
@@ -52,6 +138,7 @@ import service from '../data/supabase.json';
   }
   function showSession(session: Session | null, reset = false) {
     activeSession = session;
+    syncPreference(session);
     const signedIn = !!session;
     if (!signedIn) settingPassword = false;
     const passwordScreen = reset || (signedIn && settingPassword);
@@ -149,6 +236,8 @@ import service from '../data/supabase.json';
   $('account-signout').addEventListener('click', async () => { const { error } = await db.auth.signOut(); if (error) message(error.message); else { recovery = false; message(''); showSession(null); } });
 </script>
 <style>
+.release-preferences{margin-top:30px;padding-top:24px;border-top:1px solid #34393f}.release-preferences h3{font-size:18px;font-weight:650;margin:0 0 10px}.release-preferences p{color:#b3b7bf;font-size:13px;line-height:1.6}.account-card label.release-preferences-choice{display:flex;align-items:flex-start;gap:12px;font-size:14px;line-height:1.6;margin-top:18px}.account-card #release-email-enabled{width:18px;height:18px;flex:0 0 18px;margin-top:3px;padding:0;accent-color:#a6ffba}.account-card #release-preferences-save{margin-top:16px;font-size:14px}.account-card #release-preferences-unsubscribe,.account-card #release-preferences-retry{font-size:13px;text-decoration:underline;line-height:1.5}#release-preferences-message{margin-top:16px}
+
 .account-card #account-google{display:flex;align-items:center;justify-content:center;gap:12px;width:100%;min-height:44px;margin:16px 0 0;padding:12px 18px;background:#f2f2f2;color:#1f1f1f;border:1px solid #747775;border-radius:6px;font-family:Arial,sans-serif;font-size:14px;font-weight:500;text-align:center}.account-card #account-google:not(:disabled):hover{background:#e5e5e5}.account-card #account-google svg{flex-shrink:0}#account-google-status{font-size:12px;color:#b3b7bf;line-height:1.5;margin-top:10px}.account-divider{display:flex;align-items:center;gap:12px;margin:22px 0;color:#979fa9;font-size:12px}.account-divider::before,.account-divider::after{content:'';height:1px;flex:1;background:#34393f}#account-ready{line-height:1.65;color:#cbd0d9}#account-signed-in>a{display:block;margin-top:20px}
 .account-shell{max-width:1100px;margin:auto;padding:100px 24px;display:grid;grid-template-columns:1.1fr 1fr;gap:72px;align-items:start}.eyebrow{font-size:12px;letter-spacing:.18em;color:#a6ffba;margin-bottom:24px}.account-intro h1{font-size:clamp(38px,5vw,64px);line-height:1.06;margin-bottom:30px}.account-intro p:not(.eyebrow){color:#b3b7bf;line-height:1.7;margin-top:20px}.account-card{background:#15181b;border:1px solid #34393f;border-radius:16px;padding:30px}.account-card h2{font-size:25px;margin-bottom:18px}.account-card label{display:block;font-size:13px;margin:18px 0 7px}.account-card input{width:100%;background:#0b0d10;border:1px solid #42484f;border-radius:6px;padding:12px;color:white}.account-card button[type=submit]{display:block;width:100%;background:#a6ffba;color:#0a1710;padding:12px;margin-top:24px;border-radius:6px;font-weight:650}.account-card button:disabled{opacity:.5;cursor:not-allowed}.account-service-status{padding:14px;background:#252516;border:1px solid #62603c;border-radius:6px;color:#e3dfb3;font-size:14px;line-height:1.5;margin-bottom:20px}.account-card button[type=button]{display:block;color:#a6ffba;text-align:left;margin-top:17px}.account-card a{color:#a6ffba}.account-card [hidden]{display:none!important}#account-message{color:#cbd0d9;font-size:14px;line-height:1.5}.account-note{font-size:12px;line-height:1.6;color:#979fa9;margin-top:30px}.account-card input:focus-visible,.account-card button:focus-visible{outline:2px solid #a6ffba;outline-offset:3px}@media(max-width:760px){.account-shell{grid-template-columns:1fr;gap:36px;padding:60px 20px}.account-card{padding:24px}}
 </style>

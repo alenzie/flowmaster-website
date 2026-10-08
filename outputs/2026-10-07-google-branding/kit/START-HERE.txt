@@ -39,3 +39,7 @@ PRIVACY PAGE STATUS
 LIVE AND VERIFIED: https://flowmaster.live/privacy/
 Published October 7, 2026. Public page and navigation links tested at mobile and desktop widths. You can enter this URL in Google's Privacy Policy field now.
 Do not claim Google has approved the app until its Branding/Verification screen confirms that.
+
+TERMS PAGE STATUS
+LIVE AND VERIFIED: https://flowmaster.live/terms/
+Published October 7, 2026. Public page and navigation links tested at mobile and desktop widths. Enter this URL in Google’s Terms of Service field.

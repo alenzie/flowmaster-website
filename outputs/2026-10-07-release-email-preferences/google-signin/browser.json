@@ -1,0 +1,15 @@
+{
+  "url": "http://127.0.0.1:4346/account/",
+  "passed": 8,
+  "checks": [
+    "Google button and fixed signup/login redirect at 390px",
+    "Google button and fixed signup/login redirect at 1440px",
+    "Disabled provider cannot start OAuth",
+    "Settings failure preserves email form",
+    "Cancelled OAuth gives safe retry and removes error fragment",
+    "OAuth return, fragment cleanup, reload, password handoff, mismatch, cancel, and signout",
+    "Email signup, recovery request, and password login preserved",
+    "Existing email recovery callback still opens password form"
+  ],
+  "authRequests": "intercepted fixtures; Google consent and real identity linking not yet verified"
+}
