@@ -23,7 +23,11 @@ No email is sent by this page. No subscription is included in signup. Account/se
 
 `scripts/verify-public-unsubscribe.mjs` additionally passed mobile and desktop explicit-confirmation/failure/retry checks, token fragment cleanup and no-storage/no-referrer assertions, and invalid/missing-token refusal with no network request. Screenshots and `public-unsubscribe.json` are in the same evidence folder.
 
-**Integration status at this commit:** backend integration is in progress, release-email sends remain disabled, and this website branch has not been deployed. These are local implementation and isolated browser results. Backend deployment, live account read/write proof and website deployment must be checked together before calling this production-ready. The root release-planner task owns coordination and deployment. No real subscribers or emails were created in these tests.
+**Deployment update (2026-10-08 UTC / 2026-10-07 Pacific):** website PR #10 merged at `db973e53f06bf134a38bafb69f2c3422911ac8ab`; GitHub Pages workflow `37716602643` completed successfully. Public `/account/` and `/email-preferences/` both returned HTTP 200. See `outputs/2026-10-07-release-email-preferences/deployment.json`.
+
+The Flowmaster Suite team deployed the release-email schema and `admin-console`, `account-email-preferences`, and `release-email-events` functions. Live testing found that the service role could not read confirmed account email through `auth.users`; migration `20261008020616_release_email_verified_lookup.sql` fixes this through a private service-only lookup, without granting broad auth-table access. Seven hosted API groups subsequently passed, including verified opt-in/out, access denial, frozen-source preparation, approval resets and no-login unsubscribe. Disposable accounts, sessions, drafts and campaign fixtures were removed and cleanup verified. Suite evidence: `outputs/2026-10-07-release-planner/live-api.json`, `database-deployment.json` and `email-configuration.json`.
+
+**Release-email sending remains disabled.** A sender mailing address and a real provider webhook delivery test are still pending. No announcement emails or build dispatches occurred during these checks. The final production admin UI browser pass remains owned by the root release-planner task; website deployment and hosted API verification do not imply that final pass has happened.
 
 ## Provider reference
 

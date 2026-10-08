@@ -1,0 +1,33 @@
+{
+  "verifiedAt": "2026-10-08T02:17:25.887938+00:00",
+  "website": {
+    "pullRequest": "https://github.com/alenzie/flowmaster-website/pull/10",
+    "mergedCommit": "db973e53f06bf134a38bafb69f2c3422911ac8ab",
+    "deploymentRun": "https://github.com/alenzie/flowmaster-website/actions/runs/37716602643",
+    "deploymentConclusion": "success",
+    "httpChecks": {
+      "https://flowmaster.live/account/": 200,
+      "https://flowmaster.live/email-preferences/": 200
+    }
+  },
+  "backend": {
+    "status": "Schema and account-email/admin/webhook functions deployed; verified by suite coordinator evidence",
+    "privateLookupFix": "20261008020616_release_email_verified_lookup.sql",
+    "hostedApiGroupsPassed": 7,
+    "fixtureCleanupVerified": true,
+    "evidenceRepository": "alenzie/flowmastersuite",
+    "evidencePaths": [
+      "outputs/2026-10-07-release-planner/live-api.json",
+      "outputs/2026-10-07-release-planner/database-deployment.json",
+      "outputs/2026-10-07-release-planner/email-configuration.json"
+    ]
+  },
+  "sendingEnabled": false,
+  "emailsSent": 0,
+  "buildDispatches": 0,
+  "pending": [
+    "Sender physical mailing address",
+    "Real provider webhook delivery test",
+    "Final production admin UI browser verification by suite coordinator"
+  ]
+}
