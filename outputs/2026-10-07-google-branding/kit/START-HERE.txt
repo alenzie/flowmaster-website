@@ -17,7 +17,7 @@ Privacy policy: https://flowmaster.live/privacy/
 Authorized domain: flowmaster.live
 Support email: choose your verified support address from Google's dropdown.
 Privacy/data request contact published on the website: support@flowmastersuite.com
-Terms of service: leave blank if optional. A terms page has not been published; do not use the privacy page as terms.
+Terms of service: https://flowmaster.live/terms/
 
 EXISTING CLIENT SETTINGS — KEEP THESE
 Project: flowmaster-511000

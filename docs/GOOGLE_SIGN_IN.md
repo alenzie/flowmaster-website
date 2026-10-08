@@ -14,7 +14,7 @@ Desktop login (`flowmastersuite/src/scripts/login-overlay.js`) and admin login (
 
 ## Google and Supabase setup
 
-1. Open https://console.cloud.google.com/auth/overview?project=flowmaster-511000. Initialize Google Auth Platform with app name Flowmaster, owner-selected support/contact email, and External audience. Use homepage `https://flowmaster.live`, privacy page `https://flowmaster.live/privacy/`, and authorized domain `flowmaster.live` when configuring branding. Do not invent a terms URL.
+1. Open https://console.cloud.google.com/auth/overview?project=flowmaster-511000. Initialize Google Auth Platform with app name Flowmaster, owner-selected support/contact email, and External audience. Use homepage `https://flowmaster.live`, privacy page `https://flowmaster.live/privacy/`, and authorized domain `flowmaster.live` when configuring branding. Use terms URL `https://flowmaster.live/terms/` (publication tracked in `docs/TERMS_OF_SERVICE.md`).
 2. Create a **Web application** client at https://console.cloud.google.com/auth/clients?project=flowmaster-511000. Authorized JavaScript origin: `https://flowmaster.live`. Authorized redirect URI: `https://wwuafjftlttmkvhzgtxh.supabase.co/auth/v1/callback`. This Google callback is different from the website return URL.
 3. In Supabase Authentication → Sign In / Providers → Google, enable the provider and paste the web client ID and secret directly into the dashboard. Keep secrets out of chat, the repository, browser code and screenshots. Keep nonce checks and email verification checks enabled.
 4. Preserve the current Supabase Site URL and allowed redirect `https://flowmaster.live/account`. Do not replace existing redirects with the Google callback. Only add narrow redirects if genuinely needed.
