@@ -1,0 +1,12 @@
+{
+  "url": "https://flowmaster.live/account/",
+  "checks": [
+    "Live enabled Google button and email fallback, no overflow at 390px",
+    "Live button reaches Google with configured client; no client/redirect error shown before sign-in",
+    "Live enabled Google button and email fallback, no overflow at 1440px"
+  ],
+  "passed": 3,
+  "googleAccountSignIn": "not performed; owner must complete consent",
+  "accountsCreated": 0,
+  "emailsSent": 0
+}

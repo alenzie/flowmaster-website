@@ -42,3 +42,7 @@ The test only mocks Supabase requests. It must not be represented as a live Goog
 - https://developers.google.com/identity/branding-guidelines
 
 Supabase changelog checked 2026-10-07. Listed breaking changes for self-hosted SAML, Management API OAuth status codes, Postgres extensions and Node 20 do not change this browser Auth integration. Development runs Node 24; Pages CI uses Node 22.
+
+## Production rollout
+
+PR #7 merged at `c4e95955d6635874470245efda1cb4c89e08c9f1`; GitHub Pages run `37706638267` succeeded. Live browser checks at 390px and 1440px confirm the button is enabled, email login remains available, and clicking Google reaches `accounts.google.com` with the configured client and no client/redirect error before sign-in. No Google account was signed in by the test. See `outputs/2026-10-07-google-signin/production.json` and the `live-google-signin-*` screenshots. The owner still needs to complete their first real Google sign-in; administrator membership remains a separate verified-account step.
