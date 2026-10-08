@@ -1,0 +1,81 @@
+FLOWMASTER · TERMS
+
+Terms of Service
+
+These terms explain the use of Flowmaster’s website, accounts, and related online services. Flowmaster is an Alenzie product, provided by Alenzie Solutions (“we,” “us”).
+
+Effective October 7, 2026 · Last updated October 7, 2026
+
+The essentials
+
+Your recordings remain yours. The free trial provides 30 shared actions per PC and requires online verification. Creating an account does not purchase a plan, reset the trial, or subscribe you to marketing emails.
+
+1. These terms and the software license
+
+These terms apply to flowmaster.live and Flowmaster’s account and online services. Please read them before using those services. If you do not agree, do not create an account or use the services.
+
+The desktop software is also subject to the license supplied with its installer. These website terms do not replace that license or expand the permissions it grants. Beta builds may be restricted to testing and evaluation, including restrictions on commercial use; review the license for the build you install. Third-party and open-source components remain governed by their own licenses and notices. Nothing here restricts rights that applicable law or those licenses require us to preserve.
+
+2. Your account
+
+Use an email address and sign-in account you control, provide accurate account information, and protect your password and sign-in credentials. Do not share or transfer access to bypass trial or license restrictions. Tell us if you believe someone has accessed your account without permission.
+
+You must be able to enter a binding agreement under the law that applies to you. If you use Flowmaster for an organization, you must have authority to act for it. Google sign-in is optional and does not grant administrator privileges or a paid license.
+
+3. The free trial and licenses
+
+The current trial is a shared allowance of 30 actions per PC, with no scheduled time expiry. A verified free account and an internet connection are required to start new trial work. All accounts using the same PC share its allowance. Reinstalling or creating another account does not reset usage.
+
+A recording session counts once when its first mark is saved; further marks in that session are included.
+A clipping run counts once per recording. A reel and separate clips created together count as one run; recordings in a batch count separately.
+A project assembly, including combining existing reels, counts once.
+
+The service reserves an action before work begins. Confirmed failures or cancellations release that reservation when the service can verify the result. An interrupted run may remain held or count if completion cannot be confirmed; contact support if you believe your usage is wrong.
+
+After the allowance is exhausted, existing recordings and outputs remain yours. Viewing existing work, editing saved marks, and Clean remain available once signed in. Online sign-in and service availability can still affect access; the trial is not a promise of an indefinitely available online service.
+
+Accounts are free. Paid trials, purchases, and self-service upgrades are currently unavailable. Signup does not charge you, enroll you in a paid subscription, or issue a beta license key. Any future paid offer will show its price and applicable terms before you choose to purchase. See download and trial details for current release availability and requirements.
+
+4. Your recordings and files
+
+You retain your rights in your recordings and outputs. These terms do not transfer ownership of that content to us. You are responsible for having the permissions needed to record, edit, and share content, including any consent required from people you record.
+
+Flowmaster’s recording and editing tools process your files locally. Keep backups, allow space for originals and exports, and review exported files before removing originals. Clean sends selected files to the Windows Recycle Bin, but recovery is not guaranteed. Flowmaster is not a backup service, and we cannot restore files we do not hold.
+
+5. Responsible use
+
+Do not use the services to violate others’ rights or applicable law, access accounts or data without authorization, distribute malicious software, disrupt the service, or falsify account, device, trial, or license records. Do not bypass service security or trial limits. These restrictions do not limit rights that cannot lawfully be restricted, including applicable rights concerning software interoperability or third-party licensed components.
+
+If you discover a security problem, report it to support@flowmastersuite.com without disclosing other users’ data or continuing activity that could cause harm.
+
+6. Availability, updates, and other services
+
+Flowmaster may change as we fix bugs and develop features. Downloads, online checks, and account services may be unavailable during outages, maintenance, or security incidents. Preview and beta features may change or be withdrawn; planned features and release dates are not guarantees.
+
+Flowmaster works with other software and providers, including OBS Studio and optional Google sign-in. Those services have their own terms, availability, and compatibility requirements. Keep required components up to date and review the requirements for your installed version.
+
+7. Restricting or ending access
+
+We may restrict accounts, devices, or service access when reasonably necessary to address a material violation of these terms, trial or license abuse, a security risk, or a legal requirement. Where practicable, we will explain the reason and how to contact us; urgent security or legal circumstances may require action first.
+
+If you believe a restriction or usage decision is incorrect, contact support for review. You may stop using Flowmaster at any time and request account deletion as described in our Privacy Policy. Ending online access does not transfer ownership of your local recordings to us or erase those files. Separate software-license terms continue to govern use of the installed software.
+
+8. Warranties and responsibility
+
+To the extent permitted by applicable law, the website and online services are provided “as is” and “as available,” without additional warranties of uninterrupted operation, error-free results, or fitness for a particular purpose. Test your workflow and check important outputs before relying on them.
+
+To the extent permitted by applicable law, we are not responsible for indirect or consequential losses resulting from use of the website or online services, including lost profits or business opportunities. Nothing in these terms excludes or limits liability for fraud, deliberate misconduct, or any liability that cannot legally be excluded or limited. Your mandatory consumer rights, remedies, and statutory guarantees remain unaffected. Some limitations may not apply in your location.
+
+9. Privacy and communications
+
+Our Privacy Policy explains account information, Google sign-in, device and trial records, service providers, and privacy requests. We may send necessary account, security, and service messages. Creating an account is not consent to marketing emails; optional announcements require a separate opt-in.
+
+10. Changes and contact
+
+We will publish changes here and update the date above. Material changes will receive additional notice where required, and we will seek agreement where applicable law requires it. Changes are intended to apply prospectively, not to remove rights that already accrued.
+
+For questions, account issues, or a review of an access decision, email support@flowmastersuite.com. Include enough detail to identify the issue, but never send your password, sign-in codes, or API keys.
+
+Privacy Policy →
+Your Flowmaster account →
+Download and trial details →
