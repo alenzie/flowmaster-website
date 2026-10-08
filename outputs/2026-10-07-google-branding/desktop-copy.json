@@ -6,12 +6,16 @@
     "Flowmaster-original-lockup.png": "05229ed87c22dbe1bd5dc1518dee5eb7edaff6b344ca61db67ae50e192398858",
     "Flowmaster-original-lockup.svg": "22c95d10aebf91c4fbb76767c56bca3d3ee402d97645b8c1fa51ef661b9d5c80",
     "Google-Branding.url": "4ed605eb544a2feb660fffeb2fce4d0fcb5e6e3c112c5788818b23e3f528dfbf",
-    "logo-provenance.txt": "28ad80b09c17e1a4b91552e1311b1f6e606649963a01d89fda744dae2c7c1e0a",
     "Privacy-Policy-readable.txt": "d035c5533968b69c49e7c65b1a936226ad8f2f7ad6170f7a27e3e7dc766de960",
     "Privacy-Policy.url": "53dc5bd43e34c31acbfa7c8a8635a22dcf3b0ea3ef9483661df1cbeb97d44681",
-    "START-HERE.txt": "8c4884585138d9eac1cf6483b3cae2f2118740c3f8b0174ac4ea9b5231ad3662"
+    "START-HERE.txt": "9ec5ae3186dbb3ffd415c2b6f902dbd36e1154a3241db8a557b238dfc570dbe1",
+    "Terms-of-Service-readable.txt": "22ce132ccfe4ac855bec2c6bffc6b4b3792f6282f1da65fcaf6f8fadec6c1a35",
+    "Terms-of-Service.url": "31dc3109ba5fe2a6b1592316c6475c6e44af77a16f6dfa61f7e0d4dea5913c3a",
+    "logo-provenance.txt": "28ad80b09c17e1a4b91552e1311b1f6e606649963a01d89fda744dae2c7c1e0a"
   },
   "verified": true,
   "privacy_url": "https://flowmaster.live/privacy/",
-  "privacy_live": true
+  "privacy_live": true,
+  "terms_url": "https://flowmaster.live/terms/",
+  "terms_live": true
 }

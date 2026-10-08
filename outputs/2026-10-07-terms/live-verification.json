@@ -1,0 +1,27 @@
+{
+  "base": "https://flowmaster.live",
+  "checks": [
+    {
+      "width": 390,
+      "publicPage": true,
+      "canonicalCorrect": true,
+      "termsSections": 10,
+      "contactCorrect": true,
+      "privacyAndTrialLinked": true,
+      "noOverflow": true,
+      "homeAccountDownloadLinks": true,
+      "browserErrors": []
+    },
+    {
+      "width": 1440,
+      "publicPage": true,
+      "canonicalCorrect": true,
+      "termsSections": 10,
+      "contactCorrect": true,
+      "privacyAndTrialLinked": true,
+      "noOverflow": true,
+      "homeAccountDownloadLinks": true,
+      "browserErrors": []
+    }
+  ]
+}
