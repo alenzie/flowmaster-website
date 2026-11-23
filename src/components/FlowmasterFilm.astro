@@ -1,0 +1,224 @@
+---
+// The Flowmaster product film (flowmaster-film repo, draft v26). On desktop it opens on the
+// same kind of loader as the walkthrough below, then plays in the frame with sound.
+// On mobile (and without JavaScript) it is the native video player.
+const film = '/media/flowmaster/film-v26';
+---
+<section id="film" aria-labelledby="film-heading" class="film-section">
+  <figure>
+    <div class="film-window" data-film>
+      <video class="film-video" controls playsinline preload="none" poster={`${film}-poster.jpg`} aria-labelledby="film-heading">
+        <source src={`${film}.mp4`} type="video/mp4" />
+        <track kind="captions" src={`${film}.en.vtt`} srclang="en" label="English" />
+        <p>Your browser cannot play this film. <a href={`${film}.mp4`}>Open the Flowmaster film.</a></p>
+      </video>
+      <div class="film-gate" data-film-gate hidden>
+        <div class="gate-stack">
+          <img class="gate-logo" src="/demos/flowmaster-ux-story/assets/logo-horizontal-lockup.svg" alt="Flowmaster" width="380" height="76" />
+          <p class="gate-label" role="status" data-film-status>The film</p>
+          <button type="button" class="gate-play" data-film-play disabled aria-controls="flowmaster-film-player">
+            <span class="gate-spin" aria-hidden="true"></span><span data-film-play-text>Loading film…</span>
+          </button>
+        </div>
+      </div>
+      <div class="film-progress" data-film-progress hidden><span></span></div>
+    </div>
+    <figcaption>
+      <h2 id="film-heading">Edit as you record.</h2>
+      <p>90 seconds, from hours of footage to the moments worth keeping. Events and Flow are coming soon.</p>
+    </figcaption>
+  </figure>
+</section>
+
+<style>
+  .film-section { max-width: 1200px; margin: 0 auto; padding: 0 1.5rem 5rem; scroll-margin-top: 6rem; }
+  figure { margin: 0; }
+  .film-window { position: relative; width: 100%; aspect-ratio: 16 / 9; overflow: hidden; border-radius: 12px; background: #07080b; }
+  .film-video { display: block; width: 100%; height: 100%; background: #07080b; }
+  .film-window.is-gated .film-video { cursor: pointer; }
+  .film-window.is-gated:focus-visible { outline: 2px solid #ff5959; outline-offset: 4px; }
+  figcaption { padding-top: 1.25rem; }
+  h2 { font-size: 1.25rem; line-height: 1.4; margin: 0 0 .35rem; }
+  figcaption p { font-size: .875rem; color: #a3a3a3; margin: 0; max-width: 40rem; }
+
+  .film-gate { position: absolute; inset: 0; z-index: 2; display: flex; align-items: center; justify-content: center; background: #07080b; font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif; transition: opacity .45s ease, background-color .3s ease; }
+  .film-gate[hidden] { display: none; }
+  .film-gate.is-leaving { opacity: 0; pointer-events: none; }
+  .film-gate.is-paused { background: rgba(7, 8, 11, .72); backdrop-filter: blur(2px); }
+  .gate-stack { display: flex; flex-direction: column; align-items: center; gap: clamp(1rem, 2.2vw, 1.5rem); }
+  .gate-logo { width: clamp(220px, 32vw, 380px); height: auto; display: block; animation: gate-up .6s ease-out both; }
+  .gate-label { margin: 0; font-size: clamp(.95rem, 1.4vw, 1.2rem); color: #b6bcc6; }
+  .gate-play { display: inline-flex; align-items: center; justify-content: center; gap: .6rem; min-width: clamp(240px, 34vw, 420px); min-height: 52px; padding: .9rem 1.25rem; border: 0; border-radius: 8px; background: #ff3333; color: #fff; font-family: inherit; font-size: clamp(1rem, 1.4vw, 1.2rem); font-weight: 600; line-height: 1; cursor: pointer; box-shadow: 0 12px 36px rgba(255, 51, 51, .3); animation: gate-up .45s ease-out both; transition: transform .15s ease, box-shadow .15s ease; }
+  .gate-play:hover:not(:disabled) { transform: translateY(-1px); box-shadow: 0 16px 42px rgba(255, 51, 51, .38); }
+  .gate-play:disabled { background: #2a2c31; color: #b6bcc6; box-shadow: none; cursor: wait; }
+  .gate-play:focus-visible { outline: 2px solid #fff; outline-offset: 4px; }
+  .gate-spin { width: 1em; height: 1em; border: 2px solid currentColor; border-right-color: transparent; border-radius: 50%; animation: gate-spin .8s linear infinite; }
+  .gate-play:not(:disabled) .gate-spin { display: none; }
+
+  .film-progress { position: absolute; left: 0; right: 0; bottom: 0; z-index: 1; height: 3px; background: rgba(255, 255, 255, .08); pointer-events: none; }
+  .film-progress[hidden] { display: none; }
+  .film-progress span { display: block; height: 100%; width: 100%; transform-origin: left; transform: scaleX(0); background: #ff3333; }
+
+  @keyframes gate-up { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+  @keyframes gate-spin { to { transform: rotate(360deg); } }
+  @media (prefers-reduced-motion: reduce) {
+    .gate-logo, .gate-play { animation: none; }
+    .gate-spin { animation-duration: 2.4s; }
+    .film-gate { transition: none; }
+  }
+  @media (max-width: 767px) {
+    .film-section { padding: 1.5rem 1rem 3rem; }
+    .film-window { border-radius: 8px; }
+  }
+</style>
+
+<script>
+  const win = document.querySelector<HTMLElement>('[data-film]');
+  const video = win?.querySelector('video');
+  const gate = win?.querySelector<HTMLElement>('[data-film-gate]');
+  const button = win?.querySelector<HTMLButtonElement>('[data-film-play]');
+  const label = win?.querySelector<HTMLElement>('[data-film-play-text]');
+  const status = win?.querySelector<HTMLElement>('[data-film-status]');
+  const progress = win?.querySelector<HTMLElement>('[data-film-progress]');
+  const bar = progress?.querySelector<HTMLElement>('span');
+
+  if (win && video && gate && button && label && status && progress && bar) {
+    video.id = 'flowmaster-film-player';
+    // Mobile keeps the native player; the loader is for desktop-sized screens.
+    const desktop = window.matchMedia('(min-width: 768px)');
+    let gated = false;
+    let loading = false;
+    let ready = false;
+    let started = false;
+    let readyTimer: ReturnType<typeof setTimeout> | undefined;
+    let failTimer: ReturnType<typeof setTimeout> | undefined;
+    let frame = 0;
+
+    const length = () => {
+      const d = Number.isFinite(video.duration) && video.duration > 0 ? video.duration : 90;
+      return `${Math.floor(d / 60)}:${String(Math.floor(d % 60)).padStart(2, '0')}`;
+    };
+    const showGate = (text: string, mode: 'start' | 'paused' | 'ended' | 'error') => {
+      gate.hidden = false;
+      gate.classList.remove('is-leaving');
+      gate.classList.toggle('is-paused', mode === 'paused');
+      button.disabled = false;
+      label.textContent = text;
+      status.textContent = mode === 'error' ? 'The film couldn’t load. Please try again.' : 'The film';
+      button.setAttribute('aria-label', `${text.replace(/^[▶↻]\s*/, '').replace(/ ·.*$/, '')} the Flowmaster film`);
+    };
+    const markReady = () => {
+      if (ready || !gated) return;
+      ready = true;
+      loading = false;
+      clearTimeout(readyTimer);
+      clearTimeout(failTimer);
+      showGate(`▶ Play · ${length()}`, 'start');
+    };
+    const fail = () => {
+      if (!gated || ready) return;
+      clearTimeout(readyTimer);
+      clearTimeout(failTimer);
+      loading = false;
+      showGate('Retry film', 'error');
+    };
+    const load = () => {
+      if (loading || ready) return;
+      loading = true;
+      button.disabled = true;
+      label.textContent = 'Loading film…';
+      status.textContent = 'The film';
+      video.preload = 'auto';
+      video.load();
+      failTimer = setTimeout(fail, 20000);
+    };
+    const tick = () => {
+      if (video.duration) bar.style.transform = `scaleX(${video.currentTime / video.duration})`;
+      frame = video.paused ? 0 : requestAnimationFrame(tick);
+    };
+    const play = () => {
+      if (!ready) { load(); return; }
+      if (!started || video.ended) { video.currentTime = 0; started = true; }
+      gate.classList.add('is-leaving');
+      setTimeout(() => { if (!video.paused) gate.hidden = true; }, 460);
+      progress.hidden = false;
+      video.play().catch(() => showGate(`▶ Play · ${length()}`, 'start'));
+    };
+    const pause = () => { if (!video.paused) video.pause(); };
+
+    video.addEventListener('canplaythrough', markReady);
+    // Some browsers never fire canplaythrough on a long file; a few seconds of buffer is enough.
+    video.addEventListener('canplay', () => { if (gated && !ready) readyTimer = setTimeout(markReady, 3000); });
+    video.addEventListener('error', fail);
+    video.querySelector('source')?.addEventListener('error', fail);
+    video.addEventListener('play', () => {
+      if (!gated) return;
+      cancelAnimationFrame(frame);
+      tick();
+      // One sound at a time: pause the walkthrough below if it is playing.
+      document.querySelector<HTMLIFrameElement>('[data-workflow-frame]')?.contentWindow
+        ?.dispatchEvent(new CustomEvent('flowmaster:playback', { detail: { action: 'pause' } }));
+    });
+    video.addEventListener('pause', () => {
+      if (!gated || video.ended) return;
+      showGate('▶ Resume', 'paused');
+    });
+    video.addEventListener('ended', () => {
+      if (!gated) return;
+      progress.hidden = true;
+      showGate(`↻ Watch again · ${length()}`, 'ended');
+    });
+
+    button.addEventListener('click', event => {
+      event.stopPropagation();
+      if (!ready) { load(); return; }
+      play();
+    });
+    win.addEventListener('click', () => { if (gated && ready && gate.hidden) pause(); });
+    win.addEventListener('dblclick', () => {
+      if (!gated || !document.fullscreenEnabled) return;
+      (document.fullscreenElement ? document.exitFullscreen() : win.requestFullscreen()).catch(() => {});
+    });
+    win.addEventListener('keydown', event => {
+      if (!gated || event.target !== win || !ready) return;
+      if (event.key === ' ' || event.key === 'k' || event.key === 'Enter') { event.preventDefault(); if (video.paused) play(); else pause(); }
+    });
+    document.addEventListener('visibilitychange', () => { if (document.hidden) pause(); });
+    // The walkthrough's Play button pauses the film.
+    document.querySelector('[data-workflow-play]')?.addEventListener('click', pause);
+
+    const lazy = 'IntersectionObserver' in window
+      ? new IntersectionObserver(entries => { if (gated && entries.some(e => e.isIntersecting)) load(); }, { rootMargin: '300px 0px' })
+      : null;
+    const offscreen = 'IntersectionObserver' in window
+      ? new IntersectionObserver(entries => { if (!entries[0].isIntersecting) pause(); })
+      : null;
+
+    const apply = () => {
+      const want = desktop.matches;
+      if (want === gated) return;
+      pause();
+      gated = want;
+      win.classList.toggle('is-gated', gated);
+      video.controls = !gated;
+      gate.hidden = !gated;
+      progress.hidden = true;
+      if (gated) {
+        win.tabIndex = 0;
+        win.setAttribute('role', 'group');
+        win.setAttribute('aria-label', 'Flowmaster film. Press Space to play or pause.');
+        if (ready) showGate(`▶ Play · ${length()}`, 'start');
+        if (lazy) lazy.observe(win); else load();
+        offscreen?.observe(win);
+      } else {
+        win.removeAttribute('tabindex');
+        win.removeAttribute('role');
+        win.removeAttribute('aria-label');
+        lazy?.unobserve(win);
+        offscreen?.unobserve(win);
+      }
+    };
+    apply();
+    desktop.addEventListener('change', apply);
+  }
+</script>
