@@ -5,7 +5,6 @@ import FlowmasterFilm from '../components/FlowmasterFilm.astro';
 import WorkflowDemo from '../components/WorkflowDemo.astro';
 import LiveStats from '../components/LiveStats.astro';
 import ThreeStepAnimation from '../components/ThreeStepAnimation.astro';
-import HowItWorks from '../components/HowItWorks.astro';
 import FeaturesPreview from '../components/FeaturesPreview.astro';
 import FuturePreview from '../components/FuturePreview.astro';
 import Testimonials from '../components/Testimonials.astro';
@@ -15,12 +14,12 @@ import CTASection from '../components/CTASection.astro';
 <BaseLayout title="Home">
   <Hero />
   <FlowmasterFilm />
-  <WorkflowDemo />
   {/* Live usage stats — hidden until we have more users. Re-enable by uncommenting. */}
   {/* <LiveStats /> */}
   <ThreeStepAnimation />
-  <HowItWorks />
   <FeaturesPreview />
+  {/* The step-by-step walkthrough sits after the features, so the film and it aren't back to back. */}
+  <WorkflowDemo />
   <FuturePreview />
   {/* Testimonials + "Watch Creator Stories" video — hidden until ready. Re-enable by uncommenting. */}
   {/* <Testimonials /> */}
