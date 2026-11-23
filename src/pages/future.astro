@@ -4,14 +4,33 @@ import Button from '../components/Button.astro';
 import landscapeMock from '../assets/app/MobileAppMockLandscape_Large.png';
 import portraitMock from '../assets/app/MobileAppMockVertical.png';
 
+// Owner 2026-11-23: Events and Flow AI are the current work, timed for the December release;
+// the mobile companion app is loosely planned. The older phases are kept as ideas, not schedules.
 const phases = [
   {
     number: 1,
-    title: "Unified Interface",
-    status: "In Development",
+    title: "Events & Flow AI",
+    status: "Coming December",
     statusClass: "bg-brand-red/20 text-brand-red",
     accentClass: "text-brand-red",
-    borderClass: "border-brand-red/30 hover:border-brand-red/50",
+    borderClass: "border-brand-red/40 hover:border-brand-red/60",
+    wide: true,
+    features: [
+      { title: "Events tab", description: "Scans your recordings for kills, objectives and round wins" },
+      { title: "Detection templates", description: "Per-game templates you can import and share" },
+      { title: "Events across recordings", description: "One sortable table of every moment you've scanned" },
+      { title: "Flow AI tab", description: "Ask about your footage; Flow plans the edit" },
+      { title: "Beat mode", description: "Montages cut to the music" },
+      { title: "Editor handoff", description: "Send a plan straight to a new project in your editor" },
+    ]
+  },
+  {
+    number: 2,
+    title: "Unified Interface",
+    status: "Later",
+    statusClass: "bg-white/10 text-gray-300",
+    accentClass: "text-gray-300",
+    borderClass: "border-gray-700 hover:border-gray-500",
     features: [
       { title: "Single-window experience", description: "All tools in one place" },
       { title: "Multi-track recording", description: "V1-V3 video, A1-A3 audio tracks" },
@@ -22,9 +41,9 @@ const phases = [
     ]
   },
   {
-    number: 2,
+    number: 3,
     title: "Go Live",
-    status: "Planned",
+    status: "Later",
     statusClass: "bg-[#f5d440]/20 text-[#f5d440]",
     accentClass: "text-[#f5d440]",
     borderClass: "border-[#f5d440]/30 hover:border-[#f5d440]/50",
@@ -37,9 +56,9 @@ const phases = [
     ]
   },
   {
-    number: 3,
+    number: 4,
     title: "Mobile & Cloud",
-    status: "Planned",
+    status: "Exploring",
     statusClass: "bg-[#6be553]/20 text-[#6be553]",
     accentClass: "text-[#6be553]",
     borderClass: "border-[#6be553]/30 hover:border-[#6be553]/50",
@@ -52,7 +71,7 @@ const phases = [
     ]
   },
   {
-    number: 4,
+    number: 5,
     title: "Podcasting & Beyond",
     status: "Future",
     statusClass: "bg-alenzie-mint/20 text-alenzie-mint",
@@ -69,6 +88,39 @@ const phases = [
   },
 ];
 
+const spotlight = [
+  {
+    kicker: 'Coming in December',
+    name: 'Events',
+    image: '/images/roadmap/events-preview.jpg',
+    alt: 'The Events tab: a scanned recording with its events on a timeline and a list of detected moments with Jump buttons',
+    lead: 'Flowmaster scans the pixels on your screen, and finds the moments for you.',
+    points: [
+      'Runs after you record, on your PC. The scan itself uses no AI.',
+      'Reads HUD cues like hit markers and the kill feed, plus game sounds.',
+      'Finds kills, deaths, assists, objectives and round wins, next to your own F9 marks.',
+      'A timeline and event list for each recording, and one sortable table across all of them.',
+      'Per-game detection templates you can import and share.',
+      'Unsure detections wait for your review and are never used on their own.',
+    ],
+  },
+  {
+    kicker: 'Coming in December',
+    name: 'Flow AI',
+    image: '/images/roadmap/flow-preview.jpg',
+    alt: 'The Flow AI tab: asked what video to make this week, Flow suggests a streak montage and shows a plan waiting for approval',
+    lead: 'Your AI editing buddy. Ask it what to make from this week’s footage.',
+    points: [
+      'Reads your marks and events: session recaps, clip pools, review reels.',
+      'Asks what you’re making first: a let’s play, a highlight collage, a beat-synced montage, or your own.',
+      'Builds montages in Beat mode and hands plans to your editor as a new project.',
+      'Every action is a preview card you approve with one click.',
+      'Receipts on every answer: what it looked up, with links that jump to the moment.',
+      'Its memory is a notes file you can read, edit and wipe.',
+    ],
+  },
+];
+
 const comparisons = [
   {
     icon: "🎬",
@@ -80,7 +132,7 @@ const comparisons = [
     icon: "🎯",
     versus: "vs. AI Editors",
     title: "You stay in control",
-    description: "AI editors guess what's important. Sometimes they're wrong. Flowmaster executes YOUR decisions with precision. No black box. No surprises."
+    description: "AI editors guess what's important and cut it for you. Flow suggests from your own marks and events, shows its receipts, and waits for your yes. No black box. No surprises."
   },
   {
     icon: "🎙️",
@@ -122,7 +174,7 @@ const appBenefits = [
         The <span class="text-brand-red">Future</span> of Flowmaster
       </h1>
       <p class="text-xl text-text-secondary max-w-2xl mx-auto">
-        We're building the ultimate content creation studio. Here's what's coming.
+        Events and Flow AI arrive in December. Here's what they do, and what comes after.
       </p>
     </div>
   </section>
@@ -132,14 +184,81 @@ const appBenefits = [
     <div class="container-main">
       <div class="max-w-3xl mx-auto bg-bg-secondary rounded-xl border border-brand-red/30 p-8 text-center">
         <p class="text-lg text-gray-300 italic mb-4">
-          "Most editing tools are moving toward AI that decides what's important in your content. We're going the opposite direction.
+          "Most AI editing tools decide what's important in your content for you. Flow works the other way.
         </p>
         <p class="text-lg text-gray-300 italic mb-6">
-          Flowmaster gives you precision tools that execute YOUR creative decisions. You mark the moments. We handle the tedious cuts."
+          It reads the moments you marked and the events Flowmaster found, suggests what to make, and waits for your yes. You mark the moments. We handle the tedious cuts."
         </p>
         <p class="text-xl font-semibold text-white">
-          We don't guess. You decide.
+          Flow suggests. You decide.
         </p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Coming in December: Events and Flow AI -->
+  <section class="section-padding pt-0">
+    <div class="container-main space-y-16">
+      {spotlight.map((item, i) => (
+        <div class={`spot grid lg:grid-cols-2 gap-10 items-center ${i % 2 ? 'spot-flip' : ''}`}>
+          <div class="spot-shot">
+            <img src={item.image} alt={item.alt} loading="lazy" width="1080" height="800" />
+            <span class="spot-tag">In development · December</span>
+          </div>
+          <div>
+            <p class="spot-kicker">{item.kicker}</p>
+            <h2 class="text-3xl md:text-4xl font-bold mb-3">{item.name}</h2>
+            <p class="text-lg text-gray-300 mb-6">{item.lead}</p>
+            <ul class="space-y-3">
+              {item.points.map(point => (
+                <li class="flex items-start gap-3">
+                  <svg class="w-5 h-5 text-brand-red flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                  <span class="text-text-secondary">{point}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+        </div>
+      ))}
+    </div>
+  </section>
+
+  <!-- Roadmap -->
+  <section class="section-padding">
+    <div class="container-main">
+      <h2 class="text-center mb-4">Roadmap</h2>
+      <p class="text-text-secondary text-center max-w-2xl mx-auto mb-12">
+        Events and Flow AI come first, in December. After that, phases are in order of priority, not on a schedule.
+      </p>
+
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        {phases.map(phase => (
+          <div class={`card border ${phase.borderClass} transition-colors ${phase.wide ? 'lg:col-span-2' : ''}`}>
+            <div class="flex items-center justify-between mb-6">
+              <div class="flex items-center gap-3">
+                <span class={`text-2xl font-bold ${phase.accentClass}`}>Phase {phase.number}</span>
+                <span class="text-xl font-semibold text-white">{phase.title}</span>
+              </div>
+              <span class={`text-xs px-3 py-1 rounded-full uppercase tracking-wider font-medium ${phase.statusClass}`}>
+                {phase.status}
+              </span>
+            </div>
+
+            <ul class="space-y-3">
+              {phase.features.map(feature => (
+                <li class="flex items-start gap-3">
+                  <svg class={`w-5 h-5 ${phase.accentClass} flex-shrink-0 mt-0.5`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                  </svg>
+                  <div>
+                    <span class="text-white font-medium">{feature.title}</span>
+                    <span class="text-text-secondary"> - {feature.description}</span>
+                  </div>
+                </li>
+              ))}
+            </ul>
+          </div>
+        ))}
       </div>
     </div>
   </section>
@@ -163,9 +282,10 @@ const appBenefits = [
   <section class="app-benefits-section section-padding">
     <div class="container-main">
       <div class="text-center mb-16">
+        <p class="spot-kicker">Exploring</p>
         <h2 class="text-4xl font-semibold mb-4">Your Session, In Your Pocket</h2>
         <p class="text-gray-400 text-lg max-w-2xl mx-auto">
-          The Flowmaster companion app puts control where you need it.
+          A companion app is loosely planned: mark moments and keep an eye on your session from your phone.
         </p>
       </div>
 
@@ -232,48 +352,8 @@ const appBenefits = [
         </svg>
       </div>
 
-      <h2 class="text-3xl font-semibold mt-8 tracking-wide">Under Development</h2>
-      <p class="text-gray-500 mt-3 text-lg">The mobile companion app is on our roadmap.</p>
-    </div>
-  </section>
-
-  <!-- Roadmap -->
-  <section class="section-padding">
-    <div class="container-main">
-      <h2 class="text-center mb-4">Roadmap</h2>
-      <p class="text-text-secondary text-center max-w-2xl mx-auto mb-12">
-        Our development journey, organized into phases. No specific dates - just steady progress toward the vision.
-      </p>
-
-      <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        {phases.map(phase => (
-          <div class={`card border ${phase.borderClass} transition-colors`}>
-            <div class="flex items-center justify-between mb-6">
-              <div class="flex items-center gap-3">
-                <span class={`text-2xl font-bold ${phase.accentClass}`}>Phase {phase.number}</span>
-                <span class="text-xl font-semibold text-white">{phase.title}</span>
-              </div>
-              <span class={`text-xs px-3 py-1 rounded-full uppercase tracking-wider font-medium ${phase.statusClass}`}>
-                {phase.status}
-              </span>
-            </div>
-
-            <ul class="space-y-3">
-              {phase.features.map(feature => (
-                <li class="flex items-start gap-3">
-                  <svg class={`w-5 h-5 ${phase.accentClass} flex-shrink-0 mt-0.5`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
-                  </svg>
-                  <div>
-                    <span class="text-white font-medium">{feature.title}</span>
-                    <span class="text-text-secondary"> - {feature.description}</span>
-                  </div>
-                </li>
-              ))}
-            </ul>
-          </div>
-        ))}
-      </div>
+      <h2 class="text-3xl font-semibold mt-8 tracking-wide">On the drawing board</h2>
+      <p class="text-gray-500 mt-3 text-lg">The companion app comes after Events and Flow. Tell us what you’d want from it on Discord.</p>
     </div>
   </section>
 
@@ -310,7 +390,7 @@ const appBenefits = [
           Join Discord
         </Button>
         <Button href="/download" variant="secondary" size="lg">
-          Download v0.8.5
+          Free trial details
         </Button>
       </div>
     </div>
@@ -318,6 +398,13 @@ const appBenefits = [
 </BaseLayout>
 
 <style>
+  /* ===== Events / Flow spotlight ===== */
+  .spot-kicker { margin: 0 0 .6rem; font: 600 .75rem/1 ui-monospace, SFMono-Regular, Menlo, monospace; letter-spacing: .14em; text-transform: uppercase; color: #ff5959; }
+  .spot-shot { position: relative; overflow: hidden; border-radius: 14px; border: 1px solid #262626; background: #07080b; box-shadow: 0 30px 60px rgba(0, 0, 0, .45); }
+  .spot-shot img { display: block; width: 100%; height: auto; }
+  .spot-tag { position: absolute; top: 12px; right: 12px; padding: .3rem .6rem; border-radius: 999px; background: rgba(10, 10, 10, .78); border: 1px solid rgba(255, 255, 255, .14); color: #d4d4d4; font-size: .7rem; font-weight: 600; backdrop-filter: blur(4px); }
+  @media (min-width: 1024px) { .spot-flip .spot-shot { order: 2; } }
+
   /* ===== Mobile App Hero ===== */
   .app-hero-section {
     height: 70vh;

@@ -1,79 +1,72 @@
 ---
 import Button from './Button.astro';
+
+// Owner 2026-11-23: Events and Flow AI are the current work, timed for the December release.
+// The mobile companion app is loosely planned. Facts from flowmastersuite docs/roadmap
+// (event-detection and editing-assistant master plans). No accuracy figures or pricing until set.
+const coming = [
+  {
+    name: 'Events',
+    image: '/images/roadmap/events-preview.jpg',
+    alt: 'The Events tab: a scanned recording with its events on a timeline and a list of detected moments with Jump buttons',
+    lead: 'Flowmaster scans the pixels on your screen.',
+    body: 'After you record, Events reads the HUD and game sounds in your footage and finds the kills, objectives and round wins for you. Every moment lands on a timeline you can jump through and clip from, alongside your own marks.',
+  },
+  {
+    name: 'Flow AI',
+    image: '/images/roadmap/flow-preview.jpg',
+    alt: 'The Flow AI tab: asked what video to make this week, Flow suggests a streak montage and shows a plan waiting for approval',
+    lead: 'Your AI editing buddy.',
+    body: 'Ask what to make from this week’s recordings. Flow reads your marks and events, then builds clip pools, montages and editor handoffs. Every action is a preview you approve first.',
+  },
+];
 ---
 
 <section id="future-preview" class="section-padding bg-bg-secondary">
   <div class="container-main">
+    <p class="future-kicker">Coming in December</p>
     <h2 class="text-3xl md:text-4xl font-bold text-center mb-4">
-      The <span class="text-brand-red">Future</span> of Flowmaster
+      Coming to <span class="text-brand-red">Flowmaster</span>
     </h2>
     <p class="text-text-secondary text-center max-w-2xl mx-auto mb-12">
-      We're just getting started. Here's what's coming next.
+      Two new tabs, Events and Flow AI, are in development for the December release.
     </p>
 
-    <div class="grid lg:grid-cols-2 gap-12 items-center">
-      <!-- UI Preview Image -->
-      <div class="bg-bg-primary rounded-xl border border-gray-800 p-6 flex items-center justify-center">
-        <div class="text-center">
-          <img
-            src="/future-ui-preview.jpg"
-            alt="Preview of future Flowmaster interface with timeline editor"
-            class="rounded-lg border border-gray-700 shadow-lg max-w-[250px] mx-auto mb-3"
-          />
-          <p class="text-text-secondary text-sm">Future UI Preview</p>
-        </div>
-      </div>
+    <div class="grid lg:grid-cols-2 gap-8">
+      {coming.map(item => (
+        <article class="future-card">
+          <div class="future-shot">
+            <img src={item.image} alt={item.alt} loading="lazy" width="1080" height="800" />
+            <span class="future-tag">In development</span>
+          </div>
+          <div class="future-copy">
+            <h3>{item.name}</h3>
+            <p class="future-lead">{item.lead}</p>
+            <p class="text-text-secondary text-sm">{item.body}</p>
+          </div>
+        </article>
+      ))}
+    </div>
 
-      <!-- Roadmap Items -->
-      <div class="space-y-6">
-        <div class="flex items-start gap-4">
-          <div class="w-6 h-6 rounded-full bg-brand-red/20 flex items-center justify-center flex-shrink-0 mt-1">
-            <svg class="w-4 h-4 text-brand-red" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
-            </svg>
-          </div>
-          <div>
-            <h3 class="font-semibold mb-1">Cloud Sync & Backup</h3>
-            <p class="text-text-secondary text-sm">
-              Sync your settings and project files across devices. Never lose your work.
-            </p>
-          </div>
-        </div>
+    <p class="future-motto">Flow suggests. You decide.</p>
 
-        <div class="flex items-start gap-4">
-          <div class="w-6 h-6 rounded-full bg-brand-red/20 flex items-center justify-center flex-shrink-0 mt-1">
-            <svg class="w-4 h-4 text-brand-red" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
-            </svg>
-          </div>
-          <div>
-            <h3 class="font-semibold mb-1">Integrated UI with Video Preview</h3>
-            <p class="text-text-secondary text-sm">
-              A unified interface with timeline editing and real-time video preview - all in one window.
-            </p>
-          </div>
-        </div>
-
-        <div class="flex items-start gap-4">
-          <div class="w-6 h-6 rounded-full bg-brand-red/20 flex items-center justify-center flex-shrink-0 mt-1">
-            <svg class="w-4 h-4 text-brand-red" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
-            </svg>
-          </div>
-          <div>
-            <h3 class="font-semibold mb-1">Collaborative Editing</h3>
-            <p class="text-text-secondary text-sm">
-              Share projects and work together with your team through the app.
-            </p>
-          </div>
-        </div>
-
-        <div class="pt-4">
-          <Button href="/future" variant="secondary">
-            See our roadmap →
-          </Button>
-        </div>
-      </div>
+    <div class="text-center">
+      <Button href="/future" variant="secondary">
+        See the roadmap →
+      </Button>
     </div>
   </div>
 </section>
+
+<style>
+  .future-kicker { text-align: center; margin: 0 0 .75rem; font: 600 .75rem/1 ui-monospace, SFMono-Regular, Menlo, monospace; letter-spacing: .14em; text-transform: uppercase; color: #ff5959; }
+  .future-card { display: flex; flex-direction: column; overflow: hidden; border-radius: 14px; border: 1px solid #262626; background: #101010; transition: border-color .3s ease; }
+  .future-card:hover { border-color: rgba(244, 63, 67, .45); }
+  .future-shot { position: relative; aspect-ratio: 27 / 20; overflow: hidden; background: #07080b; }
+  .future-shot img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .future-tag { position: absolute; top: 12px; right: 12px; padding: .3rem .6rem; border-radius: 999px; background: rgba(10, 10, 10, .78); border: 1px solid rgba(255, 255, 255, .14); color: #d4d4d4; font-size: .7rem; font-weight: 600; letter-spacing: .02em; backdrop-filter: blur(4px); }
+  .future-copy { padding: 1.5rem; }
+  .future-copy h3 { font-size: 1.35rem; font-weight: 700; margin: 0 0 .35rem; }
+  .future-lead { margin: 0 0 .6rem; color: #f2f2f2; font-weight: 500; }
+  .future-motto { margin: 2.5rem 0 1.5rem; text-align: center; font-size: 1.25rem; font-weight: 600; color: #f2f2f2; }
+</style>
