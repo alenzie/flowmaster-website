@@ -2,49 +2,268 @@
 import BaseLayout from '../layouts/BaseLayout.astro';
 import release from '../data/release.json';
 const ready = release.available && !!release.downloadUrl && !!release.sha256;
+
+const counts = [
+  {
+    tag: 'Mark',
+    tone: 'r',
+    text: 'A recording session counts once, when you save its first mark. Additional marks in that session are included.',
+  },
+  {
+    tag: 'Clip',
+    tone: 'y',
+    text: 'A clipping run counts once per recording. A reel and separate clips created together count as one run. Each recording in a batch counts separately.',
+  },
+  {
+    tag: 'Assemble',
+    tone: 'n',
+    text: 'A project assembly, including combining existing reels, counts once.',
+  },
+];
 ---
 <BaseLayout title="Download and free trial" description="Flowmaster for Windows. 30 actions per PC, a free account and no payment card. Check the current release and trial requirements.">
-  <section class="section-padding">
-    <div class="container-main max-w-3xl mx-auto">
-      <div class="text-center mb-10">
-        <h1 class="mb-4">Your moments. <span class="text-gradient">Ready to edit.</span></h1>
-        <p class="text-lg">A free trial for Windows 10 and 11, 64-bit. A free account is required. No payment card.</p>
+  <section class="dl-top">
+    <div class="wrap dl-top-grid">
+      <div class="dl-intro">
+        <p class="label">Download and free trial</p>
+        <h1 class="display dl-title">Flowmaster for Windows<span class="dl-stop" aria-hidden="true"></span></h1>
+        <p class="dl-lede">A free trial for Windows 10 and 11, 64-bit. A free account is required. No payment card.</p>
+        <div class="dl-actions">
+          <a class="btn-primary" href="/account">Create a free account</a>
+          <a class="arrow-link" href="#trial-rules">How the trial counts</a>
+        </div>
       </div>
-      <div class="card text-center border-brand-red/30 mb-8">
-        <h2 class="text-2xl mb-3">Flowmaster for Windows</h2>
-        {ready ? <>
-          <p class="mb-6">Version {release.version} · {Math.ceil((release.bytes ?? 0) / 1048576)} MB</p>
-          <a id="download-windows-btn" class="btn-primary" href={release.downloadUrl!}>Download free trial for Windows</a>
-          <p class="mt-4 text-sm"><a href={release.releaseUrl!} class="underline">Release notes and installer details</a></p>
-          <details class="mt-5 text-sm"><summary>SHA-256 checksum</summary><code class="block break-all mt-3">{release.sha256}</code></details>
-        </> : <p role="status" class="text-gray-300">{release.message}</p>}
-        <p class="mt-6 text-sm text-gray-400">The Windows installer is unsigned. Windows may show an unknown-publisher warning. Check the source and checksum before deciding whether to install.</p>
-        <p class="mt-3 text-sm text-gray-400">Using a phone, macOS, or Linux? Open this page on a Windows PC. Builds for other platforms are not available.</p>
+
+      <div class="release" aria-labelledby="release-title">
+        <div class="release-head">
+          <img src="/brand/LogoEmblem.svg" alt="" width="52" height="14" />
+          <h2 id="release-title">Flowmaster for Windows</h2>
+        </div>
+
+        {ready ? (
+          <div class="release-body">
+            <p class="release-version">Version {release.version} &middot; {Math.ceil((release.bytes ?? 0) / 1048576)} MB</p>
+            <a id="download-windows-btn" class="btn-primary release-btn" href={release.downloadUrl!}>Download free trial for Windows</a>
+            <p class="release-link"><a href={release.releaseUrl!} class="text-link">Release notes and installer details</a></p>
+            <details class="release-sha"><summary>SHA-256 checksum</summary><code>{release.sha256}</code></details>
+          </div>
+        ) : (
+          <div class="release-body">
+            <p class="release-state label"><span class="release-dot" aria-hidden="true"></span>Download not open yet</p>
+            <p role="status" class="release-message">{release.message}</p>
+          </div>
+        )}
+
+        <div class="release-notes">
+          <p><strong>Unsigned installer.</strong> The Windows installer is unsigned. Windows may show an unknown-publisher warning. Check the source and checksum before deciding whether to install.</p>
+          <p><strong>Other platforms.</strong> Using a phone, macOS, or Linux? Open this page on a Windows PC. Builds for other platforms are not available.</p>
+        </div>
       </div>
-      <div class="card mb-8" id="trial-rules">
-        <h2 class="text-2xl mb-4">30 actions, with no time limit</h2>
-        <p class="mb-4">The trial is tied to your PC and verified online. An internet connection and the trial service are required to start new work. Reinstalling does not restart the trial.</p>
-        <ul class="list-disc pl-6 space-y-3 text-gray-300">
-          <li>A recording session counts once, when you save its first mark. Additional marks in that session are included.</li>
-          <li>A clipping run counts once per recording. A reel and separate clips created together count as one run. Each recording in a batch counts separately.</li>
-          <li>A project assembly, including combining existing reels, counts once.</li>
+    </div>
+  </section>
+
+  <section class="rules" id="trial-rules" aria-labelledby="rules-title">
+    <div class="wrap rules-grid">
+      <div class="rules-head">
+        <p class="label">The trial</p>
+        <h2 id="rules-title" class="display rules-title">30 actions, with no time limit</h2>
+        <div class="thirty" role="img" aria-label="Thirty squares, one for each action in the trial.">
+          {Array.from({ length: 30 }).map(() => <i></i>)}
+        </div>
+        <p class="label thirty-cap">30 actions per PC &middot; no payment card</p>
+        <p>The trial is tied to your PC and verified online. An internet connection and the trial service are required to start new work. Reinstalling does not restart the trial.</p>
+      </div>
+
+      <div class="rules-body">
+        <h3 class="label rules-sub">What uses an action</h3>
+        <ul class="counts">
+          {counts.map((c) => (
+            <li>
+              <span class={`counts-tag counts-tag--${c.tone}`}><i aria-hidden="true"></i>{c.tag}</span>
+              <p>{c.text}</p>
+            </li>
+          ))}
         </ul>
-        <p class="mt-4">Failed or cancelled work releases its reserved action when the service reconnects. An interrupted run can count if completion cannot be confirmed.</p>
-        <p class="mt-4">After all 30 actions, existing recordings and outputs remain yours. You can still view them, edit saved marks, and use Clean. Accounts are free. Paid trials and upgrades are currently unavailable.</p>
+
+        <div class="rules-more">
+          <div>
+            <h3 class="label rules-sub">If something fails</h3>
+            <p>Failed or cancelled work releases its reserved action when the service reconnects. An interrupted run can count if completion cannot be confirmed.</p>
+          </div>
+          <div>
+            <h3 class="label rules-sub">After all 30</h3>
+            <p>After all 30 actions, existing recordings and outputs remain yours. You can still view them, edit saved marks, and use Clean. Accounts are free. Paid trials and upgrades are currently unavailable.</p>
+          </div>
+        </div>
       </div>
-      <div class="card mb-8">
-        <h2 class="text-2xl mb-4">Before your first recording</h2>
-        <ol class="list-decimal pl-6 space-y-3 text-gray-300">
-          <li>Install OBS Studio with WebSocket support and enable its WebSocket server.</li>
-          <li>In Flowmaster Settings, choose your recordings folder and enter the OBS connection details.</li>
-          <li>Use MP4 recordings for this workflow. If OBS saved MKV, use OBS File → Remux Recordings to make MP4 first.</li>
-          <li>Record in OBS and press F9 at moments you want to keep. You can change the hotkey in Settings.</li>
-          <li>After recording, open Clip, adjust the time before and after each mark, and choose a reel, separate clips, or both. Double-click a recording to review and edit its marks.</li>
-          <li>Review your exported files before selecting originals in Clean. Removal sends selected files to the Windows Recycle Bin.</li>
-        </ol>
-        <p class="mt-4 text-sm text-gray-400">FFmpeg and FFprobe are bundled. Leave room for both the original recordings and exported files. The player and editor export still need final installer checks before this candidate is released.</p>
+    </div>
+  </section>
+
+  <section class="first" aria-labelledby="first-title">
+    <div class="wrap first-grid">
+      <div class="first-head">
+        <p class="label">Setup</p>
+        <h2 id="first-title" class="display first-title">Before your first recording</h2>
+        <p class="first-note">FFmpeg and FFprobe are bundled. Leave room for both the original recordings and exported files. The player and editor export still need final installer checks before this candidate is released.</p>
       </div>
-      <p class="text-center text-sm text-gray-400"><a href="/data" class="underline">What the trial service receives</a> · <a href="/docs" class="underline">Setup guide</a> · <a href="/terms" class="underline">Terms of Service</a></p>
+      <ol class="steps">
+        <li><p>Install OBS Studio with WebSocket support and enable its WebSocket server.</p></li>
+        <li><p>In Flowmaster Settings, choose your recordings folder and enter the OBS connection details.</p></li>
+        <li><p>Use MP4 recordings for this workflow. If OBS saved MKV, use OBS File &rarr; Remux Recordings to make MP4 first.</p></li>
+        <li><p>Record in OBS and press <span class="key">F9</span> at moments you want to keep. You can change the hotkey in Settings.</p></li>
+        <li><p>After recording, open Clip, adjust the time before and after each mark, and choose a reel, separate clips, or both. Double-click a recording to review and edit its marks.</p></li>
+        <li><p>Review your exported files before selecting originals in Clean. Removal sends selected files to the Windows Recycle Bin.</p></li>
+      </ol>
+    </div>
+  </section>
+
+  <section class="dl-links" aria-label="Related pages">
+    <div class="wrap dl-links-row">
+      <a class="arrow-link" href="/data">What the trial service receives</a>
+      <a class="arrow-link" href="/docs">Setup guide</a>
+      <a class="arrow-link" href="/terms">Terms of Service</a>
     </div>
   </section>
 </BaseLayout>
+
+<style>
+  /* ---------- Top ---------- */
+  .dl-top { padding: calc(var(--nav-h) + clamp(2.5rem, 6vw, 5rem)) 0 clamp(3.5rem, 7vw, 6rem); }
+  .dl-top-grid { display: grid; gap: 3rem; }
+  .dl-title { margin-top: 1.1rem; font-size: clamp(3.4rem, 8.6vw, 7.25rem); line-height: 0.86; font-stretch: 62%; }
+  .dl-stop {
+    display: inline-block;
+    width: 0.2em;
+    height: 0.195em;
+    margin-left: 0.05em;
+    border-radius: 0.02em;
+    background: var(--red);
+  }
+  .dl-lede { margin-top: 1.5rem; max-width: 30rem; font-size: clamp(1.1rem, 1.5vw, 1.25rem); line-height: 1.5; color: var(--ink); }
+  .dl-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 0.75rem 1.75rem; margin-top: 1.75rem; }
+
+  .release {
+    border: 1px solid var(--rule-strong);
+    border-radius: 10px;
+    background: var(--ground-2);
+    overflow: hidden;
+  }
+  .release-head {
+    display: flex;
+    align-items: center;
+    gap: 0.9rem;
+    padding: 1.1rem 1.5rem;
+    border-bottom: 1px solid var(--rule);
+  }
+  .release-head img { width: 3.25rem; height: auto; }
+  .release-head h2 {
+    font-family: var(--font-body);
+    font-stretch: 100%;
+    font-size: 1.05rem;
+    font-weight: 650;
+    line-height: 1.3;
+    text-transform: none;
+    letter-spacing: 0;
+  }
+  .release-body { padding: 1.5rem; }
+  .release-state { display: flex; align-items: center; gap: 0.6rem; color: var(--yellow); }
+  .release-dot { width: 0.6rem; height: 0.58rem; border-radius: 1.5px; background: var(--yellow); animation: release-wait 1.6s ease-in-out infinite; }
+  @keyframes release-wait { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
+  .release-message { margin-top: 0.8rem; font-size: 1.2rem; line-height: 1.45; color: var(--ink); }
+  .release-version { font-family: var(--font-mono); font-size: 0.85rem; letter-spacing: 0.05em; color: var(--ink-2); }
+  .release-btn { width: 100%; margin-top: 1rem; min-height: 3.4rem; font-size: 1.08rem; }
+  .release-link { margin-top: 1rem; font-size: 0.95rem; }
+  .release-sha { margin-top: 1rem; font-size: 0.92rem; color: var(--ink-2); }
+  .release-sha summary { cursor: pointer; padding: 0.35rem 0; }
+  .release-sha code { display: block; margin-top: 0.6rem; padding: 0.75rem; border-radius: 6px; background: #0b0b0b; font-size: 0.8rem; word-break: break-all; color: var(--ink); }
+  .release-notes { display: grid; gap: 0.9rem; padding: 1.25rem 1.5rem 1.5rem; border-top: 1px solid var(--rule); background: #121212; }
+  .release-notes p { font-size: 0.92rem; line-height: 1.55; color: var(--ink-2); }
+  .release-notes strong { color: var(--ink); font-weight: 650; }
+
+  @media (min-width: 960px) {
+    .dl-top-grid { grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr); gap: clamp(3rem, 6vw, 6rem); align-items: end; }
+  }
+
+  /* ---------- Trial rules ---------- */
+  .rules { padding: clamp(4rem, 8vw, 6.5rem) 0; border-top: 1px solid var(--rule); scroll-margin-top: var(--nav-h); }
+  .rules-grid { display: grid; gap: 3rem; }
+  .rules-title, .first-title { margin-top: 1rem; font-size: clamp(2.5rem, 5vw, 4.25rem); }
+  .thirty { display: grid; grid-template-columns: repeat(10, minmax(0, 1fr)); gap: 0.4rem; max-width: 24rem; margin: 2rem 0 0.8rem; }
+  .thirty i { aspect-ratio: 83.5 / 81.5; border-radius: 10%; background: #3d3c38; }
+  .thirty-cap { margin-bottom: 1.75rem; }
+  .rules-head > p:not(.label) { max-width: 28rem; }
+  .rules-sub { font-family: var(--font-mono); font-stretch: 100%; margin-bottom: 0.85rem; }
+  .counts { list-style: none; margin: 0; padding: 0; border-top: 1px solid var(--rule-strong); }
+  .counts li {
+    display: grid;
+    grid-template-columns: 7rem minmax(0, 1fr);
+    gap: 1rem;
+    padding: 1.15rem 0;
+    border-bottom: 1px solid var(--rule);
+  }
+  .counts p { color: var(--ink); font-size: 1.02rem; line-height: 1.55; }
+  .counts-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.55rem;
+    height: 1.6rem;
+    font-family: var(--font-mono);
+    font-size: 0.76rem;
+    font-weight: 700;
+    letter-spacing: 0.09em;
+    text-transform: uppercase;
+    color: var(--ink);
+  }
+  .counts-tag i { width: 0.62rem; height: 0.6rem; border-radius: 1.5px; background: var(--ink-3); }
+  .counts-tag--r i { background: var(--red); }
+  .counts-tag--y i { background: var(--yellow); }
+  .rules-more { display: grid; gap: 2rem; margin-top: 2.5rem; }
+  .rules-more p { font-size: 0.98rem; }
+  @media (min-width: 640px) {
+    .rules-more { grid-template-columns: 1fr 1fr; gap: 2.5rem; }
+  }
+  @media (min-width: 960px) {
+    .rules-grid { grid-template-columns: minmax(0, 1fr) minmax(0, 1.3fr); gap: clamp(3rem, 7vw, 7rem); }
+    .rules-head { position: sticky; top: calc(var(--nav-h) + 2rem); align-self: start; }
+  }
+
+  /* ---------- First recording ---------- */
+  .first { padding: clamp(4rem, 8vw, 6.5rem) 0; border-top: 1px solid var(--rule); background: #0c0c0c; }
+  .first-grid { display: grid; gap: 3rem; }
+  .first-note { margin-top: 1.5rem; max-width: 28rem; font-size: 0.95rem; color: var(--ink-3); }
+  .steps { list-style: none; counter-reset: step; margin: 0; padding: 0; border-top: 1px solid var(--rule-strong); }
+  .steps li {
+    counter-increment: step;
+    display: grid;
+    grid-template-columns: 3.5rem minmax(0, 1fr);
+    gap: 1rem;
+    align-items: baseline;
+    padding: 1.15rem 0;
+    border-bottom: 1px solid var(--rule);
+  }
+  .steps p { color: var(--ink); font-size: 1.02rem; line-height: 1.55; }
+  .steps li::before {
+    content: counter(step, decimal-leading-zero);
+    font-family: var(--font-mono);
+    font-size: 0.8rem;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    color: var(--ink-3);
+  }
+  @media (min-width: 960px) {
+    .first-grid { grid-template-columns: minmax(0, 1fr) minmax(0, 1.3fr); gap: clamp(3rem, 7vw, 7rem); }
+    .first-head { position: sticky; top: calc(var(--nav-h) + 2rem); align-self: start; }
+  }
+
+  /* ---------- Links ---------- */
+  .dl-links { border-top: 1px solid var(--rule); }
+  .dl-links-row { display: flex; flex-wrap: wrap; gap: 0.5rem 2.5rem; padding: 2rem 0 3rem; }
+
+  @media (max-width: 520px) {
+    .counts li { grid-template-columns: 1fr; gap: 0.4rem; }
+    .steps li { grid-template-columns: 2.25rem minmax(0, 1fr); gap: 0.5rem; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .release-dot { animation: none; }
+  }
+</style>

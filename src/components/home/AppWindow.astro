@@ -1,0 +1,835 @@
+---
+// The Flowmaster desktop app, rebuilt from the 0.2.2 front-end source
+// (index.html, main.css, clip-tab.css, clip-window.css, clean-tab.css,
+// shared-components.css). Layout, labels, colours and states follow the app.
+// Simplified: the visualizer sidebar, the Source toggle and the assembler
+// section are left out, and Events / Flow AI are not shown because they have
+// not shipped. Every recording listed is sample data.
+interface Props {
+  tab: 'mark' | 'clip' | 'clean';
+}
+const { tab } = Astro.props;
+const uid = `fm-${tab}`;
+
+const tabs = [
+  { id: 'mark', label: 'MARK' },
+  { id: 'clip', label: 'CLIP' },
+  { id: 'clean', label: 'CLEAN' },
+] as const;
+
+const sessions = [
+  { file: '2026-11-21 19-42-07.mp4', marks: '7 marks', date: 'Nov 21, 2026, 7:42 PM', hue: 't1' },
+  { file: '2026-11-19 21-05-33.mp4', marks: '4 marks', date: 'Nov 19, 2026, 9:05 PM', hue: 't2' },
+  { file: '2026-11-16 18-30-12.mp4', marks: '11 marks', date: 'Nov 16, 2026, 6:30 PM', hue: 't3' },
+];
+
+const clippable = [
+  { date: 'Nov 21, 2026, 7:42 PM', marks: '7 marks', span: '2:17 highlights from 2:14:07', hue: 't1', selected: true },
+  { date: 'Nov 19, 2026, 9:05 PM', marks: '4 marks', span: '1:20 highlights from 1:38:22', hue: 't2', selected: false },
+];
+
+const originals = [
+  { name: '2026-11-21 19-42-07.mp4', gb: 12.63, checked: true },
+  { name: '2026-11-19 21-05-33.mp4', gb: 9.84, checked: false },
+  { name: '2026-11-16 18-30-12.mp4', gb: 14.21, checked: false },
+];
+---
+
+<div class="fm-app" data-fm-app role="group" aria-label={`The Flowmaster app, rebuilt for this page with sample recordings. Showing the ${tab} tab.`}>
+  <div class="fm-top">
+    <span class="fm-burger" aria-hidden="true">&#9776;</span>
+    <span class="fm-title">FLOWMASTER</span>
+    <div class="fm-tabs" role="tablist" aria-label="App sections">
+      {tabs.map((t) => (
+        <button
+          type="button"
+          role="tab"
+          class:list={['fm-tab', { active: t.id === tab }]}
+          id={`${uid}-tab-${t.id}`}
+          data-tab={t.id}
+          aria-controls={`${uid}-panel-${t.id}`}
+          aria-selected={t.id === tab ? 'true' : 'false'}
+          tabindex={t.id === tab ? 0 : -1}
+        >{t.label}</button>
+      ))}
+    </div>
+  </div>
+
+  <div class="fm-body">
+    <!-- MARK -->
+    <div class="fm-panel" id={`${uid}-panel-mark`} role="tabpanel" aria-labelledby={`${uid}-tab-mark`} data-panel="mark" hidden={tab !== 'mark'}>
+      <div class="fm-mark">
+        <div class="fm-status-bar">
+          <div class="fm-obs"><span class="fm-obs-dot"></span><span>OBS: Recording</span></div>
+          <div class="fm-rec">
+            <span class="fm-rec-squares" aria-hidden="true"><i class="r"></i><i class="y"></i><i class="g"></i></span>
+            <span class="fm-rec-label">REC</span>
+          </div>
+        </div>
+
+        <div class="fm-section">
+          <p class="fm-section-title">Recent Sessions</p>
+          <div class="fm-list">
+            {sessions.map((s) => (
+              <div class="fm-row">
+                <div class="fm-row-left">
+                  <span class:list={['fm-thumb', s.hue]} aria-hidden="true"></span>
+                  <div class="fm-row-info">
+                    <div class="fm-row-name">{s.file}</div>
+                    <div class="fm-row-meta"><span class="fm-mark-count">{s.marks}</span><span>{s.date}</span></div>
+                  </div>
+                </div>
+                <span class="fm-dots" aria-hidden="true"><i></i><i></i><i></i></span>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <div class="fm-action-btn" aria-hidden="true">Open Project Assembler</div>
+
+        <p class="fm-help">Press <kbd>F9</kbd> during recording to create timestamp markers.</p>
+      </div>
+    </div>
+
+    <!-- CLIP -->
+    <div class="fm-panel" id={`${uid}-panel-clip`} role="tabpanel" aria-labelledby={`${uid}-tab-clip`} data-panel="clip" hidden={tab !== 'clip'}>
+      <div class="fm-clip">
+        <div class="fm-section">
+          <p class="fm-section-title">Clippable Videos</p>
+          <div class="fm-list fm-list--card has-footer">
+            {clippable.map((v, i) => (
+              <div class:list={['fm-row', 'fm-row--clip', { selected: v.selected }]} data-clip-row>
+                <label class="fm-check">
+                  <input type="checkbox" checked={v.selected} data-clip-check aria-label={`Select the recording from ${v.date}`} />
+                  <span class="fm-check-visual" aria-hidden="true"></span>
+                </label>
+                <div class="fm-row-left">
+                  <span class:list={['fm-thumb', v.hue]} aria-hidden="true"></span>
+                  <div class="fm-row-info">
+                    <div class="fm-row-name">{v.date}</div>
+                    <div class="fm-row-details">
+                      <span>{v.marks}</span><span class="fm-sep">&middot;</span><span>{v.span}</span><span class="fm-sep">&middot;</span><span>gameplay only</span>
+                    </div>
+                  </div>
+                </div>
+                <span class="fm-dots" aria-hidden="true"><i></i><i></i><i></i></span>
+              </div>
+            ))}
+          </div>
+          <div class="fm-list-footer">
+            <span class="fm-selection-count" data-clip-count>1 selected</span>
+            <label class="fm-select-all">
+              <input type="checkbox" data-clip-all />
+              <span class="fm-select-all-visual" aria-hidden="true"></span>
+              Select All
+            </label>
+          </div>
+        </div>
+
+        <div class="fm-options">
+          <p class="fm-section-title">Processing Options</p>
+          <div class="fm-option-row">
+            <label>Lookback: <input type="number" min="5" max="300" value="15" data-clip-back /> sec</label>
+            <label>Lookforward: <input type="number" min="0" max="60" value="5" data-clip-forward /> sec</label>
+          </div>
+          <div class="fm-window">
+            <div class="fm-window-heading"><span>Window kept around each mark</span><output data-clip-total>20s per mark</output></div>
+            <div class="fm-window-track" aria-hidden="true">
+              <div class="fm-window-band" data-clip-band></div>
+              <span class="fm-window-mark" data-clip-markline></span>
+              <span class="fm-window-handle" data-clip-start></span>
+              <span class="fm-window-handle" data-clip-end></span>
+            </div>
+            <div class="fm-window-labels" aria-hidden="true"><span data-clip-before>&minus;15s before</span><span class="fm-window-mark-label" data-clip-marklabel>mark</span><span data-clip-after>+5s after</span></div>
+            <p class="fm-window-note">Overlapping windows merge, and windows stop at the recording&rsquo;s edges.</p>
+          </div>
+        </div>
+
+        <div class="fm-mode">
+          <span class="fm-mode-label">Output Mode</span>
+          <div class="fm-output-options">
+            <label class="fm-output-checkbox"><input type="checkbox" checked data-clip-reel /><span>Reel</span></label>
+            <label class="fm-output-checkbox"><input type="checkbox" checked data-clip-clips /><span>Clips</span></label>
+          </div>
+        </div>
+
+        <button type="button" class="fm-clip-btn" data-clip-run>Clip Highlights</button>
+      </div>
+    </div>
+
+    <!-- CLEAN -->
+    <div class="fm-panel" id={`${uid}-panel-clean`} role="tabpanel" aria-labelledby={`${uid}-tab-clean`} data-panel="clean" hidden={tab !== 'clean'}>
+      <div class="fm-clean">
+        <button type="button" class="fm-scan-btn" data-clean-scan>Rescan</button>
+
+        <div class="fm-categories" data-clean-categories>
+          <p class="fm-scan-details">Searched: D:\Recordings. Only originals with matching outputs and orphaned files are listed. Unprocessed recordings stay in place.</p>
+
+          <div class="fm-category expanded" data-clean-category>
+            <div class="fm-category-header">
+              <label class="fm-category-select"><input type="checkbox" data-clean-catall aria-label="Select all processed originals" /></label>
+              <button type="button" class="fm-category-toggle" data-clean-toggle aria-expanded="true">
+                <span class="fm-chevron" aria-hidden="true">&#9656;</span>
+                <svg class="fm-category-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="2" y="2" width="20" height="20" rx="2"/><path d="M7 2v20M17 2v20M2 12h20"/></svg>
+                <span class="fm-category-name">Processed Originals (Display)</span>
+                <span class="fm-category-stats"><span class="fm-category-count" data-clean-catcount>3 files</span><span class="fm-category-size" data-clean-catsize>36.68 GB</span></span>
+              </button>
+            </div>
+            <div class="fm-category-reason">Highlights already extracted &mdash; originals safe to remove</div>
+            <div class="fm-category-body">
+              <div class="fm-file-list" data-clean-files>
+                {originals.map((f) => (
+                  <label class:list={['fm-file', { selected: f.checked }]} data-clean-file data-gb={f.gb}>
+                    <input type="checkbox" checked={f.checked} data-clean-check />
+                    <span class="fm-file-info">
+                      <span class="fm-file-name">{f.name}</span>
+                      <span class="fm-file-path">D:\Recordings\{f.name}</span>
+                    </span>
+                    <span class="fm-file-size">{f.gb} GB</span>
+                  </label>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          <div class="fm-all-clean" data-clean-empty hidden>
+            <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+            <p class="fm-all-clean-title">All clean!</p>
+            <p class="fm-all-clean-hint">No removable files found. Your recordings folder is tidy.</p>
+          </div>
+        </div>
+
+        <div class="fm-summary" data-clean-summary>
+          <div class="fm-summary-stats">
+            <span data-clean-count>1 selected</span>
+            <span class="fm-summary-sep">&middot;</span>
+            <span class="fm-summary-size" data-clean-size>12.63 GB to free</span>
+          </div>
+          <button type="button" class="fm-delete-btn" data-clean-delete>Move to Recycle Bin</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- The app's processing modal, shown inside the window while the demo runs. -->
+    <div class="fm-overlay" data-fm-overlay hidden>
+      <div class="fm-modal" role="status" aria-live="polite">
+        <p class="fm-modal-title">Processing Highlights</p>
+        <p class="fm-modal-sub">Nov 21, 7:42 PM &bull; 7 marks</p>
+        <div class="fm-progress"><div class="fm-progress-fill" data-fm-fill></div></div>
+        <div class="fm-progress-text"><span data-fm-pct>0%</span> <span data-fm-stage>Initializing...</span></div>
+        <button type="button" class="fm-cancel-btn" data-fm-cancel>Cancel</button>
+      </div>
+    </div>
+    <div class="fm-toast" data-fm-toast role="status" aria-live="polite" hidden></div>
+  </div>
+</div>
+
+<style is:global>
+  .fm-app {
+    --bg-primary: #0a0a0a;
+    --bg-secondary: #1a1a1a;
+    --bg-tertiary: #222222;
+    --border-color: #2a2a2a;
+    --text-primary: #e0e0e0;
+    --text-secondary: #aaaaaa;
+    --text-muted: #888888;
+    --accent-red: #ff3333;
+    --success: #6be553;
+    --warning: #facc15;
+    --error: #ef4444;
+    --radius: 6px;
+
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    overflow: hidden;
+    border: 1px solid #333;
+    border-radius: 10px;
+    background: var(--bg-primary);
+    color: var(--text-primary);
+    font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+    font-size: 14px;
+    line-height: 1.4;
+    text-align: left;
+    box-shadow: 0 40px 80px -30px rgba(0, 0, 0, 0.9), 0 0 0 1px rgba(255, 255, 255, 0.02);
+  }
+  .fm-app *, .fm-app *::before, .fm-app *::after { box-sizing: border-box; }
+  .fm-app p { margin: 0; color: inherit; line-height: inherit; text-wrap: wrap; }
+  .fm-app button, .fm-app input { font-family: inherit; }
+  .fm-app :focus-visible { outline: 2px solid #fff; outline-offset: 2px; border-radius: 3px; }
+
+  /* Top bar: logo and tabs share one row */
+  .fm-top {
+    display: flex;
+    align-items: stretch;
+    gap: 14px;
+    padding-left: 14px;
+    min-height: 48px;
+    background: var(--bg-secondary);
+    border-bottom: 1px solid var(--border-color);
+    flex: none;
+  }
+  .fm-burger { display: flex; align-items: center; font-size: 20px; line-height: 1; color: var(--text-primary); }
+  .fm-title { display: flex; align-items: center; font-weight: 700; font-size: 15px; letter-spacing: 0.05em; white-space: nowrap; }
+  .fm-tabs { display: flex; flex: 1; min-width: 0; }
+  .fm-tab {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 12px 8px;
+    background: none;
+    border: none;
+    border-bottom: 2px solid transparent;
+    color: var(--text-muted);
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    cursor: pointer;
+    transition: color 0.2s, border-color 0.2s;
+  }
+  .fm-tab:hover { color: var(--text-primary); }
+  .fm-tab.active { color: var(--text-primary); border-bottom-color: var(--accent-red); }
+
+  .fm-body { position: relative; flex: 1; min-height: 0; }
+  .fm-panel { padding: 16px; }
+  .fm-panel[hidden] { display: none; }
+
+  .fm-section-title {
+    font-size: 12px;
+    color: var(--text-muted) !important;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 8px !important;
+    font-weight: 600;
+  }
+
+  /* ---------- Mark ---------- */
+  .fm-mark { display: flex; flex-direction: column; gap: 14px; }
+  .fm-status-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 14px;
+    background: var(--bg-secondary);
+    border-radius: 8px;
+  }
+  .fm-obs { display: flex; align-items: center; gap: 8px; font-size: 13px; }
+  .fm-obs-dot { width: 8px; height: 8px; border-radius: 50%; background: #33ff33; }
+  .fm-rec { display: flex; align-items: center; gap: 8px; padding: 4px 8px; }
+  .fm-rec-squares { display: flex; gap: 3px; align-items: center; }
+  .fm-rec-squares i { width: 10px; height: 10px; border-radius: 2px; animation: fm-square-pulse 0.8s ease-in-out infinite; }
+  .fm-rec-squares .r { background: #f4383c; box-shadow: 0 0 8px rgba(244, 56, 60, 0.6); }
+  .fm-rec-squares .y { background: #f5d440; box-shadow: 0 0 8px rgba(245, 212, 64, 0.4); animation-delay: 0.15s; }
+  .fm-rec-squares .g { background: #6be553; box-shadow: 0 0 8px rgba(107, 229, 83, 0.4); animation-delay: 0.3s; }
+  @keyframes fm-square-pulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.25); } }
+  .fm-rec-label { font-size: 11px; font-family: monospace; color: #ff3333; letter-spacing: 1px; font-weight: 600; }
+
+  .fm-list { border: 1px solid var(--border-color); border-radius: 4px; background: var(--bg-secondary); }
+  .fm-list--card { border-radius: var(--radius); padding: 4px; }
+  .fm-list.has-footer { border-radius: var(--radius) var(--radius) 0 0; border-bottom: none; }
+  .fm-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 8px;
+    padding: 11px 14px;
+    border-bottom: 1px solid var(--border-color);
+    transition: background 0.2s;
+  }
+  .fm-row:last-child { border-bottom: none; }
+  .fm-row:hover { background: #2a2a2a; }
+  .fm-row-left { display: flex; align-items: center; gap: 12px; flex: 1; min-width: 0; }
+  .fm-thumb {
+    width: 64px;
+    height: 36px;
+    flex: none;
+    border-radius: 4px;
+    border: 1px solid var(--border-color);
+    background-color: #000;
+  }
+  /* Abstract stand-ins for the app's video thumbnails. Not screenshots. */
+  .fm-thumb.t1 { background-image: linear-gradient(135deg, #1d2a3a 0%, #0c1016 55%, #2a1c1c 100%); }
+  .fm-thumb.t2 { background-image: linear-gradient(200deg, #2b2a1c 0%, #0e0f0c 50%, #17261b 100%); }
+  .fm-thumb.t3 { background-image: linear-gradient(160deg, #241a2c 0%, #0d0c10 60%, #1b2530 100%); }
+  .fm-row-info { flex: 1; min-width: 0; }
+  .fm-row-name { font-size: 14px; font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .fm-row-meta { display: flex; gap: 12px; margin-top: 4px; font-size: 12px; color: var(--text-muted); white-space: nowrap; overflow: hidden; }
+  .fm-mark-count { font-weight: 500; color: var(--accent-red); }
+  .fm-dots { display: flex; flex-direction: column; gap: 3px; padding: 8px; flex: none; }
+  .fm-dots i { width: 4px; height: 4px; background: #888; border-radius: 50%; }
+
+  .fm-action-btn {
+    width: 100%;
+    padding: 12px;
+    background: var(--accent-red);
+    color: #fff;
+    border-radius: var(--radius);
+    font-size: 14px;
+    font-weight: 600;
+    text-align: center;
+  }
+  .fm-help { font-size: 13px; color: var(--text-muted) !important; text-align: center; padding: 2px 0; }
+  .fm-app kbd {
+    display: inline-block;
+    padding: 2px 8px;
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    font-family: monospace;
+    font-size: 12px;
+    color: #ffcc00;
+    font-weight: 600;
+  }
+
+  /* ---------- Clip ---------- */
+  .fm-clip { display: flex; flex-direction: column; gap: 12px; }
+  .fm-row--clip { padding: 10px 10px 10px 8px; border-left: 3px solid transparent; }
+  .fm-row--clip.selected { border-left-color: var(--accent-red); }
+  .fm-row-details { display: flex; flex-wrap: wrap; align-items: center; gap: 0 4px; margin-top: 4px; font-size: 12px; color: var(--text-muted); }
+  .fm-sep { margin: 0 4px; color: #555; }
+  .fm-check { display: flex; align-items: center; flex: none; padding: 4px; cursor: pointer; position: relative; }
+  .fm-check input, .fm-select-all input { position: absolute; opacity: 0; width: 18px; height: 18px; margin: 0; cursor: pointer; }
+  .fm-check-visual {
+    width: 18px;
+    height: 18px;
+    border: 2px solid var(--text-muted);
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: border-color 0.15s ease;
+  }
+  .fm-check input:checked + .fm-check-visual { border-color: var(--accent-red); }
+  .fm-check input:checked + .fm-check-visual::after { content: '\2713'; color: var(--accent-red); font-size: 13px; font-weight: bold; line-height: 1; }
+  .fm-check input:focus-visible + .fm-check-visual,
+  .fm-select-all input:focus-visible + .fm-select-all-visual { outline: 2px solid #fff; outline-offset: 2px; }
+
+  .fm-list-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 14px;
+    border: 1px solid var(--border-color);
+    border-radius: 0 0 var(--radius) var(--radius);
+    background: var(--bg-secondary);
+  }
+  .fm-selection-count { font-size: 11px; color: var(--text-muted); font-weight: 500; }
+  .fm-select-all { position: relative; display: flex; align-items: center; gap: 6px; cursor: pointer; font-size: 11px; color: var(--text-secondary); user-select: none; }
+  .fm-select-all-visual { width: 14px; height: 14px; border: 2px solid var(--text-muted); border-radius: 3px; display: flex; align-items: center; justify-content: center; }
+  .fm-select-all input:checked + .fm-select-all-visual { border-color: var(--accent-red); }
+  .fm-select-all input:checked + .fm-select-all-visual::after { content: '\2713'; color: var(--accent-red); font-size: 10px; font-weight: bold; line-height: 1; }
+  .fm-select-all-visual.indeterminate { border-color: var(--accent-red); }
+  .fm-select-all-visual.indeterminate::after { content: '\2212'; color: var(--accent-red); font-size: 11px; font-weight: bold; line-height: 1; }
+
+  .fm-options { padding: 14px; background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: var(--radius); }
+  .fm-option-row { display: flex; flex-wrap: wrap; gap: 8px 20px; align-items: center; }
+  .fm-option-row label { display: flex; align-items: center; gap: 7px; font-size: 13px; }
+  .fm-option-row input[type='number'] {
+    width: 56px;
+    -moz-appearance: textfield;
+    appearance: textfield;
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius);
+    color: var(--text-primary);
+    padding: 6px 8px;
+    font-size: 12px;
+    text-align: center;
+  }
+  .fm-option-row input[type='number']::-webkit-outer-spin-button,
+  .fm-option-row input[type='number']::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+  .fm-option-row input[type='number']:hover { border-color: rgba(255, 255, 255, 0.3); }
+  .fm-option-row input[type='number']:focus { outline: none; border-color: var(--accent-red); }
+
+  .fm-window { margin-top: 10px; padding: 10px 14px; background: var(--bg-primary); border: 1px solid var(--border-color); border-radius: var(--radius); }
+  .fm-window-heading, .fm-window-labels { display: flex; justify-content: space-between; gap: 14px; color: var(--text-secondary); font-size: 10.5px; }
+  .fm-window-heading output { color: var(--text-primary); font-variant-numeric: tabular-nums; }
+  .fm-window-track { position: relative; height: 34px; margin: 12px 12px 7px; background: var(--bg-tertiary); border-radius: 5px; }
+  .fm-window-band { position: absolute; top: 0; bottom: 0; left: 20%; width: 60%; background: rgba(255, 51, 51, 0.3); }
+  .fm-window-mark { position: absolute; top: -4px; bottom: -4px; left: 75%; width: 2px; background: var(--text-primary); }
+  .fm-window-handle {
+    position: absolute;
+    top: -4px;
+    width: 24px;
+    height: 42px;
+    transform: translateX(-50%);
+    border: 2px solid var(--accent-red);
+    border-radius: 5px;
+    background: var(--bg-secondary);
+    color: var(--accent-red);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .fm-window-handle::after { content: '\2161'; font-size: 13px; }
+  .fm-window-labels { font-variant-numeric: tabular-nums; position: relative; min-height: 16px; margin: 0 12px; }
+  .fm-window-mark-label { position: absolute; left: 75%; transform: translateX(-50%); color: var(--accent-red); }
+  .fm-window-band, .fm-window-mark, .fm-window-handle, .fm-window-mark-label { transition: left 0.25s ease, width 0.25s ease; }
+  .fm-window-note { margin-top: 8px !important; color: var(--text-muted) !important; font-size: 10px; line-height: 1.4 !important; }
+
+  .fm-mode { padding: 8px 14px; display: flex; align-items: center; justify-content: space-between; background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: var(--radius); }
+  .fm-mode-label { font-size: 13px; font-weight: 500; color: var(--text-secondary); }
+  .fm-output-options { display: flex; align-items: center; gap: 18px; }
+  .fm-output-checkbox { display: inline-flex; align-items: center; gap: 7px; font-size: 12px; font-weight: 500; color: var(--text-muted); cursor: pointer; }
+  .fm-output-checkbox input { width: 15px; height: 15px; margin: 0; accent-color: var(--accent-red); cursor: pointer; }
+  .fm-output-checkbox:has(input:checked) { color: var(--text-primary); }
+
+  .fm-clip-btn {
+    width: 100%;
+    padding: 12px 24px;
+    border: none;
+    border-radius: var(--radius);
+    font-size: 13px;
+    font-weight: 600;
+    color: #fff;
+    background: #2a5a8a;
+    cursor: pointer;
+    transition: background 0.2s ease, transform 0.1s ease, opacity 0.12s ease-out;
+  }
+  .fm-clip-btn:hover:not(:disabled) { background: #336fa3; transform: translateY(-1px); }
+  .fm-clip-btn:disabled { opacity: 0.35; cursor: not-allowed; }
+
+  /* ---------- Clean ---------- */
+  .fm-clean { display: flex; flex-direction: column; gap: 10px; }
+  .fm-scan-btn {
+    width: 100%;
+    padding: 10px 16px;
+    background: var(--bg-secondary);
+    color: var(--text-primary);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius);
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+  .fm-scan-btn:hover:not(:disabled) { border-color: var(--accent-red); background: var(--bg-tertiary); }
+  .fm-scan-btn:disabled { color: var(--text-muted); }
+  .fm-categories { display: flex; flex-direction: column; gap: 8px; }
+  .fm-scan-details { font-size: 11px; color: var(--text-muted) !important; line-height: 1.45 !important; overflow-wrap: anywhere; }
+  .fm-category { border: 1px solid var(--border-color); border-radius: var(--radius); background: var(--bg-secondary); overflow: hidden; }
+  .fm-category[hidden] { display: none; }
+  .fm-category-header { display: flex; align-items: center; gap: 8px; padding: 0 12px; transition: background 0.15s; }
+  .fm-category-header:hover { background: var(--bg-tertiary); }
+  .fm-category-select { display: flex; align-items: center; flex: none; cursor: pointer; }
+  .fm-category-select input, .fm-file input { width: 14px; height: 14px; margin: 0; accent-color: var(--accent-red); cursor: pointer; flex: none; }
+  .fm-category-toggle {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 0;
+    background: none;
+    border: none;
+    color: inherit;
+    text-align: left;
+    cursor: pointer;
+  }
+  .fm-chevron { font-size: 10px; color: var(--text-muted); transition: transform 0.2s; width: 12px; text-align: center; flex: none; }
+  .fm-category.expanded .fm-chevron { transform: rotate(90deg); }
+  .fm-category-icon { flex: none; color: var(--text-muted); }
+  .fm-category-name { font-size: 12px; font-weight: 600; flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .fm-category-stats { display: flex; gap: 10px; flex: none; font-size: 11px; }
+  .fm-category-count { color: var(--text-muted); }
+  .fm-category-size { color: var(--warning); font-weight: 600; }
+  .fm-category-reason { padding: 0 12px 8px 34px; font-size: 10.5px; color: var(--text-muted); line-height: 1.4; }
+  .fm-category-body { display: none; border-top: 1px solid var(--border-color); }
+  .fm-category.expanded .fm-category-body { display: block; }
+  .fm-file-list { padding: 4px; display: flex; flex-direction: column; gap: 2px; }
+  .fm-file { display: flex; align-items: center; gap: 8px; padding: 6px 8px; border-radius: 4px; cursor: pointer; transition: background 0.15s; border-left: 2px solid transparent; }
+  .fm-file:hover { background: var(--bg-tertiary); }
+  .fm-file.selected { background: rgba(255, 51, 51, 0.05); border-left-color: var(--accent-red); }
+  .fm-file-info { flex: 1; min-width: 0; display: block; }
+  .fm-file-name, .fm-file-path { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .fm-file-name { font-size: 11px; font-weight: 500; }
+  .fm-file-path { font-size: 10px; color: var(--text-muted); }
+  .fm-file-size { font-size: 11px; font-weight: 600; color: var(--warning); flex: none; min-width: 60px; text-align: right; }
+
+  .fm-all-clean {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 34px 20px;
+    text-align: center;
+    background: rgba(107, 229, 83, 0.03);
+    border: 1px solid rgba(107, 229, 83, 0.15);
+    border-radius: var(--radius);
+    color: var(--success);
+  }
+  .fm-all-clean[hidden] { display: none; }
+  .fm-all-clean-title { font-size: 14px; font-weight: 600; color: var(--success) !important; margin: 12px 0 6px !important; }
+  .fm-all-clean-hint { font-size: 12px; color: var(--text-muted) !important; max-width: 300px; }
+
+  .fm-summary {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    padding: 10px 12px;
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius);
+    box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.3);
+  }
+  .fm-summary-stats { display: flex; flex-wrap: wrap; align-items: center; gap: 0 8px; font-size: 12px; color: var(--text-secondary); }
+  .fm-summary-sep { color: var(--text-muted); opacity: 0.5; }
+  .fm-summary-size { color: var(--warning); font-weight: 600; }
+  .fm-delete-btn {
+    padding: 8px 14px;
+    background: var(--error);
+    color: #fff;
+    border: none;
+    border-radius: var(--radius);
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: filter 0.2s ease;
+  }
+  .fm-delete-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+  .fm-delete-btn:hover:not(:disabled) { filter: brightness(1.1); }
+
+  /* ---------- Processing modal + toast ---------- */
+  .fm-overlay { position: absolute; inset: 0; z-index: 5; display: flex; align-items: center; justify-content: center; background: rgba(0, 0, 0, 0.7); padding: 16px; }
+  .fm-overlay[hidden] { display: none; }
+  .fm-modal { width: min(100%, 380px); padding: 24px; background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: 8px; }
+  .fm-modal-title { font-size: 15px; font-weight: 600; }
+  .fm-modal-sub { font-size: 12px; color: var(--text-muted) !important; margin: 4px 0 16px !important; }
+  .fm-progress { width: 100%; height: 8px; background: var(--bg-tertiary); border-radius: 4px; overflow: hidden; margin-bottom: 10px; }
+  .fm-progress-fill { height: 100%; width: 0%; background: var(--accent-red); border-radius: 4px; transition: width 0.3s ease; }
+  .fm-progress-text { text-align: center; font-size: 12.5px; color: var(--text-secondary); margin-bottom: 14px; font-variant-numeric: tabular-nums; }
+  .fm-cancel-btn { width: 100%; padding: 7px; background: var(--bg-tertiary); border: 1px solid var(--border-color); border-radius: 4px; color: var(--text-primary); font-size: 13px; cursor: pointer; }
+  .fm-cancel-btn:hover { border-color: var(--error); color: var(--error); }
+  .fm-toast {
+    position: absolute;
+    left: 50%;
+    bottom: 14px;
+    z-index: 6;
+    width: max-content;
+    max-width: calc(100% - 28px);
+    transform: translateX(-50%);
+    padding: 10px 14px;
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    border-left: 3px solid var(--success);
+    border-radius: 6px;
+    font-size: 12.5px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+    animation: fm-toast-in 0.25s ease-out;
+  }
+  .fm-toast[hidden] { display: none; }
+  @keyframes fm-toast-in { from { opacity: 0; transform: translate(-50%, 8px); } to { opacity: 1; transform: translate(-50%, 0); } }
+
+  @media (max-width: 480px) {
+    .fm-app { font-size: 13px; }
+    .fm-top { gap: 8px; padding-left: 10px; }
+    .fm-title { font-size: 13px; }
+    .fm-tab { font-size: 11px; padding: 12px 4px; }
+    .fm-panel { padding: 12px; }
+    .fm-thumb { width: 48px; height: 27px; }
+    .fm-row { padding: 10px; }
+    .fm-row-meta { gap: 8px; font-size: 11px; }
+    .fm-row-name { font-size: 13px; }
+    .fm-category-reason { padding-left: 12px; }
+    .fm-row-details { gap: 0 10px; }
+    .fm-row-details .fm-sep { display: none; }
+    .fm-summary { flex-wrap: wrap; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .fm-rec-squares i { animation: none; }
+  }
+</style>
+
+<script>
+  const reduced = window.matchMedia('(prefers-reduced-motion: reduce)');
+  const fmtGb = (gb: number) => `${parseFloat(gb.toFixed(2))} GB`;
+
+  document.querySelectorAll<HTMLElement>('[data-fm-app]').forEach((app) => {
+    const q = <T extends HTMLElement>(sel: string) => app.querySelector<T>(sel);
+    const qa = <T extends HTMLElement>(sel: string) => Array.from(app.querySelectorAll<T>(sel));
+
+    /* ---- Tabs ---- */
+    const tabs = qa<HTMLButtonElement>('[role="tab"]');
+    const panels = qa<HTMLElement>('[role="tabpanel"]');
+    const show = (id: string, focus = false) => {
+      tabs.forEach((t) => {
+        const on = t.dataset.tab === id;
+        t.classList.toggle('active', on);
+        t.setAttribute('aria-selected', String(on));
+        t.tabIndex = on ? 0 : -1;
+        if (on && focus) t.focus();
+      });
+      panels.forEach((p) => { p.hidden = p.dataset.panel !== id; });
+    };
+    tabs.forEach((t, i) => {
+      t.addEventListener('click', () => show(t.dataset.tab!));
+      t.addEventListener('keydown', (e) => {
+        if (e.key !== 'ArrowRight' && e.key !== 'ArrowLeft') return;
+        e.preventDefault();
+        const next = tabs[(i + (e.key === 'ArrowRight' ? 1 : tabs.length - 1)) % tabs.length];
+        show(next.dataset.tab!, true);
+      });
+    });
+
+    /* ---- Toast ---- */
+    const toast = q('[data-fm-toast]');
+    let toastTimer = 0;
+    const say = (message: string) => {
+      if (!toast) return;
+      toast.textContent = message;
+      toast.hidden = false;
+      window.clearTimeout(toastTimer);
+      toastTimer = window.setTimeout(() => { toast.hidden = true; }, 4200);
+    };
+
+    /* ---- Clip ---- */
+    const rows = qa('[data-clip-row]');
+    const checks = qa<HTMLInputElement>('[data-clip-check]');
+    const all = q<HTMLInputElement>('[data-clip-all]');
+    const count = q('[data-clip-count]');
+    const run = q<HTMLButtonElement>('[data-clip-run]');
+    const reel = q<HTMLInputElement>('[data-clip-reel]');
+    const clips = q<HTMLInputElement>('[data-clip-clips]');
+    const syncClip = () => {
+      const n = checks.filter((c) => c.checked).length;
+      rows.forEach((row, i) => row.classList.toggle('selected', checks[i].checked));
+      if (count) count.textContent = n ? `${n} selected` : '';
+      if (all) {
+        all.checked = n === checks.length;
+        all.nextElementSibling?.classList.toggle('indeterminate', n > 0 && n < checks.length);
+      }
+      if (run) run.disabled = n === 0 || !(reel?.checked || clips?.checked);
+    };
+    checks.forEach((c) => c.addEventListener('change', syncClip));
+    all?.addEventListener('change', () => { checks.forEach((c) => { c.checked = all.checked; }); syncClip(); });
+    reel?.addEventListener('change', syncClip);
+    clips?.addEventListener('change', syncClip);
+    syncClip();
+
+    // The app's "window kept around each mark" control (clip-window.js), read-only handles.
+    const back = q<HTMLInputElement>('[data-clip-back]');
+    const forward = q<HTMLInputElement>('[data-clip-forward]');
+    const renderWindow = () => {
+      if (!back || !forward) return;
+      const before = Math.min(300, Math.max(5, Number(back.value) || 5));
+      const after = Math.min(60, Math.max(0, Number(forward.value) || 0));
+      const scale = { left: -Math.max(60, before * 1.25), right: Math.max(20, after * 1.5) };
+      const pct = (v: number) => (100 * (v - scale.left)) / (scale.right - scale.left);
+      const left = pct(-before);
+      const right = pct(after);
+      const set = (sel: string, prop: string, value: string) => { const el = q(sel); if (el) el.style.setProperty(prop, value); };
+      set('[data-clip-start]', 'left', `${left}%`);
+      set('[data-clip-end]', 'left', `${right}%`);
+      set('[data-clip-band]', 'left', `${left}%`);
+      set('[data-clip-band]', 'width', `${right - left}%`);
+      set('[data-clip-markline]', 'left', `${pct(0)}%`);
+      set('[data-clip-marklabel]', 'left', `${pct(0)}%`);
+      const text = (sel: string, value: string) => { const el = q(sel); if (el) el.textContent = value; };
+      text('[data-clip-total]', `${before + after}s per mark`);
+      text('[data-clip-before]', `\u2212${before}s before`);
+      text('[data-clip-after]', `+${after}s after`);
+    };
+    back?.addEventListener('input', renderWindow);
+    forward?.addEventListener('input', renderWindow);
+    renderWindow();
+
+    // Clip Highlights: the app's processing modal and its stage names, on a timer.
+    const overlay = q('[data-fm-overlay]');
+    const fill = q('[data-fm-fill]');
+    const pctEl = q('[data-fm-pct]');
+    const stageEl = q('[data-fm-stage]');
+    const cancel = q<HTMLButtonElement>('[data-fm-cancel]');
+    const stages: [number, string][] = [
+      [4, 'Initializing'], [12, 'Parsing Timestamps'], [22, 'Calculating Ranges'], [48, 'Extracting Clips'],
+      [70, 'Extracting Clips'], [86, 'Assembling Video'], [95, 'Verifying Output'], [100, 'Complete'],
+    ];
+    let timer = 0;
+    const stop = () => { window.clearTimeout(timer); if (overlay) overlay.hidden = true; if (run) run.disabled = false; syncClip(); };
+    run?.addEventListener('click', () => {
+      if (!overlay || !fill || !pctEl || !stageEl) return;
+      const both = reel?.checked && clips?.checked;
+      const done = both
+        ? 'Created a highlight reel + 6 individual clips!'
+        : clips?.checked ? 'Extracted 6 individual clips!' : 'Successfully created 6 highlight clips!';
+      overlay.hidden = false;
+      run.disabled = true;
+      let i = 0;
+      const step = () => {
+        const [p, name] = stages[i];
+        fill.style.width = `${p}%`;
+        pctEl.textContent = `${p}%`;
+        stageEl.textContent = name;
+        i += 1;
+        if (i < stages.length) timer = window.setTimeout(step, reduced.matches ? 120 : 620);
+        else timer = window.setTimeout(() => { stop(); say(done); }, 700);
+      };
+      step();
+    });
+    cancel?.addEventListener('click', stop);
+
+    /* ---- Clean ---- */
+    const category = q('[data-clean-category]');
+    const fileList = q('[data-clean-files]');
+    const empty = q('[data-clean-empty]');
+    const summary = q('[data-clean-summary]');
+    const catAll = q<HTMLInputElement>('[data-clean-catall]');
+    const del = q<HTMLButtonElement>('[data-clean-delete]');
+    const scan = q<HTMLButtonElement>('[data-clean-scan]');
+    const toggle = q<HTMLButtonElement>('[data-clean-toggle]');
+    const original = fileList ? fileList.innerHTML : '';
+    const files = () => qa<HTMLElement>('[data-clean-file]');
+    const syncClean = () => {
+      const list = files();
+      const picked = list.filter((f) => f.querySelector<HTMLInputElement>('input')!.checked);
+      list.forEach((f) => f.classList.toggle('selected', picked.includes(f)));
+      const sum = (items: HTMLElement[]) => items.reduce((t, f) => t + Number(f.dataset.gb), 0);
+      const text = (sel: string, value: string) => { const el = q(sel); if (el) el.textContent = value; };
+      text('[data-clean-catcount]', `${list.length} file${list.length !== 1 ? 's' : ''}`);
+      text('[data-clean-catsize]', fmtGb(sum(list)));
+      text('[data-clean-count]', `${picked.length} selected`);
+      text('[data-clean-size]', `${picked.length ? fmtGb(sum(picked)) : '0 B'} to free`);
+      if (del) del.disabled = picked.length === 0;
+      if (catAll) {
+        catAll.checked = list.length > 0 && picked.length === list.length;
+        catAll.indeterminate = picked.length > 0 && picked.length < list.length;
+      }
+      if (category) category.hidden = list.length === 0;
+      if (empty) empty.hidden = list.length !== 0;
+      if (summary) summary.style.display = list.length ? '' : 'none';
+    };
+    fileList?.addEventListener('change', syncClean);
+    catAll?.addEventListener('change', () => {
+      files().forEach((f) => { f.querySelector<HTMLInputElement>('input')!.checked = catAll.checked; });
+      syncClean();
+    });
+    toggle?.addEventListener('click', () => {
+      const open = category?.classList.toggle('expanded') ?? false;
+      toggle.setAttribute('aria-expanded', String(open));
+    });
+    del?.addEventListener('click', () => {
+      const picked = files().filter((f) => f.querySelector<HTMLInputElement>('input')!.checked);
+      if (!picked.length) return;
+      const size = fmtGb(picked.reduce((t, f) => t + Number(f.dataset.gb), 0));
+      picked.forEach((f) => f.remove());
+      syncClean();
+      say(`Moved ${picked.length} files to Recycle Bin (${size})`);
+    });
+    // Rescan puts the sample files back, so the demo can be tried again.
+    scan?.addEventListener('click', () => {
+      if (!fileList) return;
+      scan.disabled = true;
+      scan.textContent = 'Scanning\u2026';
+      window.setTimeout(() => {
+        fileList.innerHTML = original;
+        scan.disabled = false;
+        scan.textContent = 'Rescan';
+        syncClean();
+      }, reduced.matches ? 0 : 700);
+    });
+    syncClean();
+  });
+</script>

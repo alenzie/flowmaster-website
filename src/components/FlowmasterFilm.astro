@@ -4,7 +4,7 @@
 // On mobile (and without JavaScript) it is the native video player.
 const film = '/media/flowmaster/film-v26';
 ---
-<section id="film" aria-labelledby="film-heading" class="film-section">
+<div id="film" class="film-section">
   <figure>
     <div class="film-window" data-film>
       <video class="film-video" controls playsinline preload="none" poster={`${film}-poster.jpg`} aria-labelledby="film-heading">
@@ -24,22 +24,22 @@ const film = '/media/flowmaster/film-v26';
       <div class="film-progress" data-film-progress hidden><span></span></div>
     </div>
     <figcaption>
-      <h2 id="film-heading">Edit as you record.</h2>
-      <p>90 seconds, from hours of footage to the moments worth keeping. Events and Flow are coming soon.</p>
+      <p id="film-heading" class="film-cap-title">Edit as you record.</p>
+      <p>90 seconds, from hours of footage to the moments worth keeping. Events and Flow AI are in development for the December release.</p>
     </figcaption>
   </figure>
-</section>
+</div>
 
 <style>
-  .film-section { max-width: 1200px; margin: 0 auto; padding: 0 1.5rem 5rem; scroll-margin-top: 6rem; }
+  .film-section { width: min(100% - 2 * var(--pad), var(--wrap)); margin: 0 auto; padding: 0 0 4rem; scroll-margin-top: 6rem; }
   figure { margin: 0; }
-  .film-window { position: relative; width: 100%; aspect-ratio: 16 / 9; overflow: hidden; border-radius: 12px; background: #07080b; }
+  .film-window { position: relative; width: 100%; aspect-ratio: 16 / 9; overflow: hidden; border-radius: 10px; border: 1px solid var(--rule); background: #07080b; }
   .film-video { display: block; width: 100%; height: 100%; background: #07080b; }
   .film-window.is-gated .film-video { cursor: pointer; }
   .film-window.is-gated:focus-visible { outline: 2px solid #ff5959; outline-offset: 4px; }
   figcaption { padding-top: 1.25rem; }
-  h2 { font-size: 1.25rem; line-height: 1.4; margin: 0 0 .35rem; }
-  figcaption p { font-size: .875rem; color: #a3a3a3; margin: 0; max-width: 40rem; }
+  .film-cap-title { font-size: 1.1rem; font-weight: 650; line-height: 1.4; color: var(--ink); margin: 0 0 .25rem; }
+  figcaption p:not(.film-cap-title) { font-size: .95rem; color: var(--ink-3); margin: 0; max-width: 44rem; }
 
   .film-gate { position: absolute; inset: 0; z-index: 2; display: flex; align-items: center; justify-content: center; background: #07080b; font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif; transition: opacity .45s ease, background-color .3s ease; }
   .film-gate[hidden] { display: none; }
@@ -48,7 +48,7 @@ const film = '/media/flowmaster/film-v26';
   .gate-stack { display: flex; flex-direction: column; align-items: center; gap: clamp(1rem, 2.2vw, 1.5rem); }
   .gate-logo { width: clamp(220px, 32vw, 380px); height: auto; display: block; animation: gate-up .6s ease-out both; }
   .gate-label { margin: 0; font-size: clamp(.95rem, 1.4vw, 1.2rem); color: #b6bcc6; }
-  .gate-play { display: inline-flex; align-items: center; justify-content: center; gap: .6rem; min-width: clamp(240px, 34vw, 420px); min-height: 52px; padding: .9rem 1.25rem; border: 0; border-radius: 8px; background: #ff3333; color: #fff; font-family: inherit; font-size: clamp(1rem, 1.4vw, 1.2rem); font-weight: 600; line-height: 1; cursor: pointer; box-shadow: 0 12px 36px rgba(255, 51, 51, .3); animation: gate-up .45s ease-out both; transition: transform .15s ease, box-shadow .15s ease; }
+  .gate-play { display: inline-flex; align-items: center; justify-content: center; gap: .6rem; min-width: clamp(240px, 34vw, 420px); min-height: 52px; padding: .9rem 1.25rem; border: 0; border-radius: 8px; background: #f43f43; color: #140606; font-family: inherit; font-size: clamp(1rem, 1.4vw, 1.2rem); font-weight: 600; line-height: 1; cursor: pointer; box-shadow: 0 12px 36px rgba(244, 63, 67, .3); animation: gate-up .45s ease-out both; transition: transform .15s ease, box-shadow .15s ease; }
   .gate-play:hover:not(:disabled) { transform: translateY(-1px); box-shadow: 0 16px 42px rgba(255, 51, 51, .38); }
   .gate-play:disabled { background: #2a2c31; color: #b6bcc6; box-shadow: none; cursor: wait; }
   .gate-play:focus-visible { outline: 2px solid #fff; outline-offset: 4px; }
@@ -67,7 +67,7 @@ const film = '/media/flowmaster/film-v26';
     .film-gate { transition: none; }
   }
   @media (max-width: 767px) {
-    .film-section { padding: 1.5rem 1rem 3rem; }
+    .film-section { padding: 0 0 2.5rem; }
     .film-window { border-radius: 8px; }
   }
 </style>

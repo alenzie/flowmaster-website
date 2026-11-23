@@ -2,6 +2,8 @@
 import '../styles/global.css';
 import Header from '../components/Header.astro';
 import Footer from '../components/Footer.astro';
+// The headline face is the largest thing on every redesigned page, so fetch it early.
+import displayFont from '@fontsource-variable/archivo/files/archivo-latin-wdth-normal.woff2?url';
 
 interface Props {
   title: string;
@@ -12,7 +14,7 @@ interface Props {
 
 const {
   title,
-  description = "Edit as you record - Video editing automation for content creators",
+  description = "Flowmaster works alongside OBS Studio on Windows. Press F9 to mark a moment while you record, then cut the marked moments out as clips or a reel. Never do the rough cut.",
   showNav = true,
   ogImage = "/og-image.png"
 } = Astro.props;
@@ -31,6 +33,7 @@ const canonicalUrl = new URL(Astro.url.pathname, siteUrl).href;
     <link rel="icon" type="image/x-icon" href="/favicon.ico" />
     <link rel="canonical" href={canonicalUrl} />
     <meta name="theme-color" content="#101010" />
+    <link rel="preload" as="font" type="font/woff2" href={displayFont} crossorigin />
 
     <!-- Open Graph / Social -->
     <meta property="og:type" content="website" />
@@ -46,18 +49,37 @@ const canonicalUrl = new URL(Astro.url.pathname, siteUrl).href;
     <meta name="twitter:description" content={description} />
     <meta name="twitter:image" content={`${siteUrl}${ogImage}`} />
 
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet" />
     <title>{fullTitle}</title>
   </head>
   <body class="min-h-screen flex flex-col">
+    <a class="skip-link" href="#main">Skip to content</a>
     {showNav && <Header />}
 
-    <main class="flex-grow">
+    <main id="main" class="flex-grow">
       <slot />
     </main>
 
     <Footer />
+
+    <script is:inline>
+      (() => {
+        const items = document.querySelectorAll('[data-reveal]');
+        if (!items.length || !('IntersectionObserver' in window)) return;
+        if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+          items.forEach((el) => el.classList.add('is-in'));
+          return;
+        }
+        document.documentElement.classList.add('js-reveal');
+        const io = new IntersectionObserver((entries) => {
+          for (const entry of entries) {
+            if (entry.isIntersecting) {
+              entry.target.classList.add('is-in');
+              io.unobserve(entry.target);
+            }
+          }
+        }, { rootMargin: '0px 0px -12% 0px', threshold: 0.08 });
+        items.forEach((el) => io.observe(el));
+      })();
+    </script>
   </body>
 </html>

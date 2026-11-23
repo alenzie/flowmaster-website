@@ -1,125 +1,144 @@
 @import "tailwindcss";
+@import "@fontsource-variable/archivo/wdth.css";
+@import "@fontsource-variable/jetbrains-mono/wght.css";
 
-/* Tailwind v4 Theme Configuration */
+/* Tailwind v4 theme. Token names are shared with the pages that were not
+   redesigned (account, pricing, future, docs), so they stay as they were. */
 @theme {
-  /* Backgrounds */
+  /* Ground */
   --color-bg-primary: #101010;
-  --color-bg-secondary: #1a1a1a;
-  --color-bg-tertiary: #252525;
+  --color-bg-secondary: #171717;
+  --color-bg-tertiary: #242424;
 
-  /* Brand */
+  /* Brand: the three marker colours. Red marks, yellow clips, green cleans. */
   --color-brand-red: #f43f43;
-  --color-brand-red-bright: #ff5959;
+  --color-brand-red-bright: #ff6a6a;
 
-  /* Step colors */
   --color-step-record: #f43f43;
   --color-step-autocut: #f5d440;
   --color-step-autoclean: #6be553;
-
-  /* Muted step colors (darkened, no white added) */
   --color-step-autocut-muted: #c4aa33;
   --color-step-autoclean-muted: #4fb83d;
 
-  /* Alenzie accent */
   --color-alenzie-mint: #55ffa2;
 
-  /* Grays */
-  --color-gray-100: #f2f2f2;
-  --color-gray-300: #d4d4d4;
-  --color-gray-400: #a3a3a3;
-  --color-gray-500: #737373;
-  --color-gray-600: #525252;
-  --color-gray-700: #484848;
+  /* Text */
+  --color-text-primary: #f2f0ea;
+  --color-text-secondary: #b9b6ae;
 
-  /* Tier Selector */
+  /* Greys */
+  --color-gray-100: #f2f0ea;
+  --color-gray-300: #cfccc4;
+  --color-gray-400: #a5a29b;
+  --color-gray-500: #8b8880;
+  --color-gray-600: #6a6862;
+  --color-gray-700: #44433f;
+
+  /* Tier selector (invite page) */
   --color-tier-glow: rgba(244, 63, 67, 0.4);
   --color-tier-glow-intense: rgba(244, 63, 67, 0.6);
   --color-tier-claimed: #d4a017;
   --color-tier-claimed-check: #6be553;
 
-  /* Fonts */
-  --font-heading: "Space Grotesk", sans-serif;
-  --font-body: "Inter", sans-serif;
+  /* Type */
+  --font-heading: "Archivo Variable", "Arial Narrow", system-ui, sans-serif;
+  --font-body: "Archivo Variable", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-mono: "JetBrains Mono Variable", ui-monospace, "Cascadia Mono", Consolas, monospace;
 }
 
-/* Base styles */
+:root {
+  --ink: #f2f0ea;
+  --ink-2: #b9b6ae;
+  --ink-3: #8b8880;
+  --ground: #101010;
+  --ground-2: #171717;
+  --ground-3: #1f1f1f;
+  --rule: rgba(242, 240, 234, 0.12);
+  --rule-strong: rgba(242, 240, 234, 0.26);
+  --footage: #34332f;
+  --red: #f43f43;
+  --yellow: #f5d440;
+  --green: #6be553;
+  --pad: clamp(1.25rem, 4vw, 3.5rem);
+  --wrap: 82rem;
+  --nav-h: 4rem;
+  color-scheme: dark;
+}
+
 @layer base {
   html {
     scroll-behavior: smooth;
+    scroll-padding-top: 5.5rem;
+    -webkit-text-size-adjust: 100%;
   }
 
   body {
-    background-color: var(--color-bg-primary);
-    color: #f2f2f2;
+    background-color: var(--ground);
+    color: var(--ink);
     font-family: var(--font-body);
-
-    /* Subtle carbon fiber texture */
-    background-image:
-      linear-gradient(45deg, #0a0a0a 25%, transparent 25%),
-      linear-gradient(-45deg, #0a0a0a 25%, transparent 25%),
-      linear-gradient(45deg, transparent 75%, #0a0a0a 75%),
-      linear-gradient(-45deg, transparent 75%, #0a0a0a 75%);
-    background-size: 4px 4px;
-    background-position: 0 0, 0 2px, 2px -2px, -2px 0px;
+    font-size: 1.0625rem;
+    line-height: 1.6;
+    overflow-x: clip;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
   }
 
-  h1, h2, h3, h4, h5, h6 {
+  ::selection {
+    background: var(--yellow);
+    color: #101010;
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--yellow);
+    outline-offset: 3px;
+    border-radius: 2px;
+  }
+
+  h1, h2 {
     font-family: var(--font-heading);
-    font-weight: 700;
+    font-stretch: 68%;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: -0.005em;
+    text-wrap: balance;
+    color: var(--ink);
   }
 
-  h1 {
-    font-size: 2.25rem;
-    line-height: 2.5rem;
+  h3, h4, h5, h6 {
+    font-family: var(--font-heading);
+    font-stretch: 100%;
+    font-weight: 650;
+    letter-spacing: -0.01em;
+    color: var(--ink);
   }
 
-  h2 {
-    font-size: 1.875rem;
-    line-height: 2.25rem;
-  }
-
-  h3 {
-    font-size: 1.5rem;
-    line-height: 2rem;
-  }
+  h1 { font-size: 2.9rem; line-height: 0.94; }
+  h2 { font-size: 2.1rem; line-height: 1; }
+  h3 { font-size: 1.3rem; line-height: 1.3; }
 
   p {
-    color: var(--color-gray-300);
-    line-height: 1.625;
+    color: var(--ink-2);
+    line-height: 1.6;
+    text-wrap: pretty;
   }
 
-  a {
-    transition: color 0.2s;
-  }
+  a { transition: color 0.2s; }
+
+  code, kbd, samp { font-family: var(--font-mono); }
 }
 
 @layer base {
   @media (min-width: 768px) {
-    h1 {
-      font-size: 3rem;
-      line-height: 1;
-    }
-
-    h2 {
-      font-size: 2.25rem;
-      line-height: 2.5rem;
-    }
-
-    h3 {
-      font-size: 1.875rem;
-      line-height: 2.25rem;
-    }
+    h1 { font-size: 4rem; }
+    h2 { font-size: 2.6rem; }
+    h3 { font-size: 1.45rem; }
   }
 
   @media (min-width: 1024px) {
-    h1 {
-      font-size: 3.75rem;
-      line-height: 1;
-    }
+    h1 { font-size: 4.75rem; }
   }
 }
 
-/* Component classes */
 @layer components {
   .container-main {
     max-width: 72rem;
@@ -129,94 +148,204 @@
     padding-right: 1.5rem;
   }
 
+  /* The header is fixed, so a page that opens with .section-padding starts below it. */
   .section-padding {
-    padding-top: 5rem;
+    padding-top: 6.5rem;
     padding-bottom: 5rem;
   }
 
   @media (min-width: 768px) {
     .section-padding {
-      padding-top: 6rem;
+      padding-top: 8rem;
       padding-bottom: 6rem;
     }
   }
 
-  .btn-primary {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    background-color: var(--color-brand-red);
-    color: #f2f2f2;
-    font-weight: 600;
-    padding: 0.75rem 1.5rem;
-    border-radius: 0.5rem;
-    transition: all 0.2s;
-  }
-
-  .btn-primary:hover {
-    background-color: var(--color-brand-red-bright);
-    box-shadow: 0 10px 15px -3px rgba(244, 63, 67, 0.2);
-  }
-
+  .btn-primary,
   .btn-secondary {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    background-color: var(--color-bg-tertiary);
-    color: #f2f2f2;
-    font-weight: 600;
-    padding: 0.75rem 1.5rem;
-    border-radius: 0.5rem;
-    border: 1px solid var(--color-gray-700);
-    transition: all 0.2s;
+    gap: 0.6rem;
+    min-height: 3rem;
+    padding: 0.75rem 1.35rem;
+    border-radius: 6px;
+    font-family: var(--font-body);
+    font-weight: 700;
+    font-size: 1rem;
+    line-height: 1.1;
+    text-decoration: none;
+    transition: background-color 0.18s ease, border-color 0.18s ease, transform 0.18s ease, box-shadow 0.18s ease;
+  }
+
+  .btn-primary {
+    background-color: var(--red);
+    color: #140606;
+    box-shadow: 0 0 0 0 rgba(244, 63, 67, 0);
+  }
+
+  .btn-primary:hover {
+    background-color: var(--color-brand-red-bright);
+    transform: translateY(-1px);
+    box-shadow: 0 10px 28px -10px rgba(244, 63, 67, 0.7);
+  }
+
+  .btn-primary:active { transform: translateY(0); }
+
+  .btn-secondary {
+    background-color: transparent;
+    color: var(--ink);
+    border: 1px solid var(--rule-strong);
   }
 
   .btn-secondary:hover {
-    background-color: var(--color-gray-700);
+    border-color: var(--ink);
+    background-color: rgba(242, 240, 234, 0.05);
   }
 
   .card {
-    background-color: var(--color-bg-secondary);
-    border-radius: 0.75rem;
+    background-color: var(--ground-2);
+    border-radius: 10px;
     padding: 1.5rem;
-    border: 1px solid var(--color-bg-tertiary);
+    border: 1px solid var(--rule);
   }
 }
 
-/* Utility classes */
 @layer utilities {
-  .text-gradient {
-    background-clip: text;
-    -webkit-background-clip: text;
-    color: transparent;
-    background-image: linear-gradient(to right, var(--color-brand-red), var(--color-brand-red-bright));
-  }
+  /* Was a red gradient. Now the plain mark colour, so headings stay legible. */
+  .text-gradient { color: var(--red); }
 
-  .animate-fade-in-up {
-    animation: fade-in-up 0.8s ease-out forwards;
-  }
+  .animate-fade-in-up { animation: fade-in-up 0.8s ease-out forwards; }
 }
 
 @keyframes fade-in-up {
-  from {
-    opacity: 0;
-    transform: translateY(20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
-/* Reduced motion support */
+/* ------------------------------------------------------------------
+   Shared pieces of the redesigned pages (home, download, header, footer)
+   ------------------------------------------------------------------ */
+
+.wrap {
+  width: min(100% - 2 * var(--pad), var(--wrap));
+  margin-inline: auto;
+}
+
+.skip-link {
+  position: fixed;
+  top: 0.5rem;
+  left: 0.5rem;
+  z-index: 200;
+  padding: 0.6rem 0.9rem;
+  background: var(--yellow);
+  color: #101010;
+  font-weight: 700;
+  border-radius: 4px;
+  transform: translateY(-200%);
+}
+.skip-link:focus { transform: translateY(0); }
+
+/* Mono label: timecodes, filenames, keys, section markers. */
+.label {
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  font-weight: 500;
+  line-height: 1.4;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+}
+
+.display {
+  font-family: var(--font-heading);
+  font-stretch: 64%;
+  font-weight: 800;
+  text-transform: uppercase;
+  line-height: 0.9;
+  letter-spacing: -0.005em;
+  color: var(--ink);
+  text-wrap: balance;
+}
+
+.sq {
+  display: inline-block;
+  width: 0.72em;
+  height: 0.7em;
+  border-radius: 0.09em;
+  background: var(--red);
+  flex: none;
+}
+.sq.y { background: var(--yellow); }
+.sq.g { background: var(--green); }
+
+.text-link {
+  color: var(--ink);
+  text-decoration: underline;
+  text-decoration-color: var(--rule-strong);
+  text-decoration-thickness: 1px;
+  text-underline-offset: 0.28em;
+  transition: text-decoration-color 0.18s ease, color 0.18s ease;
+}
+.text-link:hover { text-decoration-color: var(--yellow); }
+
+.arrow-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-height: 3rem;
+  font-weight: 600;
+  color: var(--ink);
+  text-decoration: none;
+  border-bottom: 1px solid var(--rule-strong);
+  transition: border-color 0.18s ease;
+}
+.arrow-link::after {
+  content: "\2192";
+  font-family: var(--font-mono);
+  transition: transform 0.18s ease;
+}
+.arrow-link:hover { border-color: var(--yellow); }
+.arrow-link:hover::after { transform: translateX(3px); }
+
+/* The app's own key style, used wherever a key is named in running text. */
+.key {
+  display: inline-block;
+  padding: 0.05em 0.45em;
+  border: 1px solid var(--rule-strong);
+  border-bottom-width: 2px;
+  border-radius: 4px;
+  background: var(--ground-3);
+  font-family: var(--font-mono);
+  font-size: 0.86em;
+  font-weight: 700;
+  color: var(--ink);
+  white-space: nowrap;
+}
+
+/* Scroll reveal. Content is visible without JavaScript; the script opts in. */
+.js-reveal [data-reveal] {
+  opacity: 0;
+  transform: translateY(18px);
+  transition: opacity 0.7s ease, transform 0.7s cubic-bezier(0.2, 0.7, 0.2, 1);
+  transition-delay: var(--reveal-delay, 0s);
+}
+.js-reveal [data-reveal].is-in {
+  opacity: 1;
+  transform: none;
+}
+
 @media (prefers-reduced-motion: reduce) {
-  html {
-    scroll-behavior: auto;
-  }
+  html { scroll-behavior: auto; }
 
   *, *::before, *::after {
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
+  }
+
+  .js-reveal [data-reveal] {
+    opacity: 1;
+    transform: none;
   }
 }
