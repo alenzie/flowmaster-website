@@ -178,62 +178,6 @@ const appBenefits = [
     </div>
   </section>
 
-  <!-- Under Development -->
-  <section class="under-dev-section section-padding">
-    <div class="container-main text-center">
-      <div class="construction-wrapper">
-        <svg viewBox="0 0 280 200" xmlns="http://www.w3.org/2000/svg" class="construction-graphic">
-          <!-- Shadow (bottom layer) -->
-          <ellipse cx="140" cy="188" rx="90" ry="10" fill="rgba(0,0,0,0.4)" class="shadow"/>
-
-          <!-- Barrier (back) -->
-          <g class="barrier">
-            <!-- Left leg -->
-            <rect x="45" y="85" width="10" height="75" rx="2" fill="#444"/>
-            <!-- Right leg -->
-            <rect x="225" y="85" width="10" height="75" rx="2" fill="#444"/>
-
-            <!-- Top rail with stripes -->
-            <g class="barrier-rail-group top-rail">
-              <rect x="35" y="65" width="210" height="18" rx="3" fill="#d64545"/>
-              <rect class="stripe" x="55" y="65" width="12" height="18" fill="#fff"/>
-              <rect class="stripe" x="95" y="65" width="12" height="18" fill="#fff"/>
-              <rect class="stripe" x="135" y="65" width="12" height="18" fill="#fff"/>
-              <rect class="stripe" x="175" y="65" width="12" height="18" fill="#fff"/>
-              <rect class="stripe" x="215" y="65" width="12" height="18" fill="#fff"/>
-            </g>
-
-            <!-- Bottom rail with stripes -->
-            <g class="barrier-rail-group bottom-rail">
-              <rect x="35" y="95" width="210" height="18" rx="3" fill="#d64545"/>
-              <rect class="stripe" x="75" y="95" width="12" height="18" fill="#fff"/>
-              <rect class="stripe" x="115" y="95" width="12" height="18" fill="#fff"/>
-              <rect class="stripe" x="155" y="95" width="12" height="18" fill="#fff"/>
-              <rect class="stripe" x="195" y="95" width="12" height="18" fill="#fff"/>
-            </g>
-          </g>
-
-          <!-- Cone (front) -->
-          <g class="cone">
-            <!-- Cone base -->
-            <ellipse cx="140" cy="172" rx="40" ry="8" fill="#c43c3c"/>
-            <!-- Cone body -->
-            <path d="M 100 168 L 128 70 L 152 70 L 180 168 Z" fill="#d64545"/>
-            <!-- White stripe band -->
-            <path d="M 108 145 L 118 110 L 162 110 L 172 145 Z" fill="#fff" opacity="0.95"/>
-            <!-- Cone tip cap -->
-            <ellipse cx="140" cy="68" rx="14" ry="5" fill="#c43c3c"/>
-            <!-- Highlight on cone -->
-            <path d="M 120 140 L 126 115 L 134 115 L 128 140 Z" fill="#fff" opacity="0.2"/>
-          </g>
-        </svg>
-      </div>
-
-      <h2 class="text-3xl font-semibold mt-8 tracking-wide">On the drawing board</h2>
-      <p class="text-gray-500 mt-3 text-lg">The companion app comes after Events and Flow. Tell us what you’d want from it on Discord.</p>
-    </div>
-  </section>
-
   <!-- Comparison -->
   <section class="section-padding bg-bg-secondary">
     <div class="container-main">
@@ -392,87 +336,6 @@ const appBenefits = [
     height: 100%;
   }
 
-  /* ===== Under Development ===== */
-  .under-dev-section {
-    background: #0a0a0a;
-    padding-top: 80px;
-    padding-bottom: 120px;
-  }
-
-  .construction-wrapper {
-    display: flex;
-    justify-content: center;
-    opacity: 0;
-    transform: scale(0.9);
-    transition: opacity 0.6s ease-out, transform 0.6s ease-out;
-  }
-
-  .construction-wrapper.animate-in {
-    opacity: 1;
-    transform: scale(1);
-  }
-
-  .construction-graphic {
-    width: 260px;
-    height: auto;
-  }
-
-  /* Cone wobble animation */
-  .cone {
-    transform-origin: 140px 172px;
-    animation: cone-wobble 2.5s ease-in-out infinite;
-  }
-
-  @keyframes cone-wobble {
-    0%, 100% {
-      transform: rotate(-2deg);
-    }
-    50% {
-      transform: rotate(2deg);
-    }
-  }
-
-  /* Subtle barrier stripe shimmer */
-  .barrier-rail-group .stripe {
-    animation: stripe-pulse 3s ease-in-out infinite;
-  }
-
-  .top-rail .stripe:nth-child(2) { animation-delay: 0s; }
-  .top-rail .stripe:nth-child(3) { animation-delay: 0.2s; }
-  .top-rail .stripe:nth-child(4) { animation-delay: 0.4s; }
-  .top-rail .stripe:nth-child(5) { animation-delay: 0.6s; }
-  .top-rail .stripe:nth-child(6) { animation-delay: 0.8s; }
-
-  .bottom-rail .stripe:nth-child(2) { animation-delay: 0.1s; }
-  .bottom-rail .stripe:nth-child(3) { animation-delay: 0.3s; }
-  .bottom-rail .stripe:nth-child(4) { animation-delay: 0.5s; }
-  .bottom-rail .stripe:nth-child(5) { animation-delay: 0.7s; }
-
-  @keyframes stripe-pulse {
-    0%, 100% {
-      opacity: 1;
-    }
-    50% {
-      opacity: 0.7;
-    }
-  }
-
-  /* Shadow pulse */
-  .shadow {
-    animation: shadow-pulse 2.5s ease-in-out infinite;
-  }
-
-  @keyframes shadow-pulse {
-    0%, 100% {
-      transform: scaleX(1);
-      opacity: 0.4;
-    }
-    50% {
-      transform: scaleX(1.05);
-      opacity: 0.3;
-    }
-  }
-
   /* ===== Responsive ===== */
   @media (max-width: 1024px) {
     .mockup-portrait {
@@ -535,26 +398,17 @@ const appBenefits = [
       padding: 24px;
     }
 
-    .construction-graphic {
-      width: 200px;
-    }
   }
 
   /* Reduced motion */
   @media (prefers-reduced-motion: reduce) {
     .mockup-wrapper,
-    .app-benefit-card,
-    .construction-wrapper {
+    .app-benefit-card {
       opacity: 1;
       transform: none;
       transition: none;
     }
 
-    .cone,
-    .barrier-rail-group .stripe,
-    .shadow {
-      animation: none;
-    }
   }
 </style>
 
@@ -686,23 +540,5 @@ const appBenefits = [
     });
 
     benefitCards.forEach(card => benefitsObserver.observe(card));
-
-    // ===== Construction section animation =====
-    const constructionWrapper = document.querySelector('.construction-wrapper');
-
-    const constructionObserver = new IntersectionObserver((entries) => {
-      entries.forEach((entry) => {
-        if (entry.isIntersecting) {
-          entry.target.classList.add('animate-in');
-          constructionObserver.unobserve(entry.target);
-        }
-      });
-    }, {
-      threshold: 0.3
-    });
-
-    if (constructionWrapper) {
-      constructionObserver.observe(constructionWrapper);
-    }
   });
 </script>
