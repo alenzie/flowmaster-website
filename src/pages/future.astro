@@ -4,90 +4,7 @@ import Button from '../components/Button.astro';
 import landscapeMock from '../assets/app/MobileAppMockLandscape_Large.png';
 import portraitMock from '../assets/app/MobileAppMockVertical.png';
 
-// Owner 2026-11-23: Events and Flow AI are the current work, timed for the December release;
-// the mobile companion app is loosely planned. The older phases are kept as ideas, not schedules.
-const phases = [
-  {
-    number: 1,
-    title: "Events & Flow AI",
-    status: "Coming December",
-    statusClass: "bg-brand-red/20 text-brand-red",
-    accentClass: "text-brand-red",
-    borderClass: "border-brand-red/40 hover:border-brand-red/60",
-    wide: true,
-    features: [
-      { title: "Events tab", description: "Scans your recordings for kills, objectives and round wins" },
-      { title: "Detection templates", description: "Per-game templates you can import and share" },
-      { title: "Events across recordings", description: "One sortable table of every moment you've scanned" },
-      { title: "Flow AI tab", description: "Ask about your footage; Flow plans the edit" },
-      { title: "Beat mode", description: "Montages cut to the music" },
-      { title: "Editor handoff", description: "Send a plan straight to a new project in your editor" },
-    ]
-  },
-  {
-    number: 2,
-    title: "Unified Interface",
-    status: "Later",
-    statusClass: "bg-white/10 text-gray-300",
-    accentClass: "text-gray-300",
-    borderClass: "border-gray-700 hover:border-gray-500",
-    features: [
-      { title: "Single-window experience", description: "All tools in one place" },
-      { title: "Multi-track recording", description: "V1-V3 video, A1-A3 audio tracks" },
-      { title: "Live preview window", description: "See your sources in real-time" },
-      { title: "Waveform visualization", description: "Spot silence before you cut" },
-      { title: "Session templates", description: "Quick presets for different content types" },
-      { title: "Built-in effects", description: "Audio and video processing without plugins" },
-    ]
-  },
-  {
-    number: 3,
-    title: "Go Live",
-    status: "Later",
-    statusClass: "bg-[#f5d440]/20 text-[#f5d440]",
-    accentClass: "text-[#f5d440]",
-    borderClass: "border-[#f5d440]/30 hover:border-[#f5d440]/50",
-    features: [
-      { title: "Direct streaming", description: "Broadcast to Twitch, YouTube, and more" },
-      { title: "Multistream support", description: "Go live on 3 platforms simultaneously" },
-      { title: "Integrated chat", description: "All your chats in one panel" },
-      { title: "Stream + Record mode", description: "High-quality local file while you broadcast" },
-      { title: "Recording profiles", description: "Optimized settings per use case" },
-    ]
-  },
-  {
-    number: 4,
-    title: "Mobile & Cloud",
-    status: "Exploring",
-    statusClass: "bg-[#6be553]/20 text-[#6be553]",
-    accentClass: "text-[#6be553]",
-    borderClass: "border-[#6be553]/30 hover:border-[#6be553]/50",
-    features: [
-      { title: "Mobile companion app", description: "Mark moments from your phone" },
-      { title: "Cloud settings sync", description: "Your presets on any machine" },
-      { title: "Disk space alerts", description: "Get notified before you run out of storage" },
-      { title: "Remote session monitoring", description: "Check on recordings from anywhere" },
-      { title: "Timestamp backup", description: "Never lose your markers" },
-    ]
-  },
-  {
-    number: 5,
-    title: "Podcasting & Beyond",
-    status: "Future",
-    statusClass: "bg-alenzie-mint/20 text-alenzie-mint",
-    accentClass: "text-alenzie-mint",
-    borderClass: "border-alenzie-mint/30 hover:border-alenzie-mint/50",
-    features: [
-      { title: "Podcasting mode", description: "Audio-focused interface, video preview removed" },
-      { title: "Remote guest recording", description: "Better than Riverside, completely free" },
-      { title: "Browser-based guest joining", description: "Guests need no app, just a link" },
-      { title: "Multi-participant waveforms", description: "See every voice in real-time" },
-      { title: "Podcast chapter export", description: "Ready for Spotify, Apple Podcasts, YouTube" },
-      { title: "Direct NLE export", description: "Send timelines to Premiere, DaVinci, Final Cut" },
-    ]
-  },
-];
-
+// Owner 2026-11-23: the phased roadmap section is removed; the page leads with Events and Flow AI.
 const spotlight = [
   {
     kicker: 'Coming in December',
@@ -220,46 +137,6 @@ const appBenefits = [
           </div>
         </div>
       ))}
-    </div>
-  </section>
-
-  <!-- Roadmap -->
-  <section class="section-padding">
-    <div class="container-main">
-      <h2 class="text-center mb-4">Roadmap</h2>
-      <p class="text-text-secondary text-center max-w-2xl mx-auto mb-12">
-        Events and Flow AI come first, in December. After that, phases are in order of priority, not on a schedule.
-      </p>
-
-      <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        {phases.map(phase => (
-          <div class={`card border ${phase.borderClass} transition-colors ${phase.wide ? 'lg:col-span-2' : ''}`}>
-            <div class="flex items-center justify-between mb-6">
-              <div class="flex items-center gap-3">
-                <span class={`text-2xl font-bold ${phase.accentClass}`}>Phase {phase.number}</span>
-                <span class="text-xl font-semibold text-white">{phase.title}</span>
-              </div>
-              <span class={`text-xs px-3 py-1 rounded-full uppercase tracking-wider font-medium ${phase.statusClass}`}>
-                {phase.status}
-              </span>
-            </div>
-
-            <ul class="space-y-3">
-              {phase.features.map(feature => (
-                <li class="flex items-start gap-3">
-                  <svg class={`w-5 h-5 ${phase.accentClass} flex-shrink-0 mt-0.5`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
-                  </svg>
-                  <div>
-                    <span class="text-white font-medium">{feature.title}</span>
-                    <span class="text-text-secondary"> - {feature.description}</span>
-                  </div>
-                </li>
-              ))}
-            </ul>
-          </div>
-        ))}
-      </div>
     </div>
   </section>
 
