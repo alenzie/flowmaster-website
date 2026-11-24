@@ -21,7 +21,7 @@ const videos = RECORDINGS.slice(0, 3).map((recording, i) => ({ ...recording, sel
         <span class="chapter-name">Clip</span>
         <span class="chapter-when">After the session</span>
       </p>
-      <h2 class="display chapter-title" id="clip-title">The cut is already decided<span class="stop" aria-hidden="true"></span><span class="sr-only">.</span></h2>
+      <h2 class="display chapter-title" id="clip-title">You control the cut<span class="stop" aria-hidden="true"></span><span class="sr-only">.</span></h2>
       <p class="chapter-body">
         Open Clip when the session ends. Every recording is listed with the marks you left on it.
         Say how much to keep before and after each press, and Flowmaster writes the MP4s.
@@ -189,7 +189,8 @@ const videos = RECORDINGS.slice(0, 3).map((recording, i) => ({ ...recording, sel
     let duration = DURATION;
 
     // ── The before/after window. Same behaviour as the app's clip-window.js. ──
-    let scale = { left: -75, right: 20 };
+    // Fixed to the inputs' limits (300 s back, 60 s forward), so the mark never moves.
+    const scale = { left: -300, right: 60 };
     let drag: { handle: HTMLButtonElement; id: number; original: string } | null = null;
     const values = (): [number, number] => [
       Math.min(300, Math.max(5, Number(back.value) || 5)),
@@ -217,7 +218,6 @@ const videos = RECORDINGS.slice(0, 3).map((recording, i) => ({ ...recording, sel
 
     function render() {
       const [before, after] = values();
-      if (!drag) scale = { left: -Math.max(60, before * 1.25), right: Math.max(20, after * 1.5) };
       const percent = (value: number) => (100 * (value - scale.left)) / (scale.right - scale.left);
       const left = percent(-before);
       const right = percent(after);

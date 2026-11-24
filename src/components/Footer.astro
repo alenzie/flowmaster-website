@@ -1,5 +1,4 @@
 ---
-const currentYear = new Date().getFullYear();
 
 const productLinks = [
   { href: '/download', label: 'Download' },
@@ -27,13 +26,9 @@ const contactLinks = [
   <div class="wrap foot-inner">
     <div class="foot-brand">
       <a href="/" aria-label="Flowmaster home">
-        <img src="/brand/LogoHorizontalLockup.svg" alt="Flowmaster Live Studio" width="176" height="80" loading="lazy" />
+        <img src="/brand/LogoHorizontalLockup-LiveEditor.svg" alt="Flowmaster Live Editor" width="176" height="80" loading="lazy" />
       </a>
       <p>Mark it, clip it, clean it.</p>
-      <p class="foot-maker">
-        Built by one person, Alexander Blair, as
-        <a href="https://alenzie.com" target="_blank" rel="noopener noreferrer">Alenzie</a>.
-      </p>
     </div>
 
     <nav class="foot-col" aria-label="Product">
@@ -66,9 +61,6 @@ const contactLinks = [
     </nav>
   </div>
 
-  <div class="wrap foot-base">
-    <p>&copy; {currentYear} Alenzie Solutions. All rights reserved.</p>
-  </div>
 </footer>
 
 <style>
@@ -93,17 +85,12 @@ const contactLinks = [
   .foot-brand { grid-column: 1 / -1; }
   .foot-brand img { width: 176px; height: auto; display: block; margin-bottom: 1.1rem; }
   .foot-brand p { margin: 0; color: var(--ink-2); font-size: 0.95rem; }
-  .foot-brand .foot-maker { margin-top: 0.35rem; color: var(--ink-3); }
-  .foot-maker a { color: var(--ink-2); text-decoration: underline; text-decoration-color: var(--rule-strong); text-underline-offset: 0.2em; }
-  .foot-maker a:hover { color: var(--ink); }
 
   .foot-col h2 { margin: 0 0 0.9rem; font-stretch: 100%; font-size: 0.7rem; letter-spacing: 0.13em; }
   .foot-col ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 0.15rem; }
   .foot-col a { display: inline-block; padding: 0.3rem 0; color: var(--ink-2); font-size: 0.95rem; text-decoration: none; overflow-wrap: anywhere; }
   .foot-col a:hover { color: var(--ink); }
 
-  .foot-base { padding: 1.4rem 0 2.2rem; border-top: 1px solid var(--rule); }
-  .foot-base p { margin: 0; font-size: 0.82rem; color: var(--ink-3); }
 
   .foot-contact { grid-column: 1 / -1; }
 

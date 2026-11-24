@@ -2,8 +2,8 @@
 // The hero's recording strip, as a staged demo the visitor drives:
 //   1. recording  the tape runs, F9 drops marks
 //   2. stopped    the kept range is drawn around each mark (60 s before, 10 s after)
-//   3. clipping   the tape collapses to the kept ranges
-//   4. offer      the original can go to the Recycle Bin
+//   3. clipping   the tape collapses to the kept ranges, then waits (clipped)
+//   4. reclaiming the original appears on its own track and is sent off to the Recycle Bin
 //   5. summary    what the session takes now, and what came back
 // It is a diagram of the idea, not a picture of the app. Every duration and size
 // is derived from the example session in session.ts.
@@ -46,6 +46,11 @@ const file = RECORDINGS[0].file;
           <div class="live-kept" data-live-kept></div>
           <div class="live-marks" data-live-marks></div>
           <div class="live-playhead"></div>
+        </div>
+        <div class="live-orig" data-live-origtrack>
+          <div class="live-orig-tape" data-live-origtape>
+            <span class="live-orig-label" data-live-origlabel></span>
+          </div>
         </div>
       </div>
     </div>
@@ -119,7 +124,7 @@ const file = RECORDINGS[0].file;
   .live[data-state='stopped'] .live-state { color: var(--ink-2); }
   .live[data-state='clipping'] .live-state,
   .live[data-state='clipped'] .live-state { color: var(--yellow); }
-  .live[data-state='offer'] .live-state,
+  .live[data-state='reclaiming'] .live-state,
   .live[data-state='summary'] .live-state { color: var(--green); }
   .live-file { display: inline-flex; flex-wrap: wrap; align-items: center; gap: 0.3rem 0.7rem; color: var(--ink-2); }
   .live-file em {
@@ -167,7 +172,7 @@ const file = RECORDINGS[0].file;
   .live-time :global(b) { color: var(--yellow); font-weight: 700; }
   .live-count { min-width: 5.2em; text-align: right; font-weight: 700; color: var(--red); }
   .live[data-state='clipped'] .live-count,
-  .live[data-state='offer'] .live-count,
+  .live[data-state='reclaiming'] .live-count,
   .live[data-state='summary'] .live-count { color: var(--yellow); }
 
   /* ---------- Stage: the tape, and the clean-up panel that replaces it ---------- */
@@ -176,9 +181,7 @@ const file = RECORDINGS[0].file;
   .live-stage, .live-foot { transition: opacity 0.35s ease; }
   .live.is-swapping .live-stage, .live.is-swapping .live-foot { opacity: 0; }
   .live-panel { visibility: hidden; opacity: 0; }
-  .live[data-state='offer'] .live-main,
   .live[data-state='summary'] .live-main { visibility: hidden; opacity: 0; }
-  .live[data-state='offer'] .live-panel,
   .live[data-state='summary'] .live-panel { visibility: visible; opacity: 1; }
 
   .live-main {
@@ -217,16 +220,17 @@ const file = RECORDINGS[0].file;
   .live-fill {
     position: absolute;
     inset: 0;
-    transform-origin: left;
-    transform: scaleX(var(--p));
+    /* Reveal fixed footage; never stretch it behind the playhead. */
+    clip-path: inset(0 calc((1 - var(--p)) * 100%) 0 0);
     background-color: var(--footage);
     background-image: repeating-linear-gradient(to right, rgba(0, 0, 0, 0.22) 0 1px, transparent 1px 12px);
     transition: background-color 0.6s ease, opacity 0.7s ease;
   }
-  .live:not([data-state='recording']) .live-fill { transition: background-color 0.6s ease, opacity 0.7s ease, transform 0.6s cubic-bezier(0.2, 0.7, 0.2, 1); }
+  .live:not([data-state='recording']) .live-fill { transition: background-color 0.6s ease, opacity 0.7s ease, clip-path 0.6s cubic-bezier(0.2, 0.7, 0.2, 1); }
   .live[data-state='stopped'] .live-fill { background-color: #262522; }
   .live[data-state='clipping'] .live-fill,
-  .live[data-state='clipped'] .live-fill { background-color: #262522; opacity: 0; }
+  .live[data-state='clipped'] .live-fill,
+  .live[data-state='reclaiming'] .live-fill { background-color: #262522; opacity: 0; }
   .live-playhead {
     position: absolute;
     top: -0.5rem;
@@ -243,7 +247,8 @@ const file = RECORDINGS[0].file;
   /* Marks */
   .live :global(.lm) { position: absolute; top: 0; bottom: 0; width: 0; transition: left 0.6s cubic-bezier(0.2, 0.7, 0.2, 1), opacity 0.4s ease; }
   .live[data-state='clipping'] :global(.lm),
-  .live[data-state='clipped'] :global(.lm) { opacity: 0; }
+  .live[data-state='clipped'] :global(.lm),
+  .live[data-state='reclaiming'] :global(.lm) { opacity: 0; }
   .live :global(.lm-line) {
     position: absolute;
     top: -0.55rem;
@@ -307,7 +312,8 @@ const file = RECORDINGS[0].file;
   }
   @keyframes lk-in { from { opacity: 0; clip-path: inset(0 0 0 100%); } to { opacity: 1; clip-path: inset(0 0 0 0); } }
   .live[data-state='clipping'] :global(.lk),
-  .live[data-state='clipped'] :global(.lk) {
+  .live[data-state='clipped'] :global(.lk),
+  .live[data-state='reclaiming'] :global(.lk) {
     background-color: var(--yellow);
     background-image: repeating-linear-gradient(to right, rgba(16, 16, 16, 0.28) 0 1px, transparent 1px 5px);
     border-radius: 2px;
@@ -334,7 +340,45 @@ const file = RECORDINGS[0].file;
     color: var(--ink-3);
     white-space: nowrap;
   }
-  .live[data-state='clipped'] .live-gone { opacity: 1; }
+  .live[data-state='clipped'] .live-gone,
+  .live[data-state='reclaiming'] .live-gone { opacity: 1; }
+  .live-gone {
+    background-image: repeating-linear-gradient(135deg, rgba(255, 255, 255, 0.035) 0 6px, transparent 6px 12px);
+  }
+
+  /* ---------- The original, on its own track, on its way to the Recycle Bin ---------- */
+  .live { overflow-x: clip; }
+  .live-orig {
+    --orig-h: 2.6rem;
+    height: 0;
+    margin-top: 0;
+    overflow-x: visible;
+    overflow-y: clip;
+    transition: height 0.5s cubic-bezier(0.2, 0.7, 0.2, 1), margin-top 0.5s ease;
+  }
+  .live[data-state='reclaiming'] .live-orig { height: var(--orig-h); margin-top: 0.6rem; }
+  .live-orig-tape {
+    position: relative;
+    height: var(--orig-h);
+    display: flex;
+    align-items: center;
+    background-color: var(--footage);
+    background-image: repeating-linear-gradient(to right, rgba(0, 0, 0, 0.22) 0 1px, transparent 1px 12px);
+    transition: transform 1s cubic-bezier(0.55, 0, 0.85, 0.3), opacity 1s ease-in;
+  }
+  .live-orig-tape.is-sent { transform: translateX(120vw); opacity: 0.2; }
+  .live-orig-label {
+    padding: 0 0.9rem;
+    font-family: var(--font-mono);
+    font-size: 0.74rem;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--ink);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
 
   /* ---------- The clean-up panel ---------- */
   .live-panel { display: grid; align-content: center; gap: 1rem 3rem; }
@@ -501,7 +545,6 @@ const file = RECORDINGS[0].file;
   .keycap:disabled { opacity: 0.35; cursor: default; box-shadow: 0 0 0 1px #3a3936; }
 
   /* The clean-up panel has no key column, so its caption lines up with the panel's left edge. */
-  .live[data-state='offer'] .live-foot,
   .live[data-state='summary'] .live-foot { padding-left: 0; }
   @media (min-width: 900px) {
     .live[data-state='summary'] .live-panel { grid-template-columns: auto minmax(0, 1fr); }
@@ -526,6 +569,8 @@ const file = RECORDINGS[0].file;
     .live-main { grid-template-columns: minmax(0, 1fr); gap: 1rem; }
     .live-track { order: -1; }
     .live-tape { height: 3.75rem; }
+    .live-orig { --orig-h: 2.4rem; }
+    .live-orig-label { font-size: 0.66rem; padding: 0 0.5rem; }
     .keycap { width: 100%; height: 4rem; }
     .live-caption { font-size: 0.95rem; min-height: 6em; }
     .live-steps { gap: 0.9rem; }
@@ -547,7 +592,7 @@ const file = RECORDINGS[0].file;
     type Range,
   } from './session';
 
-  type State = 'recording' | 'stopped' | 'clipping' | 'clipped' | 'offer' | 'summary';
+  type State = 'recording' | 'stopped' | 'clipping' | 'clipped' | 'reclaiming' | 'summary';
 
   const root = document.querySelector<HTMLElement>('[data-live]');
   if (root) {
@@ -569,6 +614,8 @@ const file = RECORDINGS[0].file;
     const cta = pick('cta');
     const rate = pick('rate');
     const steps = [...root.querySelectorAll<HTMLElement>('[data-live-step]')];
+    const origTape = pick('origtape');
+    const origLabel = pick('origlabel');
 
     // The hero's app window follows the recording.
     const app = document.querySelector<HTMLElement>('[data-mark-window="live"]');
@@ -578,7 +625,6 @@ const file = RECORDINGS[0].file;
     const appRecLabel = app?.querySelector<HTMLElement>('[data-rec-label]');
 
     const PASS = 24000; // ms for the playhead to cross the 48-minute example
-    const HOLD = 2600; // ms the clipped tape stays up before the clean-up offer
     const MAX_MARKS = 12;
     const STEP = DURATION / 8; // reduced motion: each press moves the recording on six minutes
     const reduced = window.matchMedia('(prefers-reduced-motion: reduce)');
@@ -599,7 +645,7 @@ const file = RECORDINGS[0].file;
 
     const later = (fn: () => void, ms: number) => { timers.push(window.setTimeout(fn, ms)); };
     const stageOf: Record<State, [label: string, step: number]> = {
-      recording: ['REC', 0], stopped: ['STOPPED', 1], clipping: ['CLIPPING', 2], clipped: ['CLIPPED', 2], offer: ['CLEAN', 3], summary: ['CLEANED', 3],
+      recording: ['REC', 0], stopped: ['STOPPED', 1], clipping: ['CLIPPING', 2], clipped: ['CLIPPED', 2], reclaiming: ['CLEANING', 3], summary: ['CLEANED', 3],
     };
 
     const paint = () => {
@@ -639,14 +685,14 @@ const file = RECORDINGS[0].file;
         primary.dataset.tone = tone;
         if (busy) primary.setAttribute('aria-disabled', 'true'); else primary.removeAttribute('aria-disabled');
       };
-      rate.hidden = next !== 'offer' && next !== 'summary';
+      rate.hidden = next !== 'reclaiming' && next !== 'summary';
       secondary.hidden = recording || next === 'summary';
       cta.hidden = next !== 'summary';
       if (recording) button('Stop recording', 'stop');
       else if (next === 'stopped') { button(marks.length ? 'Clip Marks' : 'Add example marks', marks.length ? 'clip' : 'plain'); secondary.textContent = 'Record again'; }
       else if (next === 'clipping') button('Clipping…', 'clip', true);
-      else if (next === 'clipped') button('Clipped', 'clip', true);
-      else if (next === 'offer') { button('Move original to Recycle Bin', 'clean'); secondary.textContent = 'Run it again'; }
+      else if (next === 'clipped') { button('Reclaim the space', 'clean'); secondary.textContent = 'Record again'; }
+      else if (next === 'reclaiming') { button('Reclaiming…', 'clean', true); secondary.hidden = true; }
       else button('Run the demo again', 'plain');
     }
 
@@ -738,12 +784,11 @@ const file = RECORDINGS[0].file;
         countEl.textContent = plural(ranges.length, 'clip');
         timeEl.innerHTML = `${formatDuration(scale)} → <b>${formatDuration(total)}</b>`;
         goneText.textContent = `${formatDuration(scale - total)} you never scrub`;
-        say(`<strong>${formatDuration(scale)} recorded. <span class="y">${formatDuration(total)}</span> left.</strong> ${plural(ranges.length, 'clip')}, cut out as MP4. The other ${formatDuration(scale - total)} never reaches your editor.`);
-        later(offer, HOLD);
+        say(`<strong>${formatDuration(scale)} recorded. <span class="y">${formatDuration(total)}</span> left.</strong> ${plural(ranges.length, 'clip')}, cut out as MP4. The other ${formatDuration(scale - total)} never reaches your editor. The original recording is still on your drive.`);
       }, reduced.matches ? 0 : 1500);
     }
 
-    // The strip fades out and comes back as the clean-up offer.
+    // The strip fades out and comes back as the summary.
     function swap(fn: () => void) {
       if (reduced.matches) { fn(); return; }
       root!.classList.add('is-swapping');
@@ -757,30 +802,40 @@ const file = RECORDINGS[0].file;
       return { total, original, highlights, net: Math.max(0, original - highlights) };
     };
 
-    function offer() {
-      const { total, original, highlights } = sizes();
+    function summary() {
+      const { total, original, highlights, net } = sizes();
       swap(() => {
         pick('orig').textContent = `${formatDuration(scale)} · ${formatSize(original)}`;
         pick('keptnum').textContent = `${plural(ranges.length, 'clip')} · ${formatDuration(total)} · ${formatSize(highlights)}`;
         pick('keptbar').style.width = `${((total / scale) * 100).toFixed(2)}%`;
-        setState('offer');
-        say(`<strong>The clips are exported. The original still takes up ${formatSize(original)}.</strong> Once you have reviewed your clips, Clean can send the original to the Windows Recycle Bin.`);
+        pick('net').textContent = formatSize(net);
+        setState('summary');
+        say(net > 0
+          ? `<strong>This session went from ${formatSize(original)} to ${formatSize(highlights)}.</strong> The original is in the Windows Recycle Bin, so you can restore it until you empty the bin.`
+          : `<strong>You marked the whole recording,</strong> so the clips are as big as the original and there is nothing to give back. Run it again with fewer marks.`);
       });
     }
 
+    // The original appears on its own track under the clips, then is sent off to the Recycle Bin.
     function reclaim() {
-      const { original, highlights, net } = sizes();
-      pick('net').textContent = formatSize(net);
-      setState('summary');
-      say(net > 0
-        ? `<strong>This session went from ${formatSize(original)} to ${formatSize(highlights)}.</strong> The original is in the Windows Recycle Bin, so you can restore it until you empty the bin.`
-        : `<strong>You marked the whole recording,</strong> so the clips are as big as the original and there is nothing to give back. Run it again with fewer marks.`);
+      const { original } = sizes();
+      origLabel.textContent = `Original · ${formatDuration(scale)} · ${formatSize(original)}`;
+      origTape.classList.remove('is-sent');
+      setState('reclaiming');
+      say(`<strong>Your clips are saved. The original still takes ${formatSize(original)}.</strong> After you have reviewed the clips, Clean sends it to the Windows Recycle Bin.`);
+      if (reduced.matches) { summary(); return; }
+      later(() => {
+        origTape.classList.add('is-sent');
+        origLabel.textContent = 'Original · to the Recycle Bin';
+      }, 1100);
+      later(summary, 2400);
     }
 
     function restart(byUser: boolean) {
       timers.forEach((id) => window.clearTimeout(id));
       timers = [];
       root!.classList.remove('is-swapping');
+      origTape.classList.remove('is-sent');
       marksEl.replaceChildren();
       keptEl.replaceChildren();
       marks = [];
@@ -848,11 +903,11 @@ const file = RECORDINGS[0].file;
     primary.addEventListener('click', () => {
       if (state === 'recording') stop(true);
       else if (state === 'stopped') { if (marks.length) clip(); else addExampleMarks(); }
-      else if (state === 'offer') reclaim();
+      else if (state === 'clipped') reclaim();
       else if (state === 'summary') restart(true);
     });
     secondary.addEventListener('click', () => restart(true));
-    window.addEventListener('resize', () => { if (state === 'clipping' || state === 'clipped') packClips(); });
+    window.addEventListener('resize', () => { if (state === 'clipping' || state === 'clipped' || state === 'reclaiming') packClips(); });
 
     new IntersectionObserver(([entry]) => {
       visible = entry.isIntersecting;

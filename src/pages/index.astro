@@ -3,72 +3,66 @@ import BaseLayout from '../layouts/BaseLayout.astro';
 import '../styles/home.css';
 import LiveStrip from '../components/home/LiveStrip.astro';
 import MarkWindow from '../components/home/MarkWindow.astro';
+import MarkLoop from '../components/home/MarkLoop.astro';
+import { LOOKBACK, LOOKFORWARD, formatDuration } from '../components/home/session';
 import PitchClip from '../components/home/PitchClip.astro';
 import ChapterClip from '../components/home/ChapterClip.astro';
 import ChapterClean from '../components/home/ChapterClean.astro';
-import FlowmasterFilm from '../components/FlowmasterFilm.astro';
+import FilmTheater from '../components/home/FilmTheater.astro';
 import release from '../data/release.json';
 
 // Same test the download page uses. While the download is closed, nothing on
 // this page may suggest the installer can be had today.
 const downloadOpen = release.available && !!release.downloadUrl && !!release.sha256;
 
-const specs = [
-  ['Runs on', 'Windows 10 and 11, 64-bit. There are no builds for other platforms.'],
-  ['Works with', 'OBS Studio, connected through OBS’s WebSocket server.'],
-  ['Mark key', 'F9 by default. Change it in Settings.'],
-  ['Recordings', 'MP4. If OBS saved MKV, use OBS File → Remux Recordings to make MP4 first.'],
-  ['You get', 'A reel, separate clips, or both, as MP4.'],
-  ['Cleanup', 'Selected originals go to the Windows Recycle Bin.'],
-  ['Bundled', 'FFmpeg and FFprobe are included with the app.'],
-  ['Account', 'Free, and required. Sign in with email or Google.'],
-  ['Trial', '30 actions per PC. No time limit. No payment card.'],
-  ['Paid plans', 'None. Paid trials and upgrades are currently unavailable.'],
-  ['Online', 'The trial is verified online, so starting new work needs an internet connection.'],
-  ['Installer', 'Unsigned. Windows may show an unknown-publisher warning.'],
-];
+// Hero: an example session drawn to scale. Eleven marks, each keeping LOOKBACK
+// seconds before and LOOKFORWARD after, spaced so no two windows overlap.
+const HERO_TOTAL = 3 * 3600 + 12 * 60 + 8; // 3:12:08
+const HERO_KEPT = [0.06, 0.14, 0.21, 0.33, 0.41, 0.47, 0.58, 0.69, 0.76, 0.85, 0.94].map((f) => Math.round(HERO_TOTAL * f));
+const HERO_KEEP = HERO_KEPT.length * (LOOKBACK + LOOKFORWARD); // 12:50
+
 ---
 
 <BaseLayout title="Never do the rough cut">
-  <!-- HERO: the headline, the app, and a recording you can mark, clip and clean -->
+  <!-- HERO: the headline, and what a session looks like before and after -->
   <section id="hero" class="hero" aria-labelledby="hero-title">
-    <div class="wrap hero-wrap">
-      <p class="label hero-eyebrow">
-        <img src="/brand/LogoEmblem.svg" alt="" width="44" height="12" />
-        Works with OBS Studio, on Windows
-      </p>
-
-      <h1 id="hero-title" class="display hero-title">Never do the <span class="nowrap">rough cut<span class="hero-stop" aria-hidden="true"></span></span></h1>
-
-      <div class="hero-cols">
-        <div class="hero-pitch">
-          <dl class="hero-def">
-            <dt><span class="hero-def-term">rough cut</span> <span class="label">noun</span></dt>
-            <dd>The dead time between stopping the recording and starting the real edit: scrubbing through hours of footage to find the parts worth keeping.</dd>
-          </dl>
-          <p class="hero-lede">
-            You know a moment is worth keeping the second it happens. So I built a way to say so right then: press
-            <span class="key">F9</span> and keep playing. When you stop recording, Flowmaster cuts those moments out as clips or a reel, and the hours of scrubbing never happen.
-          </p>
-          <div class="hero-actions">
-            <a class="btn-primary hero-cta" href="/account">Create a free account</a>
-            <a class="arrow-link" href="/download">Download and trial details</a>
-          </div>
-          <p class="hero-fine">
-            {downloadOpen
-              ? <>Free account, 30 actions per PC, no time limit, no payment card. Windows 10 and 11, 64-bit.</>
-              : <>The Windows download is not open yet. Create the account now and it is ready when the download opens. Free, with no payment card.</>}
-          </p>
+    <div class="wrap hero-grid">
+      <div class="hero-pitch">
+        <p class="label hero-eyebrow">
+          <img src="/brand/LogoEmblem.svg" alt="" width="44" height="12" />
+          Works with OBS Studio, on Windows
+        </p>
+        <h1 id="hero-title" class="hero-title">Never do the rough&nbsp;cut<span class="hero-stop" aria-hidden="true"></span><span class="sr-only">.</span></h1>
+        <p class="hero-lede">Mark the moments while you record. Flowmaster keeps them and drops the rest.</p>
+        <div class="hero-actions">
+          <a class="btn-primary hero-cta" href="/account">Create a free account</a>
+          <FilmTheater />
         </div>
-
-        <figure class="hero-app">
-          <MarkWindow variant="live" />
-          <figcaption class="label">The app, rebuilt in HTML. Its tabs jump down the page.</figcaption>
-        </figure>
+        <p class="hero-more"><a class="arrow-link" href="/download">Download and trial details</a></p>
+        <p class="hero-fine">
+          {downloadOpen
+            ? <>Free account, 30 actions per PC, no time limit, no payment card.</>
+            : <>The download isn’t open yet. Your free account is ready when it is.</>}
+        </p>
       </div>
-    </div>
 
-    <LiveStrip />
+      <figure class="hero-bars" aria-labelledby="hero-bars-cap">
+        <div class="hb-row">
+          <p class="hb-meta"><span class="label">Recorded</span><strong>{formatDuration(HERO_TOTAL)}</strong></p>
+          <div class="hb-bar hb-bar--rec">
+            {HERO_KEPT.map((at, i) => <i style={`--i:${i};left:${((at - LOOKBACK) / HERO_TOTAL) * 100}%;width:${((LOOKBACK + LOOKFORWARD) / HERO_TOTAL) * 100}%`}></i>)}
+          </div>
+        </div>
+        <div class="hb-row">
+          <p class="hb-meta"><span class="label hb-kept">Kept</span><strong class="hb-kept">{formatDuration(HERO_KEEP)}</strong></p>
+          <div class="hb-bar hb-bar--kept"><i style={`width:${(HERO_KEEP / HERO_TOTAL) * 100}%`}></i></div>
+        </div>
+        <figcaption id="hero-bars-cap" class="label hb-cap">
+          <span>Example session &middot; {HERO_KEPT.length} marks &middot; drawn to scale</span>
+          <span>{LOOKBACK} s before and {LOOKFORWARD} s after each mark</span>
+        </figcaption>
+      </figure>
+    </div>
   </section>
 
   <!-- WHERE IT STARTED: a clip from the first pitch -->
@@ -76,7 +70,7 @@ const specs = [
 
   <!-- MARK -->
   <section class="chapter chapter--mark" id="mark" aria-labelledby="mark-title">
-    <div class="wrap chapter-grid">
+    <div class="wrap chapter-grid chapter-grid--flip">
       <div class="chapter-copy" data-reveal>
         <p class="chapter-tag">
           <img src="/brand/RedBox.svg" alt="" width="26" height="25" />
@@ -84,10 +78,11 @@ const specs = [
           <span class="chapter-name">Mark</span>
           <span class="chapter-when">While you record</span>
         </p>
-        <h2 id="mark-title" class="display chapter-title">Press F9. Keep playing<span class="stop" aria-hidden="true"></span><span class="sr-only">.</span></h2>
+        <h2 id="mark-title" class="display chapter-title">Press F9. Keep recording<span class="stop" aria-hidden="true"></span><span class="sr-only">.</span></h2>
         <p class="chapter-body">
           Flowmaster sits next to OBS Studio and waits for one key. When something happens that you would want in the video, press F9. It saves the timestamp and you carry on. There is nothing to name, nothing to trim and nothing to decide later.
         </p>
+        <MarkLoop />
         <ul class="chapter-facts">
           <li><strong>F9 is the default.</strong> You can change the mark key in Settings.</li>
           <li><strong>It talks to OBS directly.</strong> Flowmaster connects through OBS&rsquo;s own WebSocket server.</li>
@@ -104,6 +99,15 @@ const specs = [
   <ChapterClip />
   <ChapterClean />
 
+  <!-- TRY IT: the whole session, driven by the visitor -->
+  <section class="try" id="try" aria-labelledby="try-title">
+    <div class="wrap try-head">
+      <p class="label">Try it</p>
+      <h2 id="try-title" class="display try-title">Mark, stop, clip, clean.</h2>
+    </div>
+    <LiveStrip />
+  </section>
+
   <!-- THE ASK -->
   <aside class="band" aria-label="Create an account">
     <div class="wrap band-inner">
@@ -117,39 +121,6 @@ const specs = [
     </div>
   </aside>
 
-  <!-- FILM -->
-  <section class="film" aria-labelledby="film-title">
-    <div class="wrap film-head" data-reveal>
-      <p class="label">The film &middot; 90 seconds</p>
-      <h2 id="film-title" class="display film-title">Rather watch it?</h2>
-    </div>
-    <FlowmasterFilm />
-  </section>
-
-  <!-- SPEC SHEET -->
-  <section class="spec" aria-labelledby="spec-title">
-    <div class="wrap">
-      <div class="spec-head" data-reveal>
-        <div>
-          <p class="label">The straight facts</p>
-          <h2 id="spec-title" class="display spec-title">What it needs. What it costs.</h2>
-        </div>
-        <div class="spec-lede">
-          <p>The trial is free: 30 actions on one PC, with no time limit, and I do not ask for a payment card.</p>
-          <a class="arrow-link" href="/download#trial-rules">Read the exact trial rules</a>
-        </div>
-      </div>
-      <dl class="spec-list" data-reveal style="--reveal-delay:.1s">
-        {specs.map(([term, detail]) => (
-          <div class="spec-row">
-            <dt>{term}</dt>
-            <dd>{detail}</dd>
-          </div>
-        ))}
-      </dl>
-    </div>
-  </section>
-
   <!-- NOTE -->
   <section class="note" aria-labelledby="note-title">
     <div class="wrap note-grid">
@@ -159,7 +130,7 @@ const specs = [
       </div>
       <div class="note-body" data-reveal style="--reveal-delay:.1s">
         <p>
-          I&rsquo;m Alexander Blair. I make Flowmaster on my own, under the name Alenzie. It exists because I got tired of the rough cut in my own recordings, and I built my way out of it one piece at a time.
+          I make Flowmaster on my own. It exists because I got tired of the rough cut in my own recordings, and I built my way out of it one piece at a time.
         </p>
         <ol class="note-steps">
           <li><span class="label">First</span><p>A small AutoHotkey script that logged a timestamp every time I pressed F9.</p></li>
@@ -172,7 +143,6 @@ const specs = [
           <a class="text-link" href="mailto:support@flowmastersuite.com">support@flowmastersuite.com</a> and the
           <a class="text-link" href="https://discord.gg/S8uJpcK3qJ" target="_blank" rel="noopener noreferrer">Discord</a>.
         </p>
-        <p class="note-sign">Alexander Blair</p>
       </div>
     </div>
   </section>
@@ -209,83 +179,93 @@ const specs = [
   .nowrap { white-space: nowrap; }
 
   /* ---------- Hero ---------- */
-  .hero { padding-top: calc(var(--nav-h) + clamp(1.4rem, 2vw, 1.75rem)); }
+  .hero { padding: calc(var(--nav-h) + clamp(2.5rem, 6vw, 5.5rem)) 0 clamp(3.5rem, 7vw, 6rem); border-bottom: 1px solid var(--rule); }
+  .hero-grid { display: grid; gap: clamp(2.75rem, 5vw, 4rem); align-items: center; }
   .hero-eyebrow { display: flex; align-items: center; gap: 0.8rem; }
   .hero-eyebrow img { width: 2.75rem; height: auto; flex: none; }
   .hero-title {
-    margin-top: clamp(0.9rem, 1.6vw, 1.2rem);
-    font-size: min(17.2vw, 9rem);
-    line-height: 0.84;
-    font-stretch: 62%;
-    font-weight: 800;
+    margin-top: 1.1rem;
+    font-family: var(--font-heading);
+    font-stretch: 100%;
+    font-weight: 700;
+    font-size: clamp(2.7rem, 5.6vw, 5rem);
+    line-height: 0.98;
+    letter-spacing: -0.03em;
+    text-transform: none;
+    color: var(--ink);
+    text-wrap: balance;
   }
   .hero-stop {
     display: inline-block;
-    width: 0.2em;
-    height: 0.195em;
-    margin-left: 0.05em;
+    width: 0.17em;
+    height: 0.17em;
+    margin-left: 0.04em;
     border-radius: 0.02em;
     background: var(--red);
   }
-  /* The dictionary entry sits directly under the words it defines. */
-  .hero-def {
-    display: grid;
-    gap: 0.35rem 1.5rem;
-    max-width: 40rem;
-    padding-left: 1.25rem;
-    border-left: 2px solid var(--footage);
-  }
-  .hero-def dt { display: flex; align-items: baseline; gap: 0.75rem; white-space: nowrap; }
-  .hero-def-term { font-family: var(--font-heading); font-stretch: 100%; font-weight: 700; font-size: 1.15rem; color: var(--ink); }
-  .hero-def dd { margin: 0; font-size: 0.98rem; line-height: 1.5; color: var(--ink-2); }
-
-  .hero-cols { display: grid; gap: 2rem; margin-top: clamp(1.4rem, 2vw, 1.7rem); }
-  .hero-lede {
-    margin-top: clamp(1.25rem, 1.8vw, 1.45rem);
-    max-width: 38rem;
-    font-size: clamp(1.1rem, 1.4vw, 1.22rem);
-    line-height: 1.5;
-    color: var(--ink);
-  }
+  .hero-lede { margin-top: 1.1rem; max-width: 30rem; font-size: clamp(1.1rem, 1.45vw, 1.25rem); line-height: 1.5; color: var(--ink-2); }
   .hero-actions, .closing-actions {
     display: flex;
     flex-wrap: wrap;
     align-items: center;
     gap: 0.75rem 1.75rem;
-    margin-top: 1.4rem;
+    margin-top: 1.6rem;
   }
   .hero-cta { min-height: 3.4rem; padding: 0.9rem 1.6rem; font-size: 1.08rem; }
-  .hero-fine { margin-top: 0.85rem; max-width: 34rem; font-size: 0.92rem; color: var(--ink-3); }
+  .hero-more { margin-top: 1.1rem; }
+  .hero-fine { margin-top: 0.9rem; font-size: 0.9rem; color: var(--ink-3); }
 
-  .hero-app { position: relative; margin: 0; min-width: 0; }
-  .hero-app figcaption { margin-top: 0.8rem; font-size: 0.66rem; }
-  /* A little light behind the window, so it sits in front of the page. */
-  .hero-app::before {
-    content: '';
+  /* Before and after, at true scale */
+  .hero-bars { margin: 0; display: grid; gap: 1.6rem; min-width: 0; }
+  .hb-meta { display: flex; justify-content: space-between; align-items: baseline; gap: 1rem; margin-bottom: 0.55rem; }
+  .hb-meta strong { font-family: var(--font-mono); font-size: clamp(1.4rem, 2.4vw, 2rem); font-weight: 600; color: var(--ink); font-variant-numeric: tabular-nums; letter-spacing: -0.01em; }
+  .hb-kept { color: var(--yellow) !important; }
+  .hb-bar { position: relative; height: clamp(2.6rem, 4vw, 3.4rem); }
+  .hb-bar--rec {
+    background-color: var(--footage);
+    background-image: repeating-linear-gradient(to right, rgba(0, 0, 0, 0.22) 0 1px, transparent 1px 10px);
+    transform-origin: left;
+    animation: hb-grow 1.1s cubic-bezier(0.2, 0.7, 0.2, 1) 0.2s both;
+  }
+  .hb-bar--rec i {
     position: absolute;
-    inset: -14% -3% -6% -12%;
-    z-index: -1;
-    background: radial-gradient(closest-side, rgba(244, 63, 67, 0.1), transparent 72%);
-    pointer-events: none;
+    top: 0;
+    bottom: 0;
+    min-width: 3px;
+    background: var(--yellow);
+    /* Marks land left to right in red, hold, then turn yellow as the kept time appears. */
+    animation:
+      hb-mark 0.3s cubic-bezier(0.3, 1.4, 0.5, 1) calc(1.3s + var(--i) * 0.13s) both,
+      hb-keep 0.4s ease 3.9s both;
+  }
+  .hb-bar--kept { box-shadow: inset 0 0 0 1px var(--rule); }
+  .hb-bar--kept i {
+    position: absolute;
+    inset: 0 auto 0 0;
+    min-width: 6px;
+    background: var(--yellow);
+    transform-origin: left;
+    animation: hb-grow 0.6s cubic-bezier(0.2, 0.7, 0.2, 1) 3.9s both;
+  }
+  .hb-cap { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 0.3rem 1.5rem; margin-top: -0.4rem; font-size: 0.68rem; }
+  .hb-row:nth-child(2) .hb-meta { animation: hb-in 0.5s ease 3.9s both; }
+  @keyframes hb-in { from { opacity: 0; } to { opacity: 1; } }
+  @keyframes hb-grow { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+  @keyframes hb-mark { from { opacity: 0; transform: scaleY(0); background: var(--red); } to { opacity: 1; transform: scaleY(1); background: var(--red); } }
+  @keyframes hb-keep { from { background: var(--red); } to { background: var(--yellow); } }
+  @media (prefers-reduced-motion: reduce) {
+    .hb-bar--rec, .hb-bar--rec i, .hb-bar--kept i, .hb-row:nth-child(2) .hb-meta { animation: none; }
+  }
+  @media (min-width: 900px) {
+    .hero-grid { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: clamp(3rem, 7vw, 7rem); }
   }
 
-  @media (min-width: 900px) {
-    .hero-title { font-size: min(9.42vw, 8.45rem); }
-    .hero-cols { grid-template-columns: minmax(0, 1.1fr) minmax(0, 0.9fr); gap: clamp(2.5rem, 5vw, 4.5rem); align-items: start; }
-    .hero-pitch { padding-top: 0.35rem; }
-  }
-  /* On small screens the strip comes before the app window: the key is the point. */
-  @media (max-width: 899px) {
-    .hero { display: flex; flex-direction: column; }
-    .hero-wrap, .hero-cols { display: contents; }
-    .hero-wrap > :not(.hero-cols), .hero-pitch, .hero-app {
-      width: calc(100% - 2 * var(--pad));
-      margin-inline: var(--pad);
-    }
-    .hero-pitch { margin-top: 1.5rem; }
-    .hero :global(.live) { order: 1; }
-    .hero-app { order: 2; margin-top: 2.25rem; max-width: 34rem; }
-  }
+  #mark :global(.mark-loop) { margin-top: 1.75rem; max-width: 33rem; }
+
+  /* ---------- Try it ---------- */
+  .try { padding-top: clamp(4.5rem, 9vw, 7.5rem); }
+  .try-head { display: grid; gap: 0.9rem; justify-items: start; }
+  .try-title { font-size: clamp(2.5rem, 5vw, 4.25rem); }
 
   /* ---------- The ask ---------- */
   .band { border-block: 1px solid var(--rule-strong); background: #0c0c0c; }
@@ -294,36 +274,6 @@ const specs = [
   .band-squares { display: inline-flex; gap: 0.12em; margin-right: 0.4em; font-size: 0.78em; }
   .band-sub { margin-top: 0.55rem; font-size: 0.97rem; color: var(--ink-2); }
 
-  /* ---------- Film ---------- */
-  .film { padding: clamp(4rem, 8vw, 6.5rem) 0 clamp(2rem, 4vw, 3rem); }
-  .film-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 0.75rem 2rem; margin-bottom: 2rem; }
-  .film-title { font-size: clamp(2.5rem, 5vw, 4.25rem); order: -1; }
-
-  /* ---------- Spec sheet ---------- */
-  .spec { padding: clamp(3.5rem, 7vw, 5.5rem) 0; border-top: 1px solid var(--rule); }
-  .spec-head { display: grid; gap: 1.25rem 4rem; }
-  .spec-title { margin-top: 1rem; font-size: clamp(2.5rem, 5vw, 4.25rem); }
-  .spec-lede p { max-width: 30rem; font-size: 1.06rem; margin-bottom: 0.6rem; }
-  .spec-list { display: grid; gap: 0 2.5rem; margin: clamp(2rem, 4vw, 3rem) 0 0; border-top: 1px solid var(--rule-strong); }
-  .spec-row { display: grid; align-content: start; gap: 0.3rem; padding: 1rem 0 1.1rem; border-bottom: 1px solid var(--rule); }
-  .spec-row dt {
-    font-family: var(--font-mono);
-    font-size: 0.72rem;
-    letter-spacing: 0.09em;
-    text-transform: uppercase;
-    color: var(--ink-3);
-  }
-  .spec-row dd { margin: 0; color: var(--ink); font-size: 0.98rem; line-height: 1.5; }
-  @media (min-width: 640px) {
-    .spec-list { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-  }
-  @media (min-width: 900px) {
-    .spec-head { grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr); align-items: end; }
-    .spec-lede { padding-bottom: 0.3rem; }
-  }
-  @media (min-width: 1000px) {
-    .spec-list { grid-template-columns: repeat(3, minmax(0, 1fr)); }
-  }
 
   /* ---------- Note ---------- */
   .note { padding: clamp(4rem, 8vw, 7rem) 0; border-top: 1px solid var(--rule); background: #0c0c0c; }

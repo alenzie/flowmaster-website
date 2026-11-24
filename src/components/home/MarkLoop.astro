@@ -1,0 +1,204 @@
+---
+// A looping motion graphic of marking while you record, rebuilt from the old
+// /features timeline animation (TimelineRangeAnimation.astro).
+//
+// One 14 s loop:
+//   recording   the timeline scrolls under a fixed red playhead
+//   marking     F9 is pressed five times; each press drops a yellow range
+//               ending a little after the playhead (the lookback, then the lookforward)
+//   merging     the last three presses were close together, so their ranges
+//               overlap and become one longer clip, as they do in the app
+//   clipping    the clips turn green, lift off the timeline and slide away; then it loops
+//
+// Fixes over the original: the F9 key is positioned by an outer group, so the
+// CSS bob no longer overrides its placement (it used to land in the corner);
+// ranges merge on one row instead of stacking; no checkmarks
+// that imply things the app does not show; no page-wide mousemove listener;
+// it pauses when off screen and holds a still frame under reduced motion.
+const ticks = Array.from({ length: 120 }, (_, i) => i);
+---
+
+<figure class="mark-loop" data-mark-loop aria-label="Animation: pressing F9 while recording drops a clip range on the timeline; ranges close together merge into one clip.">
+  <svg viewBox="0 0 600 200" class="ml-svg" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid meet" aria-hidden="true">
+    <defs>
+      <linearGradient id="ml-scroll-fade" x1="0%" y1="0%" x2="100%" y2="0%">
+        <stop offset="0%" stop-color="white" stop-opacity="0" />
+        <stop offset="10%" stop-color="white" stop-opacity="1" />
+        <stop offset="90%" stop-color="white" stop-opacity="1" />
+        <stop offset="100%" stop-color="white" stop-opacity="0" />
+      </linearGradient>
+      <mask id="ml-scroll-mask" maskUnits="userSpaceOnUse" x="0" y="0" width="600" height="200">
+        <rect x="40" y="0" width="520" height="200" fill="url(#ml-scroll-fade)" />
+      </mask>
+      <linearGradient id="ml-bar-fade" x1="0%" y1="0%" x2="100%" y2="0%">
+        <stop offset="0%" stop-color="#252525" stop-opacity="0" />
+        <stop offset="12%" stop-color="#252525" stop-opacity="1" />
+        <stop offset="88%" stop-color="#252525" stop-opacity="1" />
+        <stop offset="100%" stop-color="#252525" stop-opacity="0" />
+      </linearGradient>
+    </defs>
+
+    <g class="ml-stage">
+      <g class="ml-zoom">
+        <rect class="ml-bar" x="40" y="100" width="520" height="30" rx="4" fill="url(#ml-bar-fade)" />
+
+        <g mask="url(#ml-scroll-mask)">
+        <g class="ml-scroll">
+          <g class="ml-ticks">
+            {ticks.map((i) => {
+              const x = (i - 10) * 20;
+              return <line x1={x} y1={i % 5 === 0 ? 94 : 97} x2={x} y2={100} stroke="#484848" stroke-width={i % 5 === 0 ? 2 : 1} />;
+            })}
+          </g>
+
+          <!-- Each range ends 15 units after the press (the lookforward) and reaches
+               back 45 units (the lookback). Presses land at x = 300 + scroll. -->
+          <g class="ml-out ml-out-1"><rect class="ml-range ml-r1" x="320" y="103" width="60" height="24" rx="3" /></g>
+          <g class="ml-out ml-out-2"><rect class="ml-range ml-r2" x="389" y="103" width="60" height="24" rx="3" /></g>
+          <g class="ml-r3wrap"><rect class="ml-range ml-r3" x="486" y="103" width="60" height="24" rx="3" /></g>
+          <g class="ml-r4wrap"><rect class="ml-range ml-r4" x="518" y="103" width="60" height="24" rx="3" /></g>
+          <g class="ml-r5wrap"><rect class="ml-range ml-r5" x="550" y="103" width="60" height="24" rx="3" /></g>
+          <g class="ml-out ml-out-3">
+            <rect class="ml-merged" x="486" y="103" width="124" height="24" rx="3" />
+            <text class="ml-note" x="548" y="146" text-anchor="middle" fill="#f5d440" font-size="11" letter-spacing="1.2" style="font-family: var(--font-mono), monospace">MERGED</text>
+          </g>
+        </g>
+        </g>
+
+        <g class="ml-playhead">
+          <line x1="300" y1="84" x2="300" y2="140" stroke="#f43f43" stroke-width="2" />
+          <polygon points="300,84 294,74 306,74" fill="#f43f43" />
+        </g>
+
+        <!-- Outer group places the key; inner groups bob and press. -->
+        <g transform="translate(265 16)">
+          <g class="ml-key">
+            <g class="ml-bob">
+              <rect x="0" y="4" width="70" height="45" rx="8" fill="#141414" />
+              <g class="ml-press">
+                <rect x="0" y="0" width="70" height="45" rx="8" fill="#252525" stroke="#f5d440" stroke-width="2" />
+                <rect x="6" y="4" width="58" height="35" rx="5" fill="#1a1a1a" />
+                <text x="35" y="28" text-anchor="middle" fill="#f5d440" font-size="18" font-weight="700" style="font-family: var(--font-heading), system-ui, sans-serif">F9</text>
+              </g>
+            </g>
+          </g>
+        </g>
+
+      </g>
+    </g>
+  </svg>
+  <slot />
+</figure>
+
+<style>
+  .mark-loop { margin: 0; width: 100%; }
+  .ml-svg { display: block; width: 100%; height: auto; overflow: visible; }
+  .ml-svg * { transform-box: view-box; }
+
+  .ml-stage { animation: ml-fade 14s ease-in-out infinite; }
+  @keyframes ml-fade { 0% { opacity: 0; } 6%, 94% { opacity: 1; } 100% { opacity: 0; } }
+
+  .ml-zoom { transform-origin: 300px 110px; animation: ml-zoom 14s ease-in-out infinite; }
+  @keyframes ml-zoom { 0%, 7% { transform: scale(1.15); } 30%, 92% { transform: scale(1); } 100% { transform: scale(1.15); } }
+
+  /* The tape scrolls left at a constant speed while recording, then eases back to show the clips. */
+  .ml-scroll { animation: ml-scroll 14s linear infinite; }
+  @keyframes ml-scroll {
+    0%, 7% { transform: translateX(0); }
+    72% { transform: translateX(-300px); }
+    79% { transform: translateX(-160px); }
+    100% { transform: translateX(-160px); }
+  }
+
+  .ml-playhead { animation: ml-playhead 14s linear infinite; }
+  @keyframes ml-playhead {
+    0%, 72% { opacity: 1; }
+    77%, 97% { opacity: 0; }
+    100% { opacity: 1; }
+  }
+
+  .ml-key { animation: ml-key 14s ease-out infinite; }
+  @keyframes ml-key { 0%, 12% { opacity: 0; } 17%, 70% { opacity: 1; } 74%, 100% { opacity: 0; } }
+  .ml-bob { animation: ml-bob 2s ease-in-out infinite; }
+  @keyframes ml-bob { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-5px); } }
+
+  /* Presses at 21%, 36%, 57%, 64% and 71% of the loop. */
+  .ml-press { animation: ml-press 14s cubic-bezier(0.1, 0, 0.3, 1) infinite; }
+  @keyframes ml-press {
+    0%, 20.5% { transform: translateY(0); } 21% { transform: translateY(5px); } 22.5% { transform: translateY(0); }
+    35.5% { transform: translateY(0); } 36% { transform: translateY(5px); } 37.5% { transform: translateY(0); }
+    56.5% { transform: translateY(0); } 57% { transform: translateY(5px); } 58.5% { transform: translateY(0); }
+    63.5% { transform: translateY(0); } 64% { transform: translateY(5px); } 65.5% { transform: translateY(0); }
+    70.5% { transform: translateY(0); } 71% { transform: translateY(5px); } 72.5%, 100% { transform: translateY(0); }
+  }
+
+  /* A range flashes white as it lands, then settles yellow. */
+  .ml-range { fill: #f5d440; opacity: 0; transform-origin: center; }
+  .ml-r1 { animation: ml-r1 14s ease-out infinite; }
+  .ml-r2 { animation: ml-r2 14s ease-out infinite; }
+  .ml-r3 { animation: ml-r3 14s ease-out infinite; }
+  .ml-r4 { animation: ml-r4 14s ease-out infinite; }
+  .ml-r5 { animation: ml-r5 14s ease-out infinite; }
+  @keyframes ml-r1 {
+    0%, 20.9% { opacity: 0; transform: translateY(-14px); fill: #ffffff; }
+    21% { opacity: 1; transform: translateY(-14px); fill: #ffffff; }
+    25% { transform: translateY(0); fill: #f5d440; }
+    84% { fill: #f5d440; } 86% { fill: #6be553; }
+    96% { opacity: 1; fill: #6be553; } 100% { opacity: 0; fill: #6be553; }
+  }
+  @keyframes ml-r2 {
+    0%, 35.9% { opacity: 0; transform: translateY(-14px); fill: #ffffff; }
+    36% { opacity: 1; transform: translateY(-14px); fill: #ffffff; }
+    40% { transform: translateY(0); fill: #f5d440; }
+    84% { fill: #f5d440; } 86% { fill: #6be553; }
+    96% { opacity: 1; fill: #6be553; } 100% { opacity: 0; fill: #6be553; }
+  }
+  @keyframes ml-r3 {
+    0%, 56.9% { opacity: 0; transform: translateY(-14px); fill: #ffffff; }
+    57% { opacity: 1; transform: translateY(-14px); fill: #ffffff; }
+    61% { transform: translateY(0); fill: #f5d440; }
+    80% { opacity: 0.9; } 82%, 100% { opacity: 0; }
+  }
+  @keyframes ml-r4 {
+    0%, 63.9% { opacity: 0; transform: translateY(-14px); fill: #ffffff; }
+    64% { opacity: 0.85; transform: translateY(-14px); fill: #ffffff; }
+    68% { opacity: 0.85; transform: translateY(0); fill: #f5d440; }
+    80% { opacity: 0.85; } 82%, 100% { opacity: 0; }
+  }
+  @keyframes ml-r5 {
+    0%, 70.9% { opacity: 0; transform: translateY(-14px); fill: #ffffff; }
+    71% { opacity: 0.85; transform: translateY(-14px); fill: #ffffff; }
+    75% { opacity: 0.85; transform: translateY(0); fill: #f5d440; }
+    80% { opacity: 0.85; } 82%, 100% { opacity: 0; }
+  }
+  /* Overlapping ranges become one clip. */
+  .ml-merged { fill: #f5d440; opacity: 0; animation: ml-merged 14s ease-out infinite; }
+  @keyframes ml-merged { 0%, 79% { opacity: 0; fill: #f5d440; } 82%, 84% { opacity: 1; fill: #f5d440; } 86%, 96% { opacity: 1; fill: #6be553; } 100% { opacity: 0; fill: #6be553; } }
+  .ml-note { opacity: 0; animation: ml-note 14s ease-out infinite; }
+  @keyframes ml-note { 0%, 81% { opacity: 0; } 83%, 87% { opacity: 1; } 89%, 100% { opacity: 0; } }
+
+  /* The finished clips lift off the timeline and slide away, one after another. */
+  .ml-out-1 { animation: ml-out-1 14s linear infinite; }
+  .ml-out-2 { animation: ml-out-2 14s linear infinite; }
+  .ml-out-3 { animation: ml-out-3 14s linear infinite; }
+  @keyframes ml-out-1 { 0%, 87% { transform: translate(0, 0); } 89%, 90% { transform: translate(0, -40px); } 93%, 100% { transform: translate(-520px, -40px); } }
+  @keyframes ml-out-2 { 0%, 87% { transform: translate(0, 0); } 89%, 91% { transform: translate(0, -40px); } 94%, 100% { transform: translate(-520px, -40px); } }
+  @keyframes ml-out-3 { 0%, 87% { transform: translate(0, 0); } 89%, 92% { transform: translate(0, -40px); } 95%, 100% { transform: translate(-520px, -40px); } }
+
+  .mark-loop.is-paused * { animation-play-state: paused !important; }
+
+  /* Still frame: the finished tape, with the merged clip. */
+  @media (prefers-reduced-motion: reduce) {
+    .mark-loop * { animation: none !important; }
+    .ml-stage { opacity: 1; }
+    .ml-scroll { transform: translateX(-160px); }
+    .ml-r1, .ml-r2, .ml-merged { opacity: 1; fill: #f5d440; }
+    .ml-key, .ml-note { opacity: 0; }
+  }
+</style>
+
+<script>
+  document.querySelectorAll<HTMLElement>('[data-mark-loop]').forEach((el) => {
+    new IntersectionObserver(([entry]) => el.classList.toggle('is-paused', !entry.isIntersecting), { threshold: 0.2 }).observe(el);
+  });
+</script>
