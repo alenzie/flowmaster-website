@@ -1,0 +1,92 @@
+---
+// The Mark tab, rebuilt from the app source. Two uses:
+//   live: the hero mockup. OBS is recording and the first session counts the
+//         marks the visitor drops on the strip below it.
+//   log:  the Mark chapter. The session is finished and its saved timestamps
+//         are open (the app's "View Timestamps").
+import AppWindow from './AppWindow.astro';
+import { RECORDINGS, PRESET_MARKS, markLabel, timecode } from './session';
+
+interface Props { variant: 'live' | 'log'; }
+const { variant } = Astro.props;
+const live = variant === 'live';
+const rows = RECORDINGS.slice(0, live ? 2 : 3);
+---
+<AppWindow
+  tab="mark"
+  label={live ? 'The Flowmaster app during a recording, rebuilt for this page' : 'The Mark tab of the Flowmaster app, rebuilt for this page'}
+  class={live ? 'fm--hero' : undefined}
+>
+  <div class="mark-tab" data-mark-window={variant}>
+    <div class="mark-status-bar">
+      <div class="obs-status">
+        <span class="obs-dot connected" aria-hidden="true"></span>
+        <span data-obs-text>{live ? 'OBS: Recording' : 'OBS: Connected'}</span>
+      </div>
+      <div class:list={['rec-indicator', { active: live }]} data-rec-ind>
+        <div class="rec-squares" aria-hidden="true">
+          <div class="rec-square red"></div>
+          <div class="rec-square yellow"></div>
+          <div class="rec-square green"></div>
+        </div>
+        <span class="rec-label" data-rec-label>{live ? 'REC' : 'IDLE'}</span>
+      </div>
+    </div>
+
+    <div class="mark-section">
+      <p class="section-title">Recent Sessions</p>
+      <div class="scrollable-list">
+        {rows.map((row, i) => (
+          <>
+            <div class="mark-session-item">
+              <div class="session-left">
+                <div class="row-thumb" aria-hidden="true"></div>
+                <div class="session-info">
+                  <div class="session-name">{row.file}</div>
+                  <div class="session-meta">
+                    <span class="mark-count" data-count={i === 0 ? '' : undefined}>{markLabel(i === 0 && live ? 0 : row.marks)}</span>
+                    <span class="session-date">{row.date}</span>
+                  </div>
+                </div>
+              </div>
+              <span class="three-dot-btn" aria-hidden="true"><span class="dot"></span><span class="dot"></span><span class="dot"></span></span>
+            </div>
+            {i === 0 && !live && (
+              <div class="timestamp-popover" data-stamps>
+                {PRESET_MARKS.map((mark, n) => <div class="mark-line">Mark {n + 1}: {timecode(mark)}</div>)}
+              </div>
+            )}
+          </>
+        ))}
+      </div>
+    </div>
+
+    {!live && (
+      <div class="mark-footer">
+        <p class="help-text">Press <kbd>F9</kbd> during recording to create timestamp markers.</p>
+      </div>
+    )}
+  </div>
+</AppWindow>
+
+<script>
+  import { onTake, markLabel, timecode } from './session';
+
+  // The finished session in the Mark chapter follows the take recorded in the hero.
+  const log = document.querySelector<HTMLElement>('[data-mark-window="log"]');
+  if (log) {
+    const count = log.querySelector<HTMLElement>('[data-count]');
+    const stamps = log.querySelector<HTMLElement>('[data-stamps]');
+    onTake((take) => {
+      if (count) count.textContent = markLabel(take.marks.length);
+      if (stamps) {
+        stamps.replaceChildren(...take.marks.map((mark, n) => {
+          const line = document.createElement('div');
+          line.className = 'mark-line';
+          line.textContent = `Mark ${n + 1}: ${timecode(mark)}`;
+          return line;
+        }));
+      }
+    });
+  }
+</script>

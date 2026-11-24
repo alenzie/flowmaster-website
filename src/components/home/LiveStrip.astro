@@ -1,0 +1,928 @@
+---
+// The hero's recording strip, as a staged demo the visitor drives:
+//   1. recording  the tape runs, F9 drops marks
+//   2. stopped    the kept range is drawn around each mark (60 s before, 10 s after)
+//   3. clipping   the tape collapses to the kept ranges, then waits (clipped)
+//   4. reclaiming the original appears on its own track and is sent off to the Recycle Bin
+//   5. summary    what the session takes now, and what came back
+// It is a diagram of the idea, not a picture of the app. Every duration and size
+// is derived from the example session in session.ts.
+import { DURATION, RECORDINGS, BITRATE_MBPS, formatDuration } from './session';
+
+const ticks = [0, 0.25, 0.5, 0.75, 1];
+const file = RECORDINGS[0].file;
+---
+
+<div class="live" data-live data-state="recording">
+  <div class="wrap live-head">
+    <span class="live-rec">
+      <span class="live-squares" aria-hidden="true"><i class="r"></i><i class="y"></i><i class="g"></i></span>
+      <span class="live-state" data-live-state>REC</span>
+    </span>
+    <span class="live-file"><span class="live-name">{file}</span> <em>example session<span data-live-rate hidden> &middot; sizes assume {BITRATE_MBPS} Mbps</span></em></span>
+    <ol class="live-steps" aria-label="Steps in this demo">
+      <li class="is-on" data-live-step="mark">Mark</li>
+      <li data-live-step="stop">Stop</li>
+      <li data-live-step="clip">Clip</li>
+      <li data-live-step="clean">Clean</li>
+    </ol>
+    <span class="live-time" data-live-time aria-hidden="true">00:00:00</span>
+    <span class="live-count" data-live-count aria-hidden="true">0 marks</span>
+  </div>
+
+  <div class="wrap live-stage">
+    <div class="live-main">
+      <button type="button" class="keycap" data-live-key aria-describedby="live-caption">
+        <span class="keycap-face">F9</span>
+        <span class="sr-only">: mark this moment</span>
+      </button>
+      <div class="live-track" aria-hidden="true">
+        <div class="live-ruler" data-live-ruler>
+          {ticks.map((at) => <span style={`left:${at * 100}%`} class:list={{ end: at === 1 }}>{formatDuration(DURATION * at)}</span>)}
+        </div>
+        <div class="live-tape" data-live-tape>
+          <div class="live-fill"></div>
+          <div class="live-gone" data-live-gone><span data-live-gone-text></span></div>
+          <div class="live-kept" data-live-kept></div>
+          <div class="live-marks" data-live-marks></div>
+          <div class="live-playhead"></div>
+        </div>
+        <div class="live-orig" data-live-origtrack>
+          <div class="live-orig-tape" data-live-origtape>
+            <span class="live-orig-label" data-live-origlabel></span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="live-panel" data-live-panel>
+      <div class="lp-stat">
+        <span class="label">Reclaimed</span>
+        <strong data-live-net>0 GB</strong>
+        <span class="lp-stat-sub">by keeping only the highlights</span>
+      </div>
+      <div class="lp-rows">
+        <div class="lp-row lp-row--orig">
+          <p class="lp-meta"><span class="label">Original recording</span><span class="lp-num" data-live-orig></span></p>
+          <div class="lp-bar"><span class="lp-bin">In the Windows Recycle Bin</span></div>
+        </div>
+        <div class="lp-row lp-row--kept">
+          <p class="lp-meta"><span class="label">Highlights you kept</span><span class="lp-num" data-live-keptnum></span></p>
+          <div class="lp-bar"><i data-live-keptbar></i></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="wrap live-foot">
+    <p class="live-caption" id="live-caption" data-live-caption>
+      This strip is a recording in progress. Press <span class="key">F9</span> on your keyboard, or tap the key, whenever something happens that you would want to keep. Then stop the recording.
+    </p>
+    <div class="live-actions">
+      <button type="button" class="live-again" data-live-secondary hidden>Record again</button>
+      <a class="live-again" href="/account" data-live-cta hidden>Create a free account</a>
+      <button type="button" class="live-btn" data-live-primary data-tone="stop">Stop recording</button>
+    </div>
+    <p class="sr-only" role="status" data-live-status></p>
+  </div>
+  <noscript><p class="wrap live-noscript">This demo needs JavaScript. With it, you mark a recording, stop it, clip it and clean up the original.</p></noscript>
+</div>
+
+<style>
+  .live {
+    --p: 0;
+    margin-top: clamp(1.75rem, 2.4vw, 2.1rem);
+    padding: 1rem 0 1.4rem;
+    border-top: 1px solid var(--rule);
+    border-bottom: 1px solid var(--rule);
+    background: #0b0b0b;
+  }
+
+  /* ---------- Header ---------- */
+  .live-head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.4rem 1.5rem;
+    font-family: var(--font-mono);
+    font-size: 0.78rem;
+    letter-spacing: 0.04em;
+    color: var(--ink-3);
+  }
+  .live-rec { display: inline-flex; align-items: center; gap: 0.6rem; }
+  .live-squares { display: inline-flex; gap: 3px; }
+  .live-squares i { width: 10px; height: 10px; border-radius: 2px; }
+  .live-squares .r { background: var(--red); }
+  .live-squares .y { background: var(--yellow); }
+  .live-squares .g { background: var(--green); }
+  .live[data-state='recording'] .live-squares i { animation: live-pulse 0.8s ease-in-out infinite; }
+  .live[data-state='recording'] .live-squares .y { animation-delay: 0.15s; }
+  .live[data-state='recording'] .live-squares .g { animation-delay: 0.3s; }
+  .live:not([data-state='recording']) .live-squares i { opacity: 0.55; }
+  @keyframes live-pulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.25); } }
+  .live-state { font-weight: 700; letter-spacing: 0.12em; color: var(--red); min-width: 5.4em; }
+  .live[data-state='stopped'] .live-state { color: var(--ink-2); }
+  .live[data-state='clipping'] .live-state,
+  .live[data-state='clipped'] .live-state { color: var(--yellow); }
+  .live[data-state='reclaiming'] .live-state,
+  .live[data-state='summary'] .live-state { color: var(--green); }
+  .live-file { display: inline-flex; flex-wrap: wrap; align-items: center; gap: 0.3rem 0.7rem; color: var(--ink-2); }
+  .live-file em {
+    font-style: normal;
+    padding: 0.12rem 0.45rem;
+    border: 1px solid var(--rule-strong);
+    border-radius: 3px;
+    font-size: 0.66rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--ink-2);
+    white-space: nowrap;
+  }
+
+  .live-steps {
+    display: flex;
+    gap: 1.1rem;
+    margin: 0 0 0 auto;
+    padding: 0;
+    list-style: none;
+    font-size: 0.68rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+  }
+  .live-steps li { display: inline-flex; align-items: center; gap: 0.45rem; color: var(--ink-3); transition: color 0.3s ease; }
+  .live-steps li::before {
+    content: '';
+    width: 0.5rem;
+    height: 0.48rem;
+    border-radius: 1.5px;
+    background: var(--c);
+    opacity: 0.3;
+    transition: opacity 0.3s ease;
+  }
+  .live-steps li:nth-child(1) { --c: var(--red); }
+  .live-steps li:nth-child(2) { --c: var(--ink); }
+  .live-steps li:nth-child(3) { --c: var(--yellow); }
+  .live-steps li:nth-child(4) { --c: var(--green); }
+  .live-steps li.is-done { color: var(--ink-2); }
+  .live-steps li.is-done::before { opacity: 0.75; }
+  .live-steps li.is-on { color: var(--ink); font-weight: 700; }
+  .live-steps li.is-on::before { opacity: 1; }
+
+  .live-time { min-width: 5.4em; text-align: right; font-size: 0.95rem; font-weight: 600; color: var(--ink); font-variant-numeric: tabular-nums; letter-spacing: 0.02em; white-space: nowrap; }
+  .live-time :global(b) { color: var(--yellow); font-weight: 700; }
+  .live-count { min-width: 5.2em; text-align: right; font-weight: 700; color: var(--red); }
+  .live[data-state='clipped'] .live-count,
+  .live[data-state='reclaiming'] .live-count,
+  .live[data-state='summary'] .live-count { color: var(--yellow); }
+
+  /* ---------- Stage: the tape, and the clean-up panel that replaces it ---------- */
+  .live-stage { display: grid; margin-top: 0.9rem; }
+  .live-main, .live-panel { grid-area: 1 / 1; min-width: 0; }
+  .live-stage, .live-foot { transition: opacity 0.35s ease; }
+  .live.is-swapping .live-stage, .live.is-swapping .live-foot { opacity: 0; }
+  .live-panel { visibility: hidden; opacity: 0; }
+  .live[data-state='summary'] .live-main { visibility: hidden; opacity: 0; }
+  .live[data-state='summary'] .live-panel { visibility: visible; opacity: 1; }
+
+  .live-main {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    align-items: end;
+    gap: 1.25rem;
+  }
+  .live-track { min-width: 0; }
+  .live-ruler {
+    position: relative;
+    height: 1.35rem;
+    border-bottom: 1px solid var(--rule);
+    background-image: repeating-linear-gradient(to right, var(--rule-strong) 0 1px, transparent 1px calc(100% / 48));
+    background-size: 100% 5px;
+    background-repeat: no-repeat;
+    background-position: 0 100%;
+  }
+  .live-ruler span {
+    position: absolute;
+    top: 0;
+    font-family: var(--font-mono);
+    font-size: 0.66rem;
+    color: var(--ink-3);
+    padding-left: 4px;
+    border-left: 1px solid var(--rule-strong);
+    line-height: 1.35rem;
+    font-variant-numeric: tabular-nums;
+  }
+  .live-ruler span.end { transform: translateX(-100%); padding: 0 4px 0 0; border-left: 0; border-right: 1px solid var(--rule-strong); }
+  .live-tape {
+    position: relative;
+    height: 4.75rem;
+    background: #131313;
+  }
+  .live-fill {
+    position: absolute;
+    inset: 0;
+    /* Reveal fixed footage; never stretch it behind the playhead. */
+    clip-path: inset(0 calc((1 - var(--p)) * 100%) 0 0);
+    background-color: var(--footage);
+    background-image: repeating-linear-gradient(to right, rgba(0, 0, 0, 0.22) 0 1px, transparent 1px 12px);
+    transition: background-color 0.6s ease, opacity 0.7s ease;
+  }
+  .live:not([data-state='recording']) .live-fill { transition: background-color 0.6s ease, opacity 0.7s ease, clip-path 0.6s cubic-bezier(0.2, 0.7, 0.2, 1); }
+  .live[data-state='stopped'] .live-fill { background-color: #262522; }
+  .live[data-state='clipping'] .live-fill,
+  .live[data-state='clipped'] .live-fill,
+  .live[data-state='reclaiming'] .live-fill { background-color: #262522; opacity: 0; }
+  .live-playhead {
+    position: absolute;
+    top: -0.5rem;
+    bottom: -0.5rem;
+    left: calc(var(--p) * 100%);
+    width: 2px;
+    margin-left: -1px;
+    background: var(--ink);
+    transition: opacity 0.3s ease;
+  }
+  .live:not([data-state='recording']) .live-playhead { opacity: 0; }
+  .live-marks, .live-kept { position: absolute; inset: 0; }
+
+  /* Marks */
+  .live :global(.lm) { position: absolute; top: 0; bottom: 0; width: 0; transition: left 0.6s cubic-bezier(0.2, 0.7, 0.2, 1), opacity 0.4s ease; }
+  .live[data-state='clipping'] :global(.lm),
+  .live[data-state='clipped'] :global(.lm),
+  .live[data-state='reclaiming'] :global(.lm) { opacity: 0; }
+  .live :global(.lm-line) {
+    position: absolute;
+    top: -0.55rem;
+    bottom: 0;
+    left: -1.5px;
+    width: 3px;
+    background: var(--red);
+    transform-origin: top;
+    animation: lm-drop 0.28s cubic-bezier(0.3, 1.4, 0.5, 1) both;
+  }
+  .live :global(.lm-line)::before {
+    content: '';
+    position: absolute;
+    top: -0.2rem;
+    left: 50%;
+    width: 0.62rem;
+    height: 0.6rem;
+    margin-left: -0.31rem;
+    border-radius: 0.09rem;
+    background: var(--red);
+  }
+  .live :global(.lm-toast) {
+    position: absolute;
+    bottom: calc(100% + 1.1rem);
+    left: 0;
+    transform: translateX(-50%);
+    padding: 0.4rem 0.8rem;
+    border-radius: 8px;
+    background: var(--red);
+    color: #fff;
+    font-family: system-ui, 'Segoe UI', sans-serif;
+    font-size: 0.95rem;
+    font-weight: 700;
+    white-space: nowrap;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+    animation: lm-toast 0.9s ease-out both;
+    pointer-events: none;
+    z-index: 2;
+  }
+  .live :global(.lm.near-start .lm-toast) { transform: none; left: -0.5rem; }
+  .live :global(.lm.near-end .lm-toast) { transform: none; left: auto; right: -0.5rem; }
+  @keyframes lm-drop { from { transform: scaleY(0); } to { transform: scaleY(1); } }
+  @keyframes lm-toast {
+    0% { opacity: 0; scale: 0.4; }
+    22% { opacity: 1; scale: 1.08; }
+    38%, 78% { opacity: 1; scale: 1; }
+    100% { opacity: 0; scale: 1; }
+  }
+
+  /* Kept ranges: outlined when the recording stops, solid once they are clips. */
+  .live :global(.lk) {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    min-width: 3px;
+    background: rgba(245, 212, 64, 0.2);
+    box-shadow: inset 0 0 0 1.5px var(--yellow);
+    transform-origin: right;
+    animation: lk-in 0.5s cubic-bezier(0.2, 0.7, 0.2, 1) 0.45s both;
+    transition: transform 1.2s cubic-bezier(0.65, 0, 0.2, 1), background-color 0.4s ease;
+  }
+  @keyframes lk-in { from { opacity: 0; clip-path: inset(0 0 0 100%); } to { opacity: 1; clip-path: inset(0 0 0 0); } }
+  .live[data-state='clipping'] :global(.lk),
+  .live[data-state='clipped'] :global(.lk),
+  .live[data-state='reclaiming'] :global(.lk) {
+    background-color: var(--yellow);
+    background-image: repeating-linear-gradient(to right, rgba(16, 16, 16, 0.28) 0 1px, transparent 1px 5px);
+    border-radius: 2px;
+  }
+  .live-gone {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    right: 0;
+    left: 0;
+    display: flex;
+    align-items: center;
+    overflow: hidden;
+    border: 1px dashed var(--rule-strong);
+    opacity: 0;
+    transition: opacity 0.5s ease;
+  }
+  .live-gone span {
+    padding: 0 0.9rem;
+    font-family: var(--font-mono);
+    font-size: 0.74rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+    white-space: nowrap;
+  }
+  .live[data-state='clipped'] .live-gone,
+  .live[data-state='reclaiming'] .live-gone { opacity: 1; }
+  .live-gone {
+    background-image: repeating-linear-gradient(135deg, rgba(255, 255, 255, 0.035) 0 6px, transparent 6px 12px);
+  }
+
+  /* ---------- The original, on its own track, on its way to the Recycle Bin ---------- */
+  .live { overflow-x: clip; }
+  .live-orig {
+    --orig-h: 2.6rem;
+    height: 0;
+    margin-top: 0;
+    overflow-x: visible;
+    overflow-y: clip;
+    transition: height 0.5s cubic-bezier(0.2, 0.7, 0.2, 1), margin-top 0.5s ease;
+  }
+  .live[data-state='reclaiming'] .live-orig { height: var(--orig-h); margin-top: 0.6rem; }
+  .live-orig-tape {
+    position: relative;
+    height: var(--orig-h);
+    display: flex;
+    align-items: center;
+    background-color: var(--footage);
+    background-image: repeating-linear-gradient(to right, rgba(0, 0, 0, 0.22) 0 1px, transparent 1px 12px);
+    transition: transform 1s cubic-bezier(0.55, 0, 0.85, 0.3), opacity 1s ease-in;
+  }
+  .live-orig-tape.is-sent { transform: translateX(120vw); opacity: 0.2; }
+  .live-orig-label {
+    padding: 0 0.9rem;
+    font-family: var(--font-mono);
+    font-size: 0.74rem;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--ink);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  /* ---------- The clean-up panel ---------- */
+  .live-panel { display: grid; align-content: center; gap: 1rem 3rem; }
+  .lp-stat { display: none; align-content: center; gap: 0.1rem; }
+  .live[data-state='summary'] .lp-stat { display: grid; }
+  .lp-stat strong {
+    font-family: var(--font-heading);
+    font-stretch: 64%;
+    font-weight: 800;
+    font-size: clamp(2.6rem, 4.4vw, 3.5rem);
+    line-height: 0.95;
+    text-transform: uppercase;
+    color: var(--green);
+    white-space: nowrap;
+  }
+  .lp-stat .label { color: var(--green); }
+  .lp-stat-sub { font-size: 0.9rem; color: var(--ink-2); }
+  .lp-rows { display: grid; gap: 0.55rem; min-width: 0; align-content: center; }
+  .lp-meta { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: baseline; gap: 0 1rem; line-height: 1.2rem; }
+  .lp-num { font-family: var(--font-mono); font-size: 0.82rem; font-weight: 600; color: var(--ink); font-variant-numeric: tabular-nums; }
+  .lp-bar { position: relative; height: 1.3rem; margin-top: 0.3rem; background: #131313; }
+  .lp-row--orig .lp-bar {
+    background-color: var(--footage);
+    background-image: repeating-linear-gradient(to right, rgba(0, 0, 0, 0.22) 0 1px, transparent 1px 12px);
+    transition: background-color 0.5s ease;
+  }
+  .lp-bin {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    padding-left: 0.7rem;
+    border: 1px dashed rgba(107, 229, 83, 0.6);
+    font-family: var(--font-mono);
+    font-size: 0.7rem;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--green);
+    white-space: nowrap;
+    opacity: 0;
+    transition: opacity 0.5s ease;
+  }
+  .live[data-state='summary'] .lp-row--orig .lp-bar { background-color: transparent; background-image: none; }
+  .live[data-state='summary'] .lp-bin { opacity: 1; }
+  .live[data-state='summary'] .lp-row--orig .lp-num { color: var(--ink-3); text-decoration: line-through; }
+  .lp-row--kept .lp-bar { background: transparent; box-shadow: inset 0 0 0 1px var(--rule); }
+  .lp-row--kept i {
+    position: absolute;
+    inset: 0 auto 0 0;
+    min-width: 6px;
+    background-color: var(--yellow);
+    background-image: repeating-linear-gradient(to right, rgba(16, 16, 16, 0.28) 0 1px, transparent 1px 5px);
+    border-radius: 2px;
+  }
+
+  /* ---------- Foot: what just happened, and the next step ---------- */
+  .live-foot {
+    display: flex;
+    align-items: center;
+    gap: 1rem 2.5rem;
+    margin-top: 1.1rem;
+    padding-left: 6rem;
+  }
+  .live-caption {
+    flex: 1;
+    max-width: 50rem;
+    min-height: 3em;
+    font-size: 1rem;
+    line-height: 1.5;
+    color: var(--ink-2);
+  }
+  .live-caption :global(strong) { color: var(--ink); font-weight: 650; }
+  .live-caption :global(.y) { color: var(--yellow); }
+  .live-actions { flex: none; display: flex; align-items: center; gap: 0.5rem 1.5rem; margin-left: auto; }
+  .live-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.65rem;
+    min-height: 3rem;
+    min-width: 13.5rem;
+    padding: 0.75rem 1.35rem;
+    border: 1px solid var(--rule-strong);
+    border-radius: 6px;
+    background: transparent;
+    color: var(--ink);
+    font-family: var(--font-body);
+    font-size: 1rem;
+    font-weight: 700;
+    line-height: 1.1;
+    white-space: nowrap;
+    cursor: pointer;
+    touch-action: manipulation;
+    transition: background-color 0.18s ease, border-color 0.18s ease, color 0.18s ease, transform 0.18s ease;
+  }
+  .live-btn::before { content: ''; flex: none; width: 0.66rem; height: 0.64rem; border-radius: 0.1rem; background: currentColor; }
+  .live-btn:hover:not([aria-disabled='true']) { transform: translateY(-1px); border-color: var(--ink); }
+  .live-btn[data-tone='stop']::before { background: var(--red); }
+  .live-btn[data-tone='clip'] { background: var(--yellow); border-color: var(--yellow); color: #141204; }
+  .live-btn[data-tone='clean'] { background: var(--green); border-color: var(--green); color: #07140a; }
+  .live-btn[data-tone='clip']:hover:not([aria-disabled='true']) { background: #ffe466; border-color: #ffe466; }
+  .live-btn[data-tone='clean']:hover:not([aria-disabled='true']) { background: #86f070; border-color: #86f070; }
+  /* Busy, not disabled: the button keeps keyboard focus while the tape collapses. */
+  .live-btn[aria-disabled='true'] { opacity: 0.55; cursor: default; }
+  .live-again {
+    min-height: 3rem;
+    padding: 0;
+    border: 0;
+    background: none;
+    display: inline-flex;
+    align-items: center;
+    font-family: var(--font-body);
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: var(--ink-2);
+    text-decoration: underline;
+    text-decoration-color: var(--rule-strong);
+    text-underline-offset: 0.28em;
+    white-space: nowrap;
+    cursor: pointer;
+  }
+  .live-again:hover { color: var(--ink); text-decoration-color: var(--yellow); }
+  .live-again[hidden] { display: none; }
+  .live-noscript { margin-top: 0.75rem; font-size: 0.9rem; color: var(--ink-3); }
+
+  .keycap {
+    flex: none;
+    width: 4.75rem;
+    height: 4.75rem;
+    padding: 0 0 7px;
+    border: 0;
+    border-radius: 12px;
+    background: #050505;
+    cursor: pointer;
+    box-shadow: 0 0 0 1px #3a3936, 0 14px 30px -12px rgba(244, 63, 67, 0.55);
+    touch-action: manipulation;
+    transition: opacity 0.3s ease, box-shadow 0.3s ease;
+  }
+  .keycap-face {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 100%;
+    border-radius: 10px;
+    border: 1px solid #4a4944;
+    background: linear-gradient(180deg, #2c2b28, #1c1b19);
+    font-family: var(--font-mono);
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--ink);
+    transform: translateY(0);
+    transition: transform 0.07s ease, background 0.07s ease, color 0.07s ease, border-color 0.07s ease;
+  }
+  .keycap:hover:not(:disabled) .keycap-face { border-color: #6a6862; }
+  .keycap:active:not(:disabled) .keycap-face,
+  .keycap.is-down .keycap-face {
+    transform: translateY(6px);
+    background: var(--red);
+    border-color: var(--red);
+    color: #140606;
+  }
+  .keycap:disabled { opacity: 0.35; cursor: default; box-shadow: 0 0 0 1px #3a3936; }
+
+  /* The clean-up panel has no key column, so its caption lines up with the panel's left edge. */
+  .live[data-state='summary'] .live-foot { padding-left: 0; }
+  @media (min-width: 900px) {
+    .live[data-state='summary'] .live-panel { grid-template-columns: auto minmax(0, 1fr); }
+  }
+  @media (max-width: 1100px) {
+    .live-steps { order: 5; flex-basis: 100%; margin-left: 0; }
+    .live-time { margin-left: auto; }
+  }
+  @media (max-width: 899px) {
+    .live-foot { flex-direction: column; align-items: stretch; }
+    .live-caption { flex: none; max-width: none; }
+    .live-actions { margin-left: 0; flex-wrap: wrap; flex-direction: row-reverse; justify-content: flex-end; }
+  }
+  @media (max-width: 640px) {
+    .live-foot { padding-left: 0; }
+    .live-actions { flex-direction: column-reverse; align-items: stretch; }
+    .live-again { justify-content: center; }
+    .live-time { order: 1; }
+    .live-count { order: 2; min-width: 0; }
+    .live-file { order: 3; flex-basis: 100%; }
+    .live-ruler span:nth-child(even) { display: none; }
+    .live-main { grid-template-columns: minmax(0, 1fr); gap: 1rem; }
+    .live-track { order: -1; }
+    .live-tape { height: 3.75rem; }
+    .live-orig { --orig-h: 2.4rem; }
+    .live-orig-label { font-size: 0.66rem; padding: 0 0.5rem; }
+    .keycap { width: 100%; height: 4rem; }
+    .live-caption { font-size: 0.95rem; min-height: 6em; }
+    .live-steps { gap: 0.9rem; }
+    .live-gone span { padding: 0 0.5rem; font-size: 0.66rem; }
+    .lp-bar { height: 1.6rem; }
+    .lp-rows { gap: 0.9rem; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .live[data-state='recording'] .live-squares i { animation: none; }
+    .live :global(.lm-line), .live :global(.lm-toast), .live :global(.lk) { animation: none; }
+    .live :global(.lm-toast) { display: none; }
+  }
+</style>
+
+<script>
+  import {
+    DURATION, LOOKBACK, LOOKFORWARD, PRESET_MARKS,
+    windows, kept, formatDuration, timecode, markLabel, plural, bytesFor, formatSize, setTake,
+    type Range,
+  } from './session';
+
+  type State = 'recording' | 'stopped' | 'clipping' | 'clipped' | 'reclaiming' | 'summary';
+
+  const root = document.querySelector<HTMLElement>('[data-live]');
+  if (root) {
+    const pick = <T extends HTMLElement = HTMLElement>(name: string) => root.querySelector<T>(`[data-live-${name}]`)!;
+    const marksEl = pick('marks');
+    const keptEl = pick('kept');
+    const tape = pick('tape');
+    const gone = pick('gone');
+    const goneText = pick('gone-text');
+    const rulerEls = [...pick('ruler').querySelectorAll<HTMLElement>('span')];
+    const timeEl = pick('time');
+    const countEl = pick('count');
+    const stateEl = pick('state');
+    const caption = pick('caption');
+    const status = pick('status');
+    const key = pick<HTMLButtonElement>('key');
+    const primary = pick<HTMLButtonElement>('primary');
+    const secondary = pick<HTMLButtonElement>('secondary');
+    const cta = pick('cta');
+    const rate = pick('rate');
+    const steps = [...root.querySelectorAll<HTMLElement>('[data-live-step]')];
+    const origTape = pick('origtape');
+    const origLabel = pick('origlabel');
+
+    // The hero's app window follows the recording.
+    const app = document.querySelector<HTMLElement>('[data-mark-window="live"]');
+    const appCount = app?.querySelector<HTMLElement>('[data-count]');
+    const appObs = app?.querySelector<HTMLElement>('[data-obs-text]');
+    const appRec = app?.querySelector<HTMLElement>('[data-rec-ind]');
+    const appRecLabel = app?.querySelector<HTMLElement>('[data-rec-label]');
+
+    const PASS = 24000; // ms for the playhead to cross the 48-minute example
+    const MAX_MARKS = 12;
+    const STEP = DURATION / 8; // reduced motion: each press moves the recording on six minutes
+    const reduced = window.matchMedia('(prefers-reduced-motion: reduce)');
+    const firstPrompt = caption.innerHTML;
+    const stillPrompt = `This strip is an example recording. Press <span class="key">F9</span> on your keyboard, or tap the key: each press moves the recording on six minutes and drops a mark. Then stop the recording.`;
+
+    let state: State = 'recording';
+    let t = 0; // seconds recorded so far
+    let scale = DURATION; // seconds the full width of the tape stands for
+    let marks: number[] = [];
+    let ranges: Range[] = [];
+    let touched = false;
+    let nextPreset = 0;
+    let last = 0;
+    let visible = false;
+    let frame = 0;
+    let timers: number[] = [];
+
+    const later = (fn: () => void, ms: number) => { timers.push(window.setTimeout(fn, ms)); };
+    const stageOf: Record<State, [label: string, step: number]> = {
+      recording: ['REC', 0], stopped: ['STOPPED', 1], clipping: ['CLIPPING', 2], clipped: ['CLIPPED', 2], reclaiming: ['CLEANING', 3], summary: ['CLEANED', 3],
+    };
+
+    const paint = () => {
+      root.style.setProperty('--p', (t / scale).toFixed(4));
+      timeEl.textContent = timecode(t);
+    };
+    const drawRuler = () => rulerEls.forEach((el, i) => { el.textContent = formatDuration((scale * i) / (rulerEls.length - 1)); });
+    const showCount = (bump = false) => {
+      countEl.textContent = markLabel(marks.length);
+      if (!appCount) return;
+      appCount.textContent = markLabel(marks.length);
+      if (bump) {
+        appCount.classList.remove('is-bump');
+        void appCount.offsetWidth;
+        appCount.classList.add('is-bump');
+      }
+    };
+
+    function setState(next: State) {
+      state = next;
+      root!.dataset.state = next;
+      const [label, step] = stageOf[next];
+      stateEl.textContent = label;
+      steps.forEach((el, i) => {
+        el.classList.toggle('is-on', i === step);
+        el.classList.toggle('is-done', i < step);
+        if (i === step) el.setAttribute('aria-current', 'step'); else el.removeAttribute('aria-current');
+      });
+      const recording = next === 'recording';
+      key.disabled = !recording;
+      if (appObs) appObs.textContent = recording ? 'OBS: Recording' : 'OBS: Connected';
+      appRec?.classList.toggle('active', recording);
+      if (appRecLabel) appRecLabel.textContent = recording ? 'REC' : 'IDLE';
+
+      const button = (text: string, tone: string, busy = false) => {
+        primary.textContent = text;
+        primary.dataset.tone = tone;
+        if (busy) primary.setAttribute('aria-disabled', 'true'); else primary.removeAttribute('aria-disabled');
+      };
+      rate.hidden = next !== 'reclaiming' && next !== 'summary';
+      secondary.hidden = recording || next === 'summary';
+      cta.hidden = next !== 'summary';
+      if (recording) button('Stop recording', 'stop');
+      else if (next === 'stopped') { button(marks.length ? 'Clip Marks' : 'Add example marks', marks.length ? 'clip' : 'plain'); secondary.textContent = 'Record again'; }
+      else if (next === 'clipping') button('Clipping…', 'clip', true);
+      else if (next === 'clipped') { button('Reclaim the space', 'clean'); secondary.textContent = 'Record again'; }
+      else if (next === 'reclaiming') { button('Reclaiming…', 'clean', true); secondary.hidden = true; }
+      else button('Run the demo again', 'plain');
+    }
+
+    function say(html: string, plain?: string) {
+      caption.innerHTML = html;
+      status.textContent = plain ?? caption.textContent ?? '';
+    }
+
+    function drop(at: number, toast: boolean) {
+      const el = document.createElement('div');
+      const x = at / scale;
+      el.className = `lm${x < 0.08 ? ' near-start' : ''}${x > 0.9 ? ' near-end' : ''}`;
+      el.dataset.at = String(at);
+      el.style.left = `${(x * 100).toFixed(3)}%`;
+      el.innerHTML = `<span class="lm-line"></span>${toast ? '<span class="lm-toast">Marked!</span>' : ''}`;
+      marksEl.appendChild(el);
+      marks.push(at);
+      marks.sort((a, b) => a - b);
+      showCount(true);
+    }
+    const placeMarks = () => marksEl.querySelectorAll<HTMLElement>('.lm').forEach((el) => {
+      el.style.left = `${((Number(el.dataset.at) / scale) * 100).toFixed(3)}%`;
+    });
+
+    function drawKept() {
+      ranges = windows(marks, LOOKBACK, LOOKFORWARD, scale);
+      keptEl.replaceChildren(...ranges.map((range) => {
+        const el = document.createElement('span');
+        el.className = 'lk';
+        el.style.left = `${((range.start / scale) * 100).toFixed(3)}%`;
+        el.style.width = `${(((range.end - range.start) / scale) * 100).toFixed(3)}%`;
+        return el;
+      }));
+    }
+
+    const stoppedLine = () =>
+      `Each keeps the ${LOOKBACK} seconds before it and the ${LOOKFORWARD} after, and marks close together share a range: <strong class="y">${formatDuration(kept(ranges))}</strong> of this ${formatDuration(scale)} recording. Nothing is cut yet.`;
+
+    function stop(byUser: boolean) {
+      if (state !== 'recording') return;
+      cancelAnimationFrame(frame);
+      frame = 0;
+      // The recording is as long as it ran. Stopping early means a shorter file.
+      t = Math.max(LOOKBACK + LOOKFORWARD, Math.round(t));
+      scale = t;
+      paint();
+      placeMarks();
+      drawRuler();
+      drawKept();
+      setState('stopped');
+      if (marks.length) {
+        setTake({ marks: [...marks], duration: scale });
+        say(`<strong>${byUser ? 'Recording stopped' : 'The example recording ended'} with ${markLabel(marks.length)}.</strong> ${stoppedLine()}`);
+      } else {
+        say('<strong>Stopped with nothing marked.</strong> This is the recording you would scrub through by hand. Add example marks to see what Clip does with them, or record again and press F9.');
+      }
+    }
+
+    function addExampleMarks() {
+      if (scale < 900) { scale = DURATION; t = scale; paint(); drawRuler(); }
+      PRESET_MARKS.forEach((mark) => drop(Math.round((mark * scale) / DURATION), false));
+      drawKept();
+      setState('stopped');
+      setTake({ marks: [...marks], duration: scale });
+      say(`<strong>${markLabel(marks.length)}, added for the example.</strong> ${stoppedLine()}`);
+    }
+
+    // Slide each kept range left until they sit side by side: what is left of the recording.
+    function packClips() {
+      const width = tape.clientWidth;
+      let x = 0;
+      [...keptEl.children].forEach((child, i) => {
+        const el = child as HTMLElement;
+        const range = ranges[i];
+        const from = (range.start / scale) * width;
+        el.style.transform = `translateX(${(x - from).toFixed(1)}px)`;
+        x += Math.max(3, ((range.end - range.start) / scale) * width) + 3;
+      });
+      gone.style.left = `${Math.min(width, x + 5)}px`;
+    }
+
+    function clip() {
+      const total = kept(ranges);
+      setState('clipping');
+      say('<strong>Clipping.</strong> Everything outside the kept ranges falls away.');
+      packClips();
+      later(() => {
+        setState('clipped');
+        countEl.textContent = plural(ranges.length, 'clip');
+        timeEl.innerHTML = `${formatDuration(scale)} → <b>${formatDuration(total)}</b>`;
+        goneText.textContent = `${formatDuration(scale - total)} you never scrub`;
+        say(`<strong>${formatDuration(scale)} recorded. <span class="y">${formatDuration(total)}</span> left.</strong> ${plural(ranges.length, 'clip')}, cut out as MP4. The other ${formatDuration(scale - total)} never reaches your editor. The original recording is still on your drive.`);
+      }, reduced.matches ? 0 : 1500);
+    }
+
+    // The strip fades out and comes back as the summary.
+    function swap(fn: () => void) {
+      if (reduced.matches) { fn(); return; }
+      root!.classList.add('is-swapping');
+      later(() => { fn(); root!.classList.remove('is-swapping'); }, 380);
+    }
+
+    const sizes = () => {
+      const total = kept(ranges);
+      const original = bytesFor(scale);
+      const highlights = bytesFor(total);
+      return { total, original, highlights, net: Math.max(0, original - highlights) };
+    };
+
+    function summary() {
+      const { total, original, highlights, net } = sizes();
+      swap(() => {
+        pick('orig').textContent = `${formatDuration(scale)} · ${formatSize(original)}`;
+        pick('keptnum').textContent = `${plural(ranges.length, 'clip')} · ${formatDuration(total)} · ${formatSize(highlights)}`;
+        pick('keptbar').style.width = `${((total / scale) * 100).toFixed(2)}%`;
+        pick('net').textContent = formatSize(net);
+        setState('summary');
+        say(net > 0
+          ? `<strong>This session went from ${formatSize(original)} to ${formatSize(highlights)}.</strong> The original is in the Windows Recycle Bin, so you can restore it until you empty the bin.`
+          : `<strong>You marked the whole recording,</strong> so the clips are as big as the original and there is nothing to give back. Run it again with fewer marks.`);
+      });
+    }
+
+    // The original appears on its own track under the clips, then is sent off to the Recycle Bin.
+    function reclaim() {
+      const { original } = sizes();
+      origLabel.textContent = `Original · ${formatDuration(scale)} · ${formatSize(original)}`;
+      origTape.classList.remove('is-sent');
+      setState('reclaiming');
+      say(`<strong>Your clips are saved. The original still takes ${formatSize(original)}.</strong> After you have reviewed the clips, Clean sends it to the Windows Recycle Bin.`);
+      if (reduced.matches) { summary(); return; }
+      later(() => {
+        origTape.classList.add('is-sent');
+        origLabel.textContent = 'Original · to the Recycle Bin';
+      }, 1100);
+      later(summary, 2400);
+    }
+
+    function restart(byUser: boolean) {
+      timers.forEach((id) => window.clearTimeout(id));
+      timers = [];
+      root!.classList.remove('is-swapping');
+      origTape.classList.remove('is-sent');
+      marksEl.replaceChildren();
+      keptEl.replaceChildren();
+      marks = [];
+      ranges = [];
+      nextPreset = 0;
+      if (byUser) touched = true;
+      t = 0;
+      scale = DURATION;
+      drawRuler();
+      paint();
+      showCount();
+      setState('recording');
+      say(reduced.matches ? stillPrompt : byUser
+        ? `<strong>Recording again.</strong> Press <span class="key">F9</span>, or tap the key, when something is worth keeping. Then stop the recording.`
+        : firstPrompt, byUser ? 'Recording.' : '');
+      run();
+    }
+
+    function press() {
+      key.classList.add('is-down');
+      window.setTimeout(() => key.classList.remove('is-down'), 140);
+      if (state !== 'recording') return;
+      touched = true;
+      if (marks.length >= MAX_MARKS) {
+        say('<strong>That is plenty of marks for one example.</strong> Stop the recording to see what happens to them.');
+        return;
+      }
+      if (reduced.matches) { t = Math.min(DURATION, t + STEP); paint(); }
+      const at = Math.max(1, Math.round(t));
+      if (marks.includes(at)) return;
+      drop(at, !reduced.matches);
+      say(`<strong>Marked at ${timecode(at)}.</strong> That is the whole job. Press it again when the next good thing happens, then stop the recording.`,
+        `Marked at ${timecode(at)}. ${markLabel(marks.length)}.`);
+      if (reduced.matches && t >= DURATION) stop(false);
+    }
+
+    function tick(now: number) {
+      frame = 0;
+      if (!visible || state !== 'recording') return;
+      const dt = Math.min(now - (last || now), 80);
+      last = now;
+      t = Math.min(DURATION, t + (dt * DURATION) / PASS);
+      // Until the visitor marks something, the example marks itself.
+      while (!touched && nextPreset < PRESET_MARKS.length && t >= PRESET_MARKS[nextPreset]) {
+        drop(PRESET_MARKS[nextPreset], true);
+        nextPreset += 1;
+      }
+      paint();
+      if (t >= DURATION) { stop(false); return; }
+      frame = requestAnimationFrame(tick);
+    }
+    function run() {
+      if (frame || reduced.matches || !visible || document.hidden || state !== 'recording') return;
+      last = 0;
+      frame = requestAnimationFrame(tick);
+    }
+
+    key.addEventListener('click', press);
+    document.addEventListener('keydown', (event) => {
+      // Only F9 is taken, and only while the strip is on screen.
+      if (event.key !== 'F9' || event.repeat || !visible) return;
+      event.preventDefault();
+      press();
+    });
+    primary.addEventListener('click', () => {
+      if (state === 'recording') stop(true);
+      else if (state === 'stopped') { if (marks.length) clip(); else addExampleMarks(); }
+      else if (state === 'clipped') reclaim();
+      else if (state === 'summary') restart(true);
+    });
+    secondary.addEventListener('click', () => restart(true));
+    window.addEventListener('resize', () => { if (state === 'clipping' || state === 'clipped' || state === 'reclaiming') packClips(); });
+
+    new IntersectionObserver(([entry]) => {
+      visible = entry.isIntersecting;
+      if (visible) run();
+    }, { threshold: 0.05 }).observe(root);
+    document.addEventListener('visibilitychange', run);
+    reduced.addEventListener('change', () => {
+      if (state !== 'recording') return;
+      if (reduced.matches) { cancelAnimationFrame(frame); frame = 0; if (!touched) say(stillPrompt, ''); }
+      else run();
+    });
+
+    setState('recording');
+    drawRuler();
+    paint();
+    if (reduced.matches) say(stillPrompt, '');
+  }
+</script>

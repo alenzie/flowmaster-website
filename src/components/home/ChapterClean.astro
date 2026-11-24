@@ -1,0 +1,246 @@
+---
+// Chapter 03. The Clean tab, rebuilt from the app source: scan, tick, confirm,
+// and the files go to the Recycle Bin. The confirm text is the app's own.
+import AppWindow from './AppWindow.astro';
+import { CLEAN_FILES, CLEAN_PRESELECTED, formatSize } from './session';
+
+const selected = CLEAN_FILES.filter(file => CLEAN_PRESELECTED.includes(file.id));
+const sum = (files: typeof CLEAN_FILES) => files.reduce((total, file) => total + file.size, 0);
+---
+<section class="chapter chapter--clean" id="clean" aria-labelledby="clean-title">
+  <div class="wrap chapter-grid chapter-grid--flip">
+    <div class="chapter-copy" data-reveal>
+      <p class="chapter-tag">
+        <img src="/brand/GreenBox.svg" alt="" width="26" height="25" />
+        <span class="chapter-num">03</span>
+        <span class="chapter-name">Clean</span>
+        <span class="chapter-when">When the clips are safe</span>
+      </p>
+      <h2 class="display chapter-title" id="clean-title">Reclaim your disk space<span class="stop" aria-hidden="true"></span><span class="sr-only">.</span></h2>
+      <p class="chapter-body">
+        Long recordings are enormous, and once the keepers are out, the originals are only weight.
+        Clean scans your recordings folder, groups what it found by why it is safe to remove,
+        and shows what each file is costing you.
+      </p>
+      <ul class="chapter-facts">
+        <li><strong>You choose what goes.</strong> Review your exported files before you tick an original.</li>
+        <li><strong>To the Recycle Bin.</strong> Removal sends the selected files to the Windows Recycle Bin.</li>
+      </ul>
+    </div>
+
+    <figure class="chapter-app" data-reveal style="--reveal-delay:.12s">
+      <AppWindow tab="clean" label="The Clean tab of the Flowmaster app, rebuilt for this page">
+        <div class="clean-tab" data-clean style="position:relative">
+          <div class="clean-scan-section">
+            <button type="button" class="clean-scan-btn" data-scan>Rescan</button>
+          </div>
+
+          <div class="clean-categories" data-cats aria-live="polite">
+            <div class="clean-category expanded">
+              <div class="clean-category-header">
+                <label class="clean-select-category" title="Select all in category">
+                  <input type="checkbox" data-cat-all aria-label="Select all in Processed Originals (Display)" />
+                </label>
+                <span class="clean-category-chevron" aria-hidden="true">&#9656;</span>
+                <span class="clean-category-icon" aria-hidden="true">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="20" rx="2"/><path d="M7 2v20M17 2v20M2 12h20"/></svg>
+                </span>
+                <span class="clean-category-name">Processed Originals (Display)</span>
+                <span class="clean-category-stats">
+                  <span class="clean-category-count">{CLEAN_FILES.length} files</span>
+                  <span class="clean-category-size">{formatSize(sum(CLEAN_FILES))}</span>
+                </span>
+              </div>
+              <div class="clean-category-reason">Highlights already extracted — originals safe to remove</div>
+              <div class="clean-category-body">
+                <div class="clean-file-list">
+                  {CLEAN_FILES.map(file => (
+                    <label class:list={['clean-file-item', { selected: CLEAN_PRESELECTED.includes(file.id) }]}>
+                      <input type="checkbox" data-file={file.id} checked={CLEAN_PRESELECTED.includes(file.id)} />
+                      <div class="row-thumb" aria-hidden="true"></div>
+                      <div class="clean-file-info">
+                        <div class="clean-file-name">{file.name}</div>
+                        <div class="clean-file-path">{file.path}</div>
+                      </div>
+                      <span class="clean-file-size">{formatSize(file.size)}</span>
+                    </label>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="clean-summary-bar" data-summary>
+            <div class="clean-summary-stats">
+              <span data-sel-count>{selected.length} selected</span>
+              <span class="clean-summary-sep">&middot;</span>
+              <span class="clean-summary-size" data-sel-size>{formatSize(sum(selected))} to free</span>
+            </div>
+            <button type="button" class="clean-delete-btn" data-delete>Move to Recycle Bin</button>
+          </div>
+
+          <div class="modal-overlay" data-confirm hidden>
+            <div class="modal-panel" role="alertdialog" aria-labelledby="clean-confirm-title" aria-describedby="clean-confirm-text">
+              <div class="modal-header"><p id="clean-confirm-title" data-confirm-title></p></div>
+              <div class="modal-body"><p id="clean-confirm-text" data-confirm-text></p></div>
+              <div class="modal-footer">
+                <button type="button" class="modal-cancel" data-confirm-no>Cancel</button>
+                <button type="button" class="modal-confirm" data-confirm-yes>Yes, Delete</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </AppWindow>
+    </figure>
+  </div>
+</section>
+
+<script>
+  import { CLEAN_FILES, formatSize } from './session';
+
+  type CleanFile = (typeof CLEAN_FILES)[number];
+  const root = document.querySelector<HTMLElement>('[data-clean]');
+  if (root) {
+    const pick = <T extends HTMLElement = HTMLElement>(selector: string) => root.querySelector<T>(selector)!;
+    const cats = pick('[data-cats]');
+    const scanBtn = pick<HTMLButtonElement>('[data-scan]');
+    const summary = pick('[data-summary]');
+    const selCount = pick('[data-sel-count]');
+    const selSize = pick('[data-sel-size]');
+    const deleteBtn = pick<HTMLButtonElement>('[data-delete]');
+    const confirmBox = pick('[data-confirm]');
+    const confirmTitle = pick('[data-confirm-title]');
+    const confirmText = pick('[data-confirm-text]');
+    const confirmNo = pick<HTMLButtonElement>('[data-confirm-no]');
+    const confirmYes = pick<HTMLButtonElement>('[data-confirm-yes]');
+
+    let files: CleanFile[] = [...CLEAN_FILES];
+    const selected = new Set<string>(
+      [...root.querySelectorAll<HTMLInputElement>('[data-file]')].filter(box => box.checked).map(box => box.dataset.file!),
+    );
+    let expanded = true;
+    const sum = (list: CleanFile[]) => list.reduce((total, file) => total + file.size, 0);
+    const esc = (text: string) => text.replace(/[&<>"]/g, ch => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[ch]!));
+
+    function syncSummary() {
+      const chosen = files.filter(file => selected.has(file.id));
+      selCount.textContent = `${chosen.length} selected`;
+      selSize.textContent = `${formatSize(sum(chosen))} to free`;
+      deleteBtn.disabled = chosen.length === 0;
+      summary.hidden = files.length === 0;
+      const all = root!.querySelector<HTMLInputElement>('[data-cat-all]');
+      if (all) {
+        all.checked = files.length > 0 && chosen.length === files.length;
+        all.indeterminate = chosen.length > 0 && chosen.length < files.length;
+      }
+      root!.querySelectorAll<HTMLInputElement>('[data-file]').forEach(box => {
+        box.checked = selected.has(box.dataset.file!);
+        box.closest('.clean-file-item')?.classList.toggle('selected', box.checked);
+      });
+    }
+
+    function renderResults() {
+      if (!files.length) {
+        cats.innerHTML = `
+          <div class="clean-empty-state clean-all-clean">
+            <div class="clean-empty-icon clean-empty-icon-success" aria-hidden="true">
+              <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+            </div>
+            <p class="clean-empty-title clean-success-title">All clean!</p>
+            <p class="clean-empty-hint">No removable files found. Your recordings folder is tidy.</p>
+          </div>`;
+        syncSummary();
+        return;
+      }
+      cats.innerHTML = `
+        <div class="clean-category ${expanded ? 'expanded' : ''}">
+          <div class="clean-category-header">
+            <label class="clean-select-category" title="Select all in category">
+              <input type="checkbox" data-cat-all aria-label="Select all in Processed Originals (Display)">
+            </label>
+            <span class="clean-category-chevron" aria-hidden="true">&#9656;</span>
+            <span class="clean-category-icon" aria-hidden="true">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="20" rx="2"/><path d="M7 2v20M17 2v20M2 12h20"/></svg>
+            </span>
+            <span class="clean-category-name">Processed Originals (Display)</span>
+            <span class="clean-category-stats">
+              <span class="clean-category-count">${files.length} file${files.length !== 1 ? 's' : ''}</span>
+              <span class="clean-category-size">${formatSize(sum(files))}</span>
+            </span>
+          </div>
+          <div class="clean-category-reason">Highlights already extracted — originals safe to remove</div>
+          <div class="clean-category-body">
+            <div class="clean-file-list">
+              ${files.map((file, i) => `
+                <label class="clean-file-item" style="animation-delay:${i * 80}ms">
+                  <input type="checkbox" data-file="${file.id}">
+                  <div class="row-thumb" aria-hidden="true"></div>
+                  <div class="clean-file-info">
+                    <div class="clean-file-name">${esc(file.name)}</div>
+                    <div class="clean-file-path">${esc(file.path)}</div>
+                  </div>
+                  <span class="clean-file-size">${formatSize(file.size)}</span>
+                </label>`).join('')}
+            </div>
+          </div>
+        </div>`;
+      syncSummary();
+    }
+
+    cats.addEventListener('change', event => {
+      const box = event.target as HTMLInputElement;
+      if (box.matches('[data-file]')) {
+        if (box.checked) selected.add(box.dataset.file!); else selected.delete(box.dataset.file!);
+      } else if (box.matches('[data-cat-all]')) {
+        files.forEach(file => { if (box.checked) selected.add(file.id); else selected.delete(file.id); });
+      }
+      syncSummary();
+    });
+    cats.addEventListener('click', event => {
+      const target = event.target as HTMLElement;
+      const header = target.closest('.clean-category-header');
+      if (!header || target.closest('.clean-select-category')) return;
+      expanded = !expanded;
+      header.parentElement!.classList.toggle('expanded', expanded);
+    });
+
+    scanBtn.addEventListener('click', () => {
+      scanBtn.textContent = 'Scanning…';
+      scanBtn.classList.add('scanning');
+      scanBtn.disabled = true;
+      summary.hidden = true;
+      cats.innerHTML = '<div class="clean-scanning-state">Scanning for processed files…</div>';
+      window.setTimeout(() => {
+        files = [...CLEAN_FILES];
+        selected.clear();
+        expanded = true;
+        scanBtn.textContent = 'Rescan';
+        scanBtn.classList.remove('scanning');
+        scanBtn.disabled = false;
+        renderResults();
+      }, 1100);
+    });
+
+    const closeConfirm = () => { confirmBox.hidden = true; deleteBtn.focus({ preventScroll: true }); };
+    deleteBtn.addEventListener('click', () => {
+      const chosen = files.filter(file => selected.has(file.id));
+      const count = chosen.length;
+      if (!count) return;
+      confirmTitle.textContent = `Delete ${count} original file${count !== 1 ? 's' : ''}?`;
+      confirmText.textContent = `These ${count} file${count !== 1 ? 's' : ''} (${formatSize(sum(chosen))} total) will be moved to the Recycle Bin. Review your clips first. Matching timestamp files move with selected display originals; finished clips are kept.`;
+      confirmBox.hidden = false;
+      confirmNo.focus({ preventScroll: true });
+    });
+    confirmNo.addEventListener('click', closeConfirm);
+    confirmBox.addEventListener('keydown', event => { if (event.key === 'Escape') closeConfirm(); });
+    confirmYes.addEventListener('click', () => {
+      files = files.filter(file => !selected.has(file.id));
+      selected.clear();
+      confirmBox.hidden = true;
+      renderResults();
+      (files.length ? deleteBtn : scanBtn).focus({ preventScroll: true });
+    });
+
+    syncSummary();
+  }
+</script>

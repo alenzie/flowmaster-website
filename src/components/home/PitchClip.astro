@@ -1,0 +1,237 @@
+---
+// Fifteen seconds of the first pitch for Flowmaster, recorded in February 2025.
+// Only the 21 s to 35.5 s segment of the file is played. Click to play, with
+// sound; nothing loads until the section is near the screen.
+const SRC = '/media/flowmaster/pitch/value-prop.webm';
+const POSTER = '/media/flowmaster/pitch/value-prop.jpg';
+const START = 21;
+const END = 35.5;
+---
+
+<section id="pitch" class="pitch" aria-labelledby="pitch-title">
+  <div class="wrap pitch-grid">
+    <div class="pitch-copy" data-reveal>
+      <p class="label">Where it started &middot; February 2025</p>
+      <h2 id="pitch-title" class="display pitch-title">Choose what to keep. <span>Not when to record.</span></h2>
+      <p>
+        Back in February 2025, when I first started working on this, I gave a pitch for it. This is fifteen seconds of that recording: the part where I explain the idea the app is still built on. Record everything, and decide what is worth keeping while it happens.
+      </p>
+      <slot />
+    </div>
+
+    <figure class="pitch-figure" data-reveal style="--reveal-delay:.1s">
+      <div class="pitch-player" data-pitch data-start={START} data-end={END}>
+        <div class="pitch-frame">
+          <video
+            data-pitch-video
+            playsinline
+            preload="none"
+            poster={POSTER}
+            data-src={`${SRC}#t=${START},${END}`}
+            aria-label="Clip from my February 2025 pitch for Flowmaster"
+          ></video>
+          <button type="button" class="pitch-big" data-pitch-big aria-label="Play the clip, with sound">
+            <svg viewBox="0 0 24 24" width="26" height="26" aria-hidden="true"><path d="M8 5v14l11-7z" fill="currentColor"/></svg>
+          </button>
+          <span class="pitch-stamp label" aria-hidden="true"><i></i>Feb 2025 &middot; early pitch</span>
+        </div>
+        <div class="pitch-bar">
+          <button type="button" class="pitch-toggle" data-pitch-toggle aria-label="Play">
+            <svg class="i-play" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path d="M8 5v14l11-7z" fill="currentColor"/></svg>
+            <svg class="i-pause" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path d="M6 5h4v14H6zM14 5h4v14h-4z" fill="currentColor"/></svg>
+          </button>
+          <div class="pitch-track" data-pitch-track role="slider" tabindex="0" aria-label="Seek within the clip" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
+            <div class="pitch-played" data-pitch-played></div>
+          </div>
+          <span class="pitch-time"><span data-pitch-cur>0:00</span> / 0:14</span>
+        </div>
+      </div>
+      <figcaption class="label"><span>From my first pitch recording, February 2025</span></figcaption>
+    </figure>
+  </div>
+</section>
+
+<style>
+  .pitch { padding: clamp(4rem, 8vw, 6.5rem) 0; }
+  .pitch-grid { display: grid; gap: 2rem; }
+  .pitch-title { margin: 1rem 0 1.5rem; font-size: clamp(2.5rem, 5vw, 4.25rem); }
+  .pitch-title span { display: block; color: var(--ink-3); }
+  .pitch-copy p:not(.label) { max-width: 34rem; font-size: 1.08rem; }
+  .pitch-aside {
+    max-width: 34rem;
+    padding-left: 1.1rem;
+    border-left: 2px solid var(--footage);
+    font-size: 0.97rem;
+    color: var(--ink-3);
+  }
+  .pitch-figure { margin: 0; min-width: 0; }
+  .pitch-figure figcaption { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 0.3rem 1.25rem; margin-top: 0.9rem; font-size: 0.68rem; }
+
+  .pitch-player { border: 1px solid var(--rule-strong); border-radius: 10px; overflow: hidden; background: #0b0b0b; box-shadow: 0 40px 80px -40px rgba(0, 0, 0, 0.9); }
+  .pitch-frame { position: relative; display: grid; aspect-ratio: 16 / 9; background: #0b0b0b; }
+  .pitch-frame video { grid-area: 1 / 1; width: 100%; height: 100%; object-fit: cover; display: block; cursor: pointer; }
+  .pitch-big {
+    grid-area: 1 / 1;
+    place-self: center;
+    z-index: 1;
+    display: grid;
+    place-items: center;
+    width: 4.25rem;
+    height: 4.25rem;
+    padding-left: 0.2rem;
+    border: 0;
+    border-radius: 50%;
+    background: var(--red);
+    color: #140606;
+    cursor: pointer;
+    box-shadow: 0 12px 34px -8px rgba(0, 0, 0, 0.8), 0 0 0 8px rgba(16, 16, 16, 0.45);
+    transition: transform 0.18s ease, opacity 0.2s ease, background-color 0.18s ease;
+  }
+  .pitch-big:hover { transform: scale(1.06); background: var(--color-brand-red-bright); }
+  .pitch-player.is-playing .pitch-big { opacity: 0; pointer-events: none; }
+  .pitch-stamp {
+    position: absolute;
+    left: 0.75rem;
+    top: 0.75rem;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.3rem 0.55rem;
+    border-radius: 4px;
+    background: rgba(11, 11, 11, 0.82);
+    color: var(--ink-2);
+    font-size: 0.66rem;
+    pointer-events: none;
+    transition: opacity 0.2s ease;
+  }
+  .pitch-stamp i { width: 0.5rem; height: 0.48rem; border-radius: 1.5px; background: var(--ink-3); }
+  .pitch-player.is-playing .pitch-stamp { opacity: 0; }
+
+  .pitch-bar { display: flex; align-items: center; gap: 0.85rem; padding: 0.6rem 0.85rem; border-top: 1px solid var(--rule); }
+  .pitch-toggle {
+    flex: none;
+    display: grid;
+    place-items: center;
+    width: 2.25rem;
+    height: 2.25rem;
+    border: 1px solid var(--rule-strong);
+    border-radius: 6px;
+    background: transparent;
+    color: var(--ink);
+    cursor: pointer;
+    transition: border-color 0.18s ease;
+  }
+  .pitch-toggle:hover { border-color: var(--ink); }
+  .pitch-toggle .i-pause { display: none; }
+  .pitch-player.is-playing .i-play { display: none; }
+  .pitch-player.is-playing .i-pause { display: block; }
+  .pitch-track { position: relative; flex: 1; height: 1.5rem; cursor: pointer; touch-action: none; }
+  .pitch-track::before { content: ''; position: absolute; left: 0; right: 0; top: 50%; height: 4px; margin-top: -2px; border-radius: 2px; background: var(--footage); }
+  .pitch-played { position: absolute; left: 0; top: 50%; height: 4px; margin-top: -2px; width: 0; border-radius: 2px; background: var(--red); }
+  .pitch-time { flex: none; font-family: var(--font-mono); font-size: 0.74rem; color: var(--ink-2); font-variant-numeric: tabular-nums; }
+
+  @media (min-width: 900px) {
+    .pitch-grid { grid-template-columns: minmax(0, 1fr) minmax(0, 1.12fr); grid-template-rows: auto auto; gap: 1.5rem clamp(3rem, 6vw, 6rem); align-content: center; }
+    .pitch-copy { align-self: end; }
+    .pitch-aside { grid-column: 1; grid-row: 2; align-self: start; }
+    .pitch-figure { grid-column: 2; grid-row: 1 / span 2; align-self: center; }
+  }
+</style>
+
+<script>
+  const root = document.querySelector<HTMLElement>('[data-pitch]');
+  const video = root?.querySelector<HTMLVideoElement>('[data-pitch-video]');
+  if (root && video) {
+    const START = Number(root.dataset.start);
+    const END = Number(root.dataset.end);
+    const SPAN = END - START;
+    const big = root.querySelector<HTMLButtonElement>('[data-pitch-big]')!;
+    const toggle = root.querySelector<HTMLButtonElement>('[data-pitch-toggle]')!;
+    const track = root.querySelector<HTMLElement>('[data-pitch-track]')!;
+    const played = root.querySelector<HTMLElement>('[data-pitch-played]')!;
+    const cur = root.querySelector<HTMLElement>('[data-pitch-cur]')!;
+
+    // Nothing is fetched until the player is near the screen, and then only metadata.
+    const arm = () => {
+      if (video.src) return;
+      video.preload = 'metadata';
+      video.src = video.dataset.src!;
+    };
+    if ('IntersectionObserver' in window) {
+      const near = new IntersectionObserver((entries) => {
+        if (!entries[0].isIntersecting) return;
+        near.disconnect();
+        arm();
+      }, { rootMargin: '600px 0px' });
+      near.observe(root);
+    } else {
+      arm();
+    }
+
+    const inside = () => video.currentTime >= START - 0.25 && video.currentTime < END - 0.05;
+    const seek = (time: number) => {
+      const apply = () => { try { video.currentTime = time; } catch { /* not seekable yet */ } };
+      if (video.readyState >= 1) apply();
+      else video.addEventListener('loadedmetadata', apply, { once: true });
+    };
+    const show = () => {
+      const at = Math.min(SPAN, Math.max(0, video.currentTime - START));
+      const pct = (at / SPAN) * 100;
+      played.style.width = `${pct}%`;
+      cur.textContent = `0:${String(Math.floor(at)).padStart(2, '0')}`;
+      track.setAttribute('aria-valuenow', String(Math.round(pct)));
+      track.setAttribute('aria-valuetext', `${Math.floor(at)} of 14 seconds`);
+    };
+    const setPlaying = (on: boolean) => {
+      root.classList.toggle('is-playing', on);
+      toggle.setAttribute('aria-label', on ? 'Pause' : 'Play');
+    };
+
+    const play = () => {
+      arm();
+      if (!inside()) seek(START);
+      video.play().catch(() => {});
+    };
+    const flip = () => (video.paused ? play() : video.pause());
+
+    big.addEventListener('click', play);
+    toggle.addEventListener('click', flip);
+    video.addEventListener('click', flip);
+    video.addEventListener('play', () => setPlaying(true));
+    video.addEventListener('pause', () => setPlaying(false));
+    video.addEventListener('timeupdate', () => {
+      // The clip is a window into a longer file: stop at the end of the window.
+      if (video.currentTime >= END - 0.05) {
+        video.pause();
+        seek(START);
+        played.style.width = '0%';
+        cur.textContent = '0:00';
+        return;
+      }
+      show();
+    });
+
+    let scrubbing = false;
+    const scrub = (clientX: number) => {
+      const box = track.getBoundingClientRect();
+      const ratio = Math.min(1, Math.max(0, (clientX - box.left) / box.width));
+      arm();
+      seek(START + ratio * (SPAN - 0.2));
+      played.style.width = `${ratio * 100}%`;
+    };
+    track.addEventListener('pointerdown', (event) => { scrubbing = true; track.setPointerCapture(event.pointerId); scrub(event.clientX); });
+    track.addEventListener('pointermove', (event) => { if (scrubbing) scrub(event.clientX); });
+    track.addEventListener('pointerup', () => { scrubbing = false; });
+    track.addEventListener('pointercancel', () => { scrubbing = false; });
+    track.addEventListener('keydown', (event) => {
+      if (event.key === 'ArrowRight' || event.key === 'ArrowLeft') {
+        event.preventDefault();
+        const next = Math.min(END - 0.3, Math.max(START, video.currentTime + (event.key === 'ArrowRight' ? 2 : -2)));
+        seek(inside() ? next : START);
+      } else if (event.key === ' ' || event.key === 'Enter') {
+        event.preventDefault();
+        flip();
+      }
+    });
+  }
+</script>

@@ -1,0 +1,36 @@
+---
+// The Flowmaster desktop window, rebuilt from the app's own HTML and CSS (0.2.2):
+// the Windows caption bar, the top bar and the MARK / CLIP / CLEAN tab row.
+// The tabs are links to the matching section of the homepage, so the app's own
+// navigation moves you through the page. Whatever goes in the slot is the tab body.
+import '../../styles/app-ui.css';
+
+interface Props {
+  tab: 'mark' | 'clip' | 'clean';
+  label: string;
+  class?: string;
+}
+const { tab, label, class: className } = Astro.props;
+const tabs = ['mark', 'clip', 'clean'] as const;
+---
+<div class:list={['fm', className]} role="group" aria-label={label}>
+  <div class="fm-caption" aria-hidden="true">
+    <img src="/brand/LogoEmblem.svg" alt="" width="22" height="6" />
+    <span class="fm-caption-title">Flowmaster</span>
+    <span class="fm-caption-ctl"><i>&#8211;</i><i>&#9633;</i><i>&#10005;</i></span>
+  </div>
+  <div class="top-bar">
+    <span class="hamburger" aria-hidden="true">&#9776;</span>
+    <span class="app-title" aria-hidden="true">FLOWMASTER</span>
+    <nav class="tab-list" aria-label={`${label}: jump to a section of this page`}>
+      {tabs.map((name) => (
+        <a
+          class:list={['tab-btn', { active: name === tab }]}
+          href={`#${name}`}
+          aria-current={name === tab ? 'true' : undefined}
+        >{name.toUpperCase()}</a>
+      ))}
+    </nav>
+  </div>
+  <slot />
+</div>

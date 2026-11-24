@@ -1,11 +1,93 @@
 ---
+// The Free trial page. Deliberately thin: what the trial is, in one screen,
+// with the exact counting rules left to the download page.
 import BaseLayout from '../layouts/BaseLayout.astro';
+
+const ACTIONS = 30;
+const facts = [
+  ['30 actions per PC', 'Recording sessions, clipping runs and project assemblies each use one.'],
+  ['No time limit', 'The actions do not expire.'],
+  ['Free account', 'Required. Sign in with email or Google.'],
+  ['Online', 'An internet connection is needed to verify usage.'],
+];
 ---
-<BaseLayout title="Free trial" description="Flowmaster is preparing a free 30-action trial for Windows. Paid trials and purchases are unavailable.">
-  <section class="section-padding"><div class="container-main max-w-2xl mx-auto text-center">
-    <h1 class="mb-6">Try the workflow. No payment card.</h1>
-    <p class="text-lg mb-6">Flowmaster’s trial includes 30 actions per PC. It requires an internet connection to verify usage, and a free account, with no time limit.</p>
-    <p class="mb-8">Accounts are free. Paid trials and upgrades are currently unavailable. See the download page for the release status and exact trial rules.</p>
-    <a class="btn-primary" href="/download">Free trial details</a>
-  </div></section>
+
+<BaseLayout title="Free trial" description="Flowmaster's free trial: 30 actions per PC, a free account, no time limit and no payment card. Paid trials and upgrades are currently unavailable.">
+  <section class="trial">
+    <div class="wrap trial-grid">
+      <div class="trial-copy">
+        <p class="label">Free trial</p>
+        <h1 class="display trial-title">Try the workflow. <span>No payment card.</span></h1>
+        <p class="trial-lede">
+          Flowmaster&rsquo;s trial includes 30 actions per PC. It requires an internet connection to verify usage, and a free account, with no time limit.
+        </p>
+        <div class="trial-actions">
+          <a class="btn-primary trial-cta" href="/account">Create a free account</a>
+          <a class="arrow-link" href="/download#trial-rules">Free trial details</a>
+        </div>
+        <p class="trial-fine">
+          Accounts are free. Paid trials and upgrades are currently unavailable. See the download page for the release status and exact trial rules.
+        </p>
+      </div>
+
+      <figure class="trial-meter" aria-label="30 actions in the free trial">
+        <div class="trial-squares" aria-hidden="true">
+          {Array.from({ length: ACTIONS }, (_, i) => <i style={`--i:${i}`}></i>)}
+        </div>
+        <figcaption class="label">30 actions &middot; one PC &middot; no time limit</figcaption>
+      </figure>
+    </div>
+
+    <div class="wrap">
+      <dl class="trial-facts">
+        {facts.map(([term, detail]) => (
+          <div>
+            <dt class="label">{term}</dt>
+            <dd>{detail}</dd>
+          </div>
+        ))}
+      </dl>
+    </div>
+  </section>
 </BaseLayout>
+
+<style>
+  .trial { padding: calc(var(--nav-h) + clamp(3rem, 8vw, 6rem)) 0 clamp(4rem, 9vw, 7rem); }
+  .trial-grid { display: grid; gap: clamp(2.5rem, 6vw, 4rem); align-items: center; }
+  .trial-title { margin-top: 1rem; font-size: clamp(2.8rem, 6.4vw, 5.5rem); }
+  .trial-title span { display: block; color: var(--ink-3); }
+  .trial-lede { margin-top: 1.4rem; max-width: 32rem; font-size: clamp(1.08rem, 1.4vw, 1.2rem); line-height: 1.55; color: var(--ink-2); }
+  .trial-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 0.75rem 1.75rem; margin-top: 1.8rem; }
+  .trial-cta { min-height: 3.4rem; padding: 0.9rem 1.6rem; font-size: 1.08rem; }
+  .trial-fine { margin-top: 1.2rem; max-width: 32rem; font-size: 0.92rem; color: var(--ink-3); }
+
+  /* Thirty squares, one per action, landing in the brand's three colours. */
+  .trial-meter { margin: 0; display: grid; gap: 1rem; justify-items: start; }
+  .trial-squares { display: grid; grid-template-columns: repeat(10, 1fr); gap: clamp(0.4rem, 1vw, 0.65rem); width: min(100%, 30rem); }
+  .trial-squares i {
+    aspect-ratio: 1;
+    border-radius: 18%;
+    background: var(--red);
+    animation: ts-in 0.45s cubic-bezier(0.3, 1.4, 0.5, 1) calc(0.15s + var(--i) * 0.035s) both;
+  }
+  .trial-squares i:nth-child(10n + 4), .trial-squares i:nth-child(10n + 5), .trial-squares i:nth-child(10n + 6), .trial-squares i:nth-child(10n + 7) { background: var(--yellow); }
+  .trial-squares i:nth-child(10n + 8), .trial-squares i:nth-child(10n + 9), .trial-squares i:nth-child(10n) { background: var(--green); }
+  .trial-meter figcaption { font-size: 0.7rem; }
+  @keyframes ts-in { from { opacity: 0; transform: translateY(-30%) scale(0.6); } to { opacity: 1; transform: none; } }
+
+  .trial-facts { display: grid; gap: 0; margin-top: clamp(3.5rem, 8vw, 5.5rem); border-top: 1px solid var(--rule); }
+  .trial-facts > div { padding: 1.3rem 0; border-bottom: 1px solid var(--rule); }
+  .trial-facts dt { color: var(--ink); }
+  .trial-facts dd { margin: 0.45rem 0 0; color: var(--ink-2); max-width: 26rem; }
+
+  @media (min-width: 900px) {
+    .trial-grid { grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr); gap: 5rem; }
+    .trial-meter { justify-items: end; }
+    .trial-facts { grid-template-columns: repeat(4, minmax(0, 1fr)); border-bottom: 1px solid var(--rule); }
+    .trial-facts > div { padding: 1.5rem 1.5rem 1.6rem 0; border-bottom: 0; }
+    .trial-facts > div + div { padding-left: 1.5rem; border-left: 1px solid var(--rule); }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .trial-squares i { animation: none; }
+  }
+</style>

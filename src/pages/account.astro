@@ -4,7 +4,7 @@ import service from '../data/supabase.json';
 ---
 <BaseLayout title="Your Flowmaster account" description="Sign in or create a free Flowmaster account with Google or email. Paid upgrades are unavailable.">
   <section class="account-shell">
-    <div class="account-intro"><h1>One account.<br />Every Moment.</h1><p>Create a free account to use Flowmaster. Each PC has a 30-action trial. Creating another account or reinstalling keeps that PC’s existing usage.</p><p>Paid trials and upgrades are unavailable.</p></div>
+    <div class="account-intro"><p class="label">Account</p><h1 class="display account-title">One account.<br /><span>Every Moment.</span></h1><p>Create a free account to use Flowmaster. Each PC has a 30-action trial. Creating another account or reinstalling keeps that PC’s existing usage.</p><p>Paid trials and upgrades are unavailable.</p></div>
     <div class="account-card">
       <h2 id="account-title">Sign in</h2>
       {!service.emailReady && <p class="account-service-status" role="status">Free account signup and password-reset emails are being connected. These options will open when email delivery is verified. Existing accounts can still sign in.</p>}
@@ -236,8 +236,236 @@ import service from '../data/supabase.json';
   $('account-signout').addEventListener('click', async () => { const { error } = await db.auth.signOut(); if (error) message(error.message); else { recovery = false; message(''); showSession(null); } });
 </script>
 <style>
-.release-preferences{margin-top:30px;padding-top:24px;border-top:1px solid #34393f}.release-preferences h3{font-size:18px;font-weight:650;margin:0 0 10px}.release-preferences p{color:#b3b7bf;font-size:13px;line-height:1.6}.account-card label.release-preferences-choice{display:flex;align-items:flex-start;gap:12px;font-size:14px;line-height:1.6;margin-top:18px}.account-card #release-email-enabled{width:18px;height:18px;flex:0 0 18px;margin-top:3px;padding:0;accent-color:#a6ffba}.account-card #release-preferences-save{margin-top:16px;font-size:14px}.account-card #release-preferences-unsubscribe,.account-card #release-preferences-retry{font-size:13px;text-decoration:underline;line-height:1.5}#release-preferences-message{margin-top:16px}
+  /* Look only. Every selector here targets markup the script already uses;
+     nothing in the script depends on these rules except [hidden]. */
 
-.account-card #account-google{display:flex;align-items:center;justify-content:center;gap:12px;width:100%;min-height:44px;margin:16px 0 0;padding:12px 18px;background:#f2f2f2;color:#1f1f1f;border:1px solid #747775;border-radius:6px;font-family:Arial,sans-serif;font-size:14px;font-weight:500;text-align:center}.account-card #account-google:not(:disabled):hover{background:#e5e5e5}.account-card #account-google svg{flex-shrink:0}#account-google-status{font-size:12px;color:#b3b7bf;line-height:1.5;margin-top:10px}.account-divider{display:flex;align-items:center;gap:12px;margin:22px 0;color:#979fa9;font-size:12px}.account-divider::before,.account-divider::after{content:'';height:1px;flex:1;background:#34393f}#account-ready{line-height:1.65;color:#cbd0d9}#account-signed-in>a{display:block;margin-top:20px}
-.account-shell{max-width:1100px;margin:auto;padding:100px 24px;display:grid;grid-template-columns:1.1fr 1fr;gap:72px;align-items:start}.eyebrow{font-size:12px;letter-spacing:.18em;color:#a6ffba;margin-bottom:24px}.account-intro h1{font-size:clamp(38px,5vw,64px);line-height:1.06;margin-bottom:30px}.account-intro p:not(.eyebrow){color:#b3b7bf;line-height:1.7;margin-top:20px}.account-card{background:#15181b;border:1px solid #34393f;border-radius:16px;padding:30px}.account-card h2{font-size:25px;margin-bottom:18px}.account-card label{display:block;font-size:13px;margin:18px 0 7px}.account-card input{width:100%;background:#0b0d10;border:1px solid #42484f;border-radius:6px;padding:12px;color:white}.account-card button[type=submit]{display:block;width:100%;background:#a6ffba;color:#0a1710;padding:12px;margin-top:24px;border-radius:6px;font-weight:650}.account-card button:disabled{opacity:.5;cursor:not-allowed}.account-service-status{padding:14px;background:#252516;border:1px solid #62603c;border-radius:6px;color:#e3dfb3;font-size:14px;line-height:1.5;margin-bottom:20px}.account-card button[type=button]{display:block;color:#a6ffba;text-align:left;margin-top:17px}.account-card a{color:#a6ffba}.account-card [hidden]{display:none!important}#account-message{color:#cbd0d9;font-size:14px;line-height:1.5}.account-note{font-size:12px;line-height:1.6;color:#979fa9;margin-top:30px}.account-card input:focus-visible,.account-card button:focus-visible{outline:2px solid #a6ffba;outline-offset:3px}@media(max-width:760px){.account-shell{grid-template-columns:1fr;gap:36px;padding:60px 20px}.account-card{padding:24px}}
+  /* ---------- Shell ---------- */
+  .account-shell {
+    width: min(100% - 2 * var(--pad), var(--wrap));
+    margin-inline: auto;
+    padding: calc(var(--nav-h) + clamp(2.5rem, 6vw, 5rem)) 0 clamp(4rem, 8vw, 6.5rem);
+    display: grid;
+    gap: 2.75rem;
+    align-items: start;
+  }
+  .account-shell > * { min-width: 0; }
+  @media (min-width: 960px) {
+    .account-shell { grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr); gap: clamp(3rem, 6vw, 6rem); }
+    .account-intro { position: sticky; top: calc(var(--nav-h) + 2rem); }
+  }
+
+  /* ---------- Intro ---------- */
+  .account-title { margin-top: 1.1rem; font-size: clamp(3.2rem, 8vw, 6.75rem); line-height: 0.86; font-stretch: 62%; }
+  .account-title span { color: var(--ink-3); }
+  .account-intro p:not(.label) { max-width: 30rem; }
+  .account-intro .account-title + p { margin-top: 1.5rem; font-size: clamp(1.1rem, 1.5vw, 1.25rem); line-height: 1.5; color: var(--ink); }
+  .account-intro p:not(.label) + p { margin-top: 1rem; font-size: 0.98rem; color: var(--ink-3); }
+
+  /* ---------- Panel ---------- */
+  .account-card {
+    padding: clamp(1.4rem, 3vw, 2rem);
+    border: 1px solid var(--rule-strong);
+    border-radius: 10px;
+    background: var(--ground-2);
+  }
+  .account-card [hidden] { display: none !important; }
+  .account-card h2 { font-size: clamp(1.9rem, 3vw, 2.4rem); line-height: 1; margin-bottom: 1.1rem; }
+
+  #account-message { font-size: 0.95rem; line-height: 1.5; color: var(--ink); }
+  #account-message:not(:empty) {
+    margin-bottom: 1.1rem;
+    padding: 0.75rem 0 0.75rem 0.9rem;
+    border-left: 2px solid var(--yellow);
+  }
+  .account-service-status {
+    margin-bottom: 1.25rem;
+    padding: 0.85rem 0 0.85rem 0.9rem;
+    border-left: 2px solid var(--yellow);
+    font-size: 0.95rem;
+    line-height: 1.5;
+    color: var(--ink);
+  }
+
+  /* ---------- Controls ---------- */
+  .account-card button { font-family: var(--font-body); cursor: pointer; }
+  .account-card button:disabled { opacity: 0.45; cursor: not-allowed; }
+
+  .account-card label {
+    display: block;
+    margin: 1.15rem 0 0.45rem;
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    font-weight: 500;
+    letter-spacing: 0.09em;
+    text-transform: uppercase;
+    color: var(--ink-2);
+  }
+  .account-card input {
+    width: 100%;
+    min-height: 3rem;
+    padding: 0.7rem 0.85rem;
+    border: 1px solid var(--rule-strong);
+    border-radius: 6px;
+    background: #0b0b0b;
+    font-family: var(--font-body);
+    font-size: 1rem;
+    color: var(--ink);
+    transition: border-color 0.18s ease;
+  }
+  .account-card input:hover { border-color: var(--ink-3); }
+  .account-card input:focus-visible { border-color: var(--ink); outline: 2px solid var(--yellow); outline-offset: 2px; }
+  .account-card button:focus-visible,
+  .account-card a:focus-visible { outline: 2px solid var(--yellow); outline-offset: 3px; }
+
+  /* The one red action on the page: submit the visible form. */
+  .account-card button[type=submit] {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    min-height: 3.25rem;
+    margin-top: 1.5rem;
+    padding: 0.75rem 1.35rem;
+    border-radius: 6px;
+    background: var(--red);
+    color: #140606;
+    font-size: 1.05rem;
+    font-weight: 700;
+    line-height: 1.1;
+    transition: background-color 0.18s ease, transform 0.18s ease, box-shadow 0.18s ease;
+  }
+  .account-card button[type=submit]:not(:disabled):hover {
+    background: var(--color-brand-red-bright);
+    transform: translateY(-1px);
+    box-shadow: 0 10px 28px -10px rgba(244, 63, 67, 0.7);
+  }
+
+  /* Secondary actions read as links. */
+  .account-card button[type=button] {
+    display: inline-flex;
+    align-items: center;
+    min-height: 2.75rem;
+    margin-top: 0.6rem;
+    font-size: 0.98rem;
+    font-weight: 600;
+    text-align: left;
+    color: var(--ink);
+    text-decoration: underline;
+    text-decoration-color: var(--rule-strong);
+    text-decoration-thickness: 1px;
+    text-underline-offset: 0.28em;
+    transition: text-decoration-color 0.18s ease;
+  }
+  .account-card button[type=button]:not(:disabled):hover { text-decoration-color: var(--yellow); }
+  #account-options { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 0 1.5rem; margin-top: 0.5rem; }
+  #password-cancel { display: flex; }
+
+  /* ---------- Google ---------- */
+  .account-card #account-google {
+    display: flex;
+    justify-content: center;
+    gap: 0.75rem;
+    width: 100%;
+    min-height: 3.25rem;
+    margin: 0;
+    padding: 0.75rem 1.1rem;
+    border: 1px solid #f2f0ea;
+    border-radius: 6px;
+    background: #f2f0ea;
+    color: #1a1a1a;
+    font-size: 1rem;
+    font-weight: 650;
+    text-align: center;
+    text-decoration: none;
+    transition: background-color 0.18s ease;
+  }
+  .account-card #account-google:not(:disabled):hover { background: #ffffff; }
+  .account-card #account-google svg { flex-shrink: 0; }
+  #account-google-status { margin-top: 0.65rem; font-size: 0.86rem; line-height: 1.5; color: var(--ink-3); }
+  .account-divider {
+    display: flex;
+    align-items: center;
+    gap: 0.85rem;
+    margin: 1.4rem 0 0.2rem;
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+    letter-spacing: 0.09em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+  }
+  .account-divider::before, .account-divider::after { content: ''; height: 1px; flex: 1; background: var(--rule); }
+
+  /* ---------- Signed in ---------- */
+  #account-ready { font-size: 1.02rem; line-height: 1.6; color: var(--ink); }
+  #account-signed-in > a {
+    display: inline-flex;
+    align-items: center;
+    min-height: 3rem;
+    margin-top: 0.9rem;
+    font-weight: 600;
+    color: var(--ink);
+    text-decoration: none;
+    border-bottom: 1px solid var(--rule-strong);
+    transition: border-color 0.18s ease;
+  }
+  #account-signed-in > a:hover { border-color: var(--yellow); }
+  #account-set-password, #account-signout { display: flex; }
+  #account-signout { width: 100%; margin-top: 1.5rem; padding-top: 1rem; border-top: 1px solid var(--rule); }
+
+  /* ---------- Release emails ---------- */
+  .release-preferences { margin-top: 1.75rem; padding-top: 1.5rem; border-top: 1px solid var(--rule); }
+  .release-preferences h3 { margin: 0 0 0.5rem; font-size: 1.15rem; font-weight: 650; }
+  .release-preferences p { font-size: 0.92rem; line-height: 1.55; color: var(--ink-2); }
+  .account-card label.release-preferences-choice {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.75rem;
+    margin: 1.1rem 0 0;
+    font-family: var(--font-body);
+    font-size: 0.95rem;
+    font-weight: 400;
+    line-height: 1.55;
+    letter-spacing: 0;
+    text-transform: none;
+    color: var(--ink);
+  }
+  .account-card #release-email-enabled {
+    width: 1.15rem;
+    min-height: 0;
+    height: 1.15rem;
+    flex: 0 0 1.15rem;
+    margin-top: 0.2rem;
+    padding: 0;
+    accent-color: var(--ink);
+  }
+  /* Saving a preference is not the page's main action, so it is not red. */
+  .account-card #release-preferences-save {
+    min-height: 3rem;
+    margin-top: 1.1rem;
+    border: 1px solid var(--rule-strong);
+    background: transparent;
+    color: var(--ink);
+    font-size: 1rem;
+    box-shadow: none;
+  }
+  .account-card #release-preferences-save:not(:disabled):hover {
+    border-color: var(--ink);
+    background: rgba(242, 240, 234, 0.05);
+    transform: none;
+    box-shadow: none;
+  }
+  .account-card #release-preferences-unsubscribe,
+  .account-card #release-preferences-retry { display: flex; margin-top: 0.3rem; font-size: 0.92rem; }
+  #release-preferences-message:not(:empty) { margin-top: 0.75rem; }
+
+  /* ---------- Note ---------- */
+  .account-note { margin-top: 1.75rem; padding-top: 1.1rem; border-top: 1px solid var(--rule); font-size: 0.86rem; line-height: 1.6; color: var(--ink-3); }
+  .account-note a {
+    color: var(--ink-2);
+    text-decoration: underline;
+    text-decoration-color: var(--rule-strong);
+    text-decoration-thickness: 1px;
+    text-underline-offset: 0.28em;
+  }
+  .account-note a:hover { color: var(--ink); text-decoration-color: var(--yellow); }
 </style>

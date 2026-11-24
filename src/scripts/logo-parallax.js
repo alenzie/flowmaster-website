@@ -121,7 +121,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Wait for intro animation to complete, then enable breathing
   setTimeout(() => {
-    console.log('[logo-parallax] Intro complete - enabling tracking');
     logoWrapper.classList.add('animation-complete');
     animationStarted = true;
     // Start pulse cycle after intro completes
@@ -133,18 +132,11 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }, introAnimationDuration);
 
-  // Mouse parallax - enabled on all screens for testing
-  // TODO: Re-add media query check for production: window.matchMedia('(hover: hover) and (min-width: 768px)')
-  console.log('[logo-parallax] logoWrapper found:', !!logoWrapper);
-  console.log('[logo-parallax] Squares found:', !!redSquare, !!yellowSquare, !!greenSquare);
-  console.log('[logo-parallax] Mouse parallax enabled');
+  // Mouse parallax: only where there is a mouse to follow.
 
-  {
-    let mouseMoveCount = 0;
+  if (window.matchMedia('(hover: hover) and (min-width: 768px)').matches) {
     document.addEventListener('mousemove', (e) => {
       if (!animationStarted) return;
-      mouseMoveCount++;
-      if (mouseMoveCount % 60 === 1) console.log('[logo-parallax] mousemove #' + mouseMoveCount);
 
       const centerX = window.innerWidth / 2;
       const centerY = window.innerHeight / 2;

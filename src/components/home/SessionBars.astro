@@ -1,0 +1,83 @@
+---
+// Recorded vs kept, drawn to the same scale: what a marked session leaves you.
+// Marks land left to right in red, hold, then turn yellow as the kept time
+// appears. The animation waits until the figure scrolls into view.
+import { LOOKBACK, LOOKFORWARD, formatDuration } from './session';
+
+// An example session drawn to scale. Eleven marks, each keeping LOOKBACK
+// seconds before and LOOKFORWARD after, spaced so no two windows overlap.
+const HERO_TOTAL = 3 * 3600 + 12 * 60 + 8; // 3:12:08
+const HERO_KEPT = [0.06, 0.14, 0.21, 0.33, 0.41, 0.47, 0.58, 0.69, 0.76, 0.85, 0.94].map((f) => Math.round(HERO_TOTAL * f));
+const HERO_KEEP = HERO_KEPT.length * (LOOKBACK + LOOKFORWARD); // 12:50
+---
+
+<figure class="hero-bars" aria-labelledby="hero-bars-cap" data-session-bars>
+  <div class="hb-row">
+    <p class="hb-meta"><span class="label">Recorded</span><strong>{formatDuration(HERO_TOTAL)}</strong></p>
+    <div class="hb-bar hb-bar--rec">
+      {HERO_KEPT.map((at, i) => <i style={`--i:${i};left:${((at - LOOKBACK) / HERO_TOTAL) * 100}%;width:${((LOOKBACK + LOOKFORWARD) / HERO_TOTAL) * 100}%`}></i>)}
+    </div>
+  </div>
+  <div class="hb-row">
+    <p class="hb-meta"><span class="label hb-kept">Kept</span><strong class="hb-kept">{formatDuration(HERO_KEEP)}</strong></p>
+    <div class="hb-bar hb-bar--kept"><i style={`width:${(HERO_KEEP / HERO_TOTAL) * 100}%`}></i></div>
+  </div>
+  <figcaption id="hero-bars-cap" class="label hb-cap">
+    <span>Example session &middot; {HERO_KEPT.length} marks &middot; drawn to scale</span>
+    <span>{LOOKBACK} s before and {LOOKFORWARD} s after each mark</span>
+  </figcaption>
+</figure>
+
+<style>
+  .hero-bars { margin: 2.5rem 0 0; max-width: 34rem; display: grid; gap: 1.6rem; min-width: 0; }
+  .hb-meta { display: flex; justify-content: space-between; align-items: baseline; gap: 1rem; margin-bottom: 0.55rem; }
+  .hb-meta strong { font-family: var(--font-mono); font-size: clamp(1.4rem, 2.4vw, 2rem); font-weight: 600; color: var(--ink); font-variant-numeric: tabular-nums; letter-spacing: -0.01em; }
+  .hb-kept { color: var(--yellow) !important; }
+  .hb-bar { position: relative; height: clamp(2.6rem, 4vw, 3.4rem); }
+  .hb-bar--rec {
+    background-color: var(--footage);
+    background-image: repeating-linear-gradient(to right, rgba(0, 0, 0, 0.22) 0 1px, transparent 1px 10px);
+    transform-origin: left;
+    animation: hb-grow 1.1s cubic-bezier(0.2, 0.7, 0.2, 1) 0.2s both;
+  }
+  .hb-bar--rec i {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    min-width: 3px;
+    background: var(--yellow);
+    /* Marks land left to right in red, hold, then turn yellow as the kept time appears. */
+    animation:
+      hb-mark 0.3s cubic-bezier(0.3, 1.4, 0.5, 1) calc(1.3s + var(--i) * 0.13s) both,
+      hb-keep 0.4s ease 3.9s both;
+  }
+  .hb-bar--kept { box-shadow: inset 0 0 0 1px var(--rule); }
+  .hb-bar--kept i {
+    position: absolute;
+    inset: 0 auto 0 0;
+    min-width: 6px;
+    background: var(--yellow);
+    transform-origin: left;
+    animation: hb-grow 0.6s cubic-bezier(0.2, 0.7, 0.2, 1) 3.9s both;
+  }
+  .hb-cap { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 0.3rem 1.5rem; margin-top: -0.4rem; font-size: 0.68rem; }
+  .hb-row:nth-child(2) .hb-meta { animation: hb-in 0.5s ease 3.9s both; }
+  @keyframes hb-in { from { opacity: 0; } to { opacity: 1; } }
+  @keyframes hb-grow { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+  @keyframes hb-mark { from { opacity: 0; transform: scaleY(0); background: var(--red); } to { opacity: 1; transform: scaleY(1); background: var(--red); } }
+  @keyframes hb-keep { from { background: var(--red); } to { background: var(--yellow); } }
+  @media (prefers-reduced-motion: reduce) {
+    .hb-bar--rec, .hb-bar--rec i, .hb-bar--kept i, .hb-row:nth-child(2) .hb-meta { animation: none; }
+  }
+  /* Hold every animation until the bars scroll into view. */
+  .hero-bars:not(.is-in) *, .hero-bars:not(.is-in) { animation-play-state: paused !important; }
+</style>
+
+<script>
+  document.querySelectorAll<HTMLElement>('[data-session-bars]').forEach((el) => {
+    const io = new IntersectionObserver(([entry]) => {
+      if (entry.isIntersecting) { el.classList.add('is-in'); io.disconnect(); }
+    }, { threshold: 0.35 });
+    io.observe(el);
+  });
+</script>

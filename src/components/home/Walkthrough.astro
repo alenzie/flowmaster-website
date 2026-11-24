@@ -1,0 +1,136 @@
+---
+// How it works: the coded walkthrough from portfolio26 (about 1:48), shown in
+// place after Mark, Clip and Clean. It brings its own start screen and Play
+// button, so the page only frames it. The frame loads when the section nears
+// the screen, and the walkthrough pauses when it scrolls away or the tab hides.
+const src = '/demos/flowmaster-ux-story/index.html?v=mobile-2&embed=1';
+---
+
+<section class="walk" id="how-it-works" aria-labelledby="walk-title">
+  <div class="wrap">
+    <div class="walk-head" data-reveal>
+      <p class="label">How it works</p>
+      <h2 id="walk-title" class="walk-title">Flowmaster runs alongside OBS Studio.</h2>
+    </div>
+    <div class="walk-frame" data-walk>
+      <iframe id="walkthrough-frame" data-walk-frame data-src={src}
+        title="Flowmaster walkthrough: record in OBS, mark highlights, extract clips, and clean up"
+        scrolling="no" allow="autoplay; fullscreen" allowfullscreen></iframe>
+      <p class="walk-status" data-walk-status role="status">Loading the walkthrough…</p>
+    </div>
+    <div class="walk-controls">
+      <button type="button" class="walk-toggle" data-walk-toggle disabled aria-controls="walkthrough-frame">
+        <span class="walk-toggle-icon" aria-hidden="true"></span><span data-walk-toggle-text>Loading…</span>
+      </button>
+      <span class="label">Example footage</span>
+    </div>
+  </div>
+</section>
+
+<style>
+  .walk { padding: clamp(4.5rem, 9vw, 7.5rem) 0; border-top: 1px solid var(--rule); }
+  .walk-head { display: grid; gap: 1rem; margin-bottom: clamp(1.75rem, 4vw, 2.75rem); }
+  @media (min-width: 900px) {
+    /* Label on the left, the sentence on the right, sharing a baseline. */
+    .walk-head { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); align-items: baseline; column-gap: 4rem; }
+    .walk-title { justify-self: end; text-align: right; }
+  }
+  .walk-title { max-width: 44rem; font-family: var(--font-heading); font-stretch: 100%; text-transform: none; font-weight: 600; font-size: clamp(1.4rem, 2.4vw, 2rem); line-height: 1.3; letter-spacing: -0.01em; color: var(--ink); text-wrap: balance; }
+  .walk-frame {
+    position: relative;
+    aspect-ratio: 16 / 9;
+    overflow: hidden;
+    border: 1px solid var(--rule-strong);
+    border-radius: 12px;
+    background: #07080b;
+    box-shadow: 0 40px 90px -45px rgba(0, 0, 0, 0.9);
+  }
+  .walk-status {
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    display: grid;
+    place-items: center;
+    margin: 0;
+    background: #07080b;
+    font-family: var(--font-mono);
+    font-size: 0.8rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+    transition: opacity 0.4s ease;
+  }
+  .walk-status.is-done { opacity: 0; pointer-events: none; }
+  .walk-frame iframe { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; display: block; background: #07080b; }
+  .walk-controls { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 0.75rem 1.5rem; margin-top: 1rem; }
+  .walk-controls .label { font-size: 0.68rem; }
+  .walk-toggle {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.6rem;
+    min-height: 2.75rem;
+    padding: 0.5rem 1rem 0.5rem 0.6rem;
+    border: 1px solid var(--rule-strong);
+    border-radius: 999px;
+    background: transparent;
+    color: var(--ink);
+    font: inherit;
+    font-weight: 600;
+    cursor: pointer;
+  }
+  .walk-toggle:hover:not(:disabled) { border-color: var(--ink-2); }
+  .walk-toggle:disabled { color: var(--ink-3); cursor: wait; }
+  .walk-toggle:focus-visible { outline: 2px solid var(--ink); outline-offset: 3px; }
+  .walk-toggle-icon { width: 1.7rem; height: 1.7rem; border-radius: 50%; background: var(--ink); position: relative; }
+  .walk-toggle-icon::before { content: ''; position: absolute; left: 55%; top: 50%; translate: -50% -50%; border-style: solid; border-width: 0.32rem 0 0.32rem 0.52rem; border-color: transparent transparent transparent #111; }
+  .walk-toggle.is-playing .walk-toggle-icon::before { left: 50%; width: 0.5rem; height: 0.6rem; border: 0; border-left: 0.16rem solid #111; border-right: 0.16rem solid #111; }
+</style>
+
+<script>
+  const box = document.querySelector<HTMLElement>('[data-walk]');
+  const frame = box?.querySelector<HTMLIFrameElement>('[data-walk-frame]');
+  const status = box?.querySelector<HTMLElement>('[data-walk-status]');
+  if (box && frame && status) {
+    let timer = 0;
+    let playing = false;
+    const toggle = box.parentElement!.querySelector<HTMLButtonElement>('[data-walk-toggle]')!;
+    const toggleText = toggle.querySelector<HTMLElement>('[data-walk-toggle-text]')!;
+    const setToggle = () => {
+      toggle.classList.toggle('is-playing', playing);
+      toggleText.textContent = playing ? 'Pause' : 'Play walkthrough';
+    };
+    const play = () => {
+      try { frame.contentWindow?.dispatchEvent(new CustomEvent('flowmaster:playback', { detail: { action: 'play' } })); }
+      catch { /* not loaded yet */ }
+    };
+    const pause = () => {
+      try { frame.contentWindow?.dispatchEvent(new CustomEvent('flowmaster:playback', { detail: { action: 'pause' } })); }
+      catch { /* not loaded yet */ }
+    };
+    const load = () => {
+      if (frame.getAttribute('src')) return;
+      status.textContent = 'Loading the walkthrough…';
+      status.classList.remove('is-done');
+      frame.src = frame.dataset.src || '';
+      window.clearTimeout(timer);
+      timer = window.setTimeout(() => {
+        status.innerHTML = 'The walkthrough is taking a while. <a href="' + (frame.dataset.src || '').replace('&embed=1', '') + '" target="_blank" rel="noopener">Open it in a new tab</a>.';
+      }, 20000);
+    };
+    window.addEventListener('message', (event) => {
+      if (event.source !== frame.contentWindow || event.origin !== location.origin) return;
+      if (event.data?.type === 'flowmaster:ready') { window.clearTimeout(timer); status.classList.add('is-done'); toggle.disabled = false; setToggle(); }
+      if (event.data?.type === 'flowmaster:state') { playing = event.data.playing === true; if (!toggle.disabled) setToggle(); }
+      if (event.data?.type === 'flowmaster:error') { status.classList.remove('is-done'); status.textContent = 'The footage could not load. Reload the page to try again.'; }
+    });
+    if ('IntersectionObserver' in window) {
+      new IntersectionObserver((entries) => { if (entries.some((e) => e.isIntersecting)) load(); }, { rootMargin: '600px 0px' }).observe(box);
+      new IntersectionObserver((entries) => { if (!entries[0].isIntersecting) pause(); }).observe(box);
+    } else load();
+    document.addEventListener('visibilitychange', () => { if (document.hidden) pause(); });
+    // Same-origin and synchronous, so the click can start sound.
+    toggle.addEventListener('click', () => { if (playing) pause(); else play(); });
+    // One sound at a time: the hero video's theatre pauses this one.
+    document.querySelectorAll('[data-film-open]').forEach((b) => b.addEventListener('click', pause));
+  }
+</script>

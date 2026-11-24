@@ -1,14 +1,14 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
-import Button from '../components/Button.astro';
 import landscapeMock from '../assets/app/MobileAppMockLandscape_Large.png';
 import portraitMock from '../assets/app/MobileAppMockVertical.png';
 
 // Owner 2026-11-23: the phased roadmap section is removed; the page leads with Events and Flow AI.
 const spotlight = [
   {
-    kicker: 'Coming in December',
+    id: 'events',
     name: 'Events',
+    caption: 'Events tab preview',
     image: '/images/roadmap/events-preview.jpg',
     alt: 'The Events tab: a scanned recording with its events on a timeline and a list of detected moments with Jump buttons',
     lead: 'Flowmaster scans the pixels on your screen, and finds the moments for you.',
@@ -22,8 +22,9 @@ const spotlight = [
     ],
   },
   {
-    kicker: 'Coming in December',
+    id: 'flow-ai',
     name: 'Flow AI',
+    caption: 'Flow AI tab preview',
     image: '/images/roadmap/flow-preview.jpg',
     alt: 'The Flow AI tab: asked what video to make this week, Flow suggests a streak montage and shows a plan waiting for approval',
     lead: 'Your AI editing buddy. Ask it what to make from this week’s footage.',
@@ -40,505 +41,400 @@ const spotlight = [
 
 const comparisons = [
   {
-    icon: "🎬",
-    versus: "vs. OBS",
-    title: "More than recording",
-    description: "OBS captures footage. Flowmaster captures footage AND helps you edit it. Mark moments live, cut automatically, clean up files - all in one workflow."
+    versus: 'vs. OBS',
+    title: 'More than recording',
+    description: 'OBS captures footage. Flowmaster captures footage AND helps you edit it. Mark moments live, cut automatically, clean up files - all in one workflow.',
   },
   {
-    icon: "🎯",
-    versus: "vs. AI Editors",
-    title: "You stay in control",
-    description: "AI editors guess what's important and cut it for you. Flow suggests from your own marks and events, shows its receipts, and waits for your yes. No black box. No surprises."
+    versus: 'vs. AI editors',
+    title: 'You stay in control',
+    description: 'AI editors guess what’s important and cut it for you. Flow suggests from your own marks and events, shows its receipts, and waits for your yes. No black box. No surprises.',
   },
   {
-    icon: "🎙️",
-    versus: "vs. Riverside",
-    title: "Podcasting, free forever",
-    description: "Remote guest recording with local quality - and it won't cost you $24/month. Podcasting mode is free. Always."
+    versus: 'vs. Riverside',
+    title: 'Podcasting, free forever',
+    description: 'Remote guest recording with local quality - and it won’t cost you $24/month. Podcasting mode is free. Always.',
   },
 ];
 
 const appBenefits = [
   {
-    icon: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5M5 12l7-7 7 7"/><rect x="3" y="19" width="18" height="2" rx="1"/></svg>`,
-    title: 'Mark Without Interrupting',
+    title: 'Mark without interrupting',
     description: 'Tap to mark highlight moments without taking your hands off the controller. Your phone becomes a dedicated F9 button.',
   },
   {
-    icon: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>`,
-    title: 'Real-Time Session View',
+    title: 'Real-time session view',
     description: 'See your recording timeline, elapsed time, and recent markers update live as you play.',
   },
   {
-    icon: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="4" width="16" height="16" rx="2"/><line x1="9" y1="9" x2="9" y2="15"/><line x1="15" y1="9" x2="15" y2="15"/></svg>`,
-    title: 'Stay In Control',
-    description: 'Monitor connection status, storage space, and session state at a glance. No surprises when you\'re done recording.',
+    title: 'Stay in control',
+    description: 'Monitor connection status, storage space, and session state at a glance. No surprises when you’re done recording.',
   },
   {
-    icon: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="2" width="16" height="20" rx="2"/><path d="M12 18h.01"/><path d="M8 22h8"/><path d="M2 8h2M20 8h2M2 16h2M20 16h2"/></svg>`,
-    title: 'Works Your Way',
+    title: 'Works your way',
     description: 'Landscape for full timeline access, portrait for quick one-handed marking. Adapts to how you play.',
   },
 ];
+
+const num = (i: number) => String(i + 1).padStart(2, '0');
 ---
 
 <BaseLayout title="Future">
-  <!-- Hero -->
-  <section class="section-padding pt-32">
-    <div class="container-main text-center">
-      <h1 class="mb-4">
-        The <span class="text-brand-red">Future</span> of Flowmaster
-      </h1>
-      <p class="text-xl text-text-secondary max-w-2xl mx-auto">
-        Events and Flow AI arrive in December. Here's what they do, and what comes after.
-      </p>
+  <!-- TOP -->
+  <section class="ft-top">
+    <div class="wrap ft-top-grid">
+      <div class="ft-intro">
+        <p class="label">Roadmap</p>
+        <h1 class="display ft-title">The future <span>of Flowmaster<i class="ft-stop" aria-hidden="true"></i></span></h1>
+        <p class="ft-lede">Events and Flow AI are in development for the December release. Here’s what they do, and what comes after.</p>
+      </div>
+
+      <nav class="ft-index" aria-label="On this page">
+        <p class="label ft-index-head">On this page</p>
+        <ul>
+          {spotlight.map((item, i) => (
+            <li>
+              <a href={`#${item.id}`}>
+                <span class="ft-index-num">{num(i)}</span>
+                <span class="ft-index-name">{item.name}</span>
+                <span class="ft-state ft-state--dev"><i aria-hidden="true"></i>In development &middot; December</span>
+              </a>
+            </li>
+          ))}
+          <li>
+            <a href="#companion">
+              <span class="ft-index-num">{num(spotlight.length)}</span>
+              <span class="ft-index-name">Companion app</span>
+              <span class="ft-state"><i aria-hidden="true"></i>Exploring</span>
+            </a>
+          </li>
+        </ul>
+      </nav>
     </div>
   </section>
 
-  <!-- Philosophy Statement -->
-  <section class="section-padding pt-0">
-    <div class="container-main">
-      <div class="max-w-3xl mx-auto bg-bg-secondary rounded-xl border border-brand-red/30 p-8 text-center">
-        <p class="text-lg text-gray-300 italic mb-4">
-          "Most AI editing tools decide what's important in your content for you. Flow works the other way.
-        </p>
-        <p class="text-lg text-gray-300 italic mb-6">
-          It reads the moments you marked and the events Flowmaster found, suggests what to make, and waits for your yes. You mark the moments. We handle the tedious cuts."
-        </p>
-        <p class="text-xl font-semibold text-white">
-          Flow suggests. You decide.
-        </p>
+  <!-- THE STANCE -->
+  <section class="ft-stance" aria-labelledby="stance-title">
+    <div class="wrap ft-stance-grid" data-reveal>
+      <h2 id="stance-title" class="display ft-h2"><span>Flow suggests.</span> You decide<i class="ft-stop" aria-hidden="true"></i></h2>
+      <div class="ft-stance-body">
+        <p>Most AI editing tools decide what’s important in your content for you. Flow works the other way.</p>
+        <p>It reads the moments you marked and the events Flowmaster found, suggests what to make, and waits for your yes. You mark the moments. We handle the tedious cuts.</p>
       </div>
     </div>
   </section>
 
-  <!-- Coming in December: Events and Flow AI -->
-  <section class="section-padding pt-0">
-    <div class="container-main space-y-16">
-      {spotlight.map((item, i) => (
-        <div class={`spot grid lg:grid-cols-2 gap-10 items-center ${i % 2 ? 'spot-flip' : ''}`}>
-          <div class="spot-shot">
-            <img src={item.image} alt={item.alt} loading="lazy" width="1080" height="800" />
-            <span class="spot-tag">In development · December</span>
-          </div>
-          <div>
-            <p class="spot-kicker">{item.kicker}</p>
-            <h2 class="text-3xl md:text-4xl font-bold mb-3">{item.name}</h2>
-            <p class="text-lg text-gray-300 mb-6">{item.lead}</p>
-            <ul class="space-y-3">
-              {item.points.map(point => (
-                <li class="flex items-start gap-3">
-                  <svg class="w-5 h-5 text-brand-red flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
-                  <span class="text-text-secondary">{point}</span>
-                </li>
-              ))}
-            </ul>
-          </div>
+  <!-- IN DEVELOPMENT: Events and Flow AI -->
+  {spotlight.map((item, i) => (
+    <section class="ft-feature" id={item.id} aria-labelledby={`${item.id}-title`}>
+      <div class={`wrap ft-feature-grid ${i % 2 ? 'ft-feature-grid--flip' : ''}`}>
+        <div class="ft-feature-copy" data-reveal>
+          <p class="ft-tag">
+            <span>{num(i)}</span>
+            <span class="ft-state ft-state--dev"><i aria-hidden="true"></i>In development</span>
+            <span class="ft-tag-when">December release</span>
+          </p>
+          <h2 id={`${item.id}-title`} class="display ft-h2 ft-feature-title">{item.name}<i class="ft-stop ft-stop--y" aria-hidden="true"></i></h2>
+          <p class="ft-feature-lead">{item.lead}</p>
+          <ul class="ft-facts">
+            {item.points.map((point) => <li>{point}</li>)}
+          </ul>
         </div>
-      ))}
-    </div>
-  </section>
+        <figure class="ft-shot" data-reveal style="--reveal-delay:.12s">
+          <img src={item.image} alt={item.alt} loading="lazy" width="1080" height="800" />
+          <figcaption class="label"><span>{item.caption}</span><span>In development &middot; December</span></figcaption>
+        </figure>
+      </div>
+    </section>
+  ))}
 
-  <!-- Mobile App Hero -->
-  <section class="app-hero-section">
-    <div class="app-hero-content">
-      <!-- Portrait mockup (back layer) -->
-      <div class="mockup-wrapper mockup-portrait">
-        <img src={portraitMock.src} alt="Flowmaster mobile app portrait view" />
+  <!-- EXPLORING: companion app -->
+  <section class="ft-app" id="companion" aria-labelledby="companion-title">
+    <div class="wrap">
+      <div class="ft-app-grid">
+        <div class="ft-app-head" data-reveal>
+          <p class="ft-tag">
+            <span>{num(spotlight.length)}</span>
+            <span class="ft-state"><i aria-hidden="true"></i>Exploring</span>
+            <span class="ft-tag-when">Loosely planned</span>
+          </p>
+          <h2 id="companion-title" class="display ft-h2">Your session, <span>in your pocket</span></h2>
+          <p class="ft-feature-lead">A companion app is loosely planned: mark moments and keep an eye on your session from your phone.</p>
+        </div>
+        <div class="ft-phones" data-reveal style="--reveal-delay:.12s">
+          <img class="ft-phone ft-phone--portrait" src={portraitMock.src} width={portraitMock.width} height={portraitMock.height} loading="lazy" alt="Concept mockup of the companion app held upright: a recording timeline, the game feed, a live timer and a large Mark button" />
+          <img class="ft-phone ft-phone--landscape" src={landscapeMock.src} width={landscapeMock.width} height={landscapeMock.height} loading="lazy" alt="Concept mockup of the companion app held sideways: the game feed beside a list of recent markers, a Mark button and a timeline along the bottom" />
+        </div>
       </div>
 
-      <!-- Landscape mockup (front layer) -->
-      <div class="mockup-wrapper mockup-landscape">
-        <img src={landscapeMock.src} alt="Flowmaster mobile app landscape view" />
-      </div>
-    </div>
-  </section>
-
-  <!-- Mobile App Benefits -->
-  <section class="app-benefits-section section-padding">
-    <div class="container-main">
-      <div class="text-center mb-16">
-        <p class="spot-kicker">Exploring</p>
-        <h2 class="text-4xl font-semibold mb-4">Your Session, In Your Pocket</h2>
-        <p class="text-gray-400 text-lg max-w-2xl mx-auto">
-          A companion app is loosely planned: mark moments and keep an eye on your session from your phone.
-        </p>
-      </div>
-
-      <div class="app-benefits-grid">
-        {appBenefits.map((benefit, index) => (
-          <div class="app-benefit-card" style={`--delay: ${index * 100}ms`}>
-            <div class="app-benefit-icon" set:html={benefit.icon} />
-            <h3 class="text-xl font-semibold mt-4 mb-2">{benefit.title}</h3>
-            <p class="text-gray-400 leading-relaxed">{benefit.description}</p>
-          </div>
+      <ul class="ft-benefits" data-reveal>
+        {appBenefits.map((benefit, i) => (
+          <li>
+            <span class="ft-benefit-num" aria-hidden="true">{num(i)}</span>
+            <h3>{benefit.title}</h3>
+            <p>{benefit.description}</p>
+          </li>
         ))}
-      </div>
+      </ul>
     </div>
   </section>
 
-  <!-- Comparison -->
-  <section class="section-padding bg-bg-secondary">
-    <div class="container-main">
-      <h2 class="text-center mb-4">Why Flowmaster?</h2>
-      <p class="text-text-secondary text-center max-w-2xl mx-auto mb-12">
-        See how Flowmaster compares to other tools in the space.
-      </p>
-
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
-        {comparisons.map(item => (
-          <div class="card hover:border-brand-red/30 transition-colors text-center">
-            <div class="text-4xl mb-4">{item.icon}</div>
-            <p class="text-text-secondary text-sm uppercase tracking-wider mb-2">{item.versus}</p>
-            <h3 class="text-xl font-semibold mb-3">{item.title}</h3>
-            <p class="text-text-secondary text-sm">{item.description}</p>
-          </div>
+  <!-- COMPARISON -->
+  <section class="ft-why" aria-labelledby="why-title">
+    <div class="wrap ft-why-grid">
+      <div class="ft-why-head" data-reveal>
+        <p class="label">Compared</p>
+        <h2 id="why-title" class="display ft-h2">Why Flowmaster?</h2>
+        <p>See how Flowmaster compares to other tools in the space.</p>
+      </div>
+      <ul class="ft-versus" data-reveal style="--reveal-delay:.12s">
+        {comparisons.map((item) => (
+          <li>
+            <span class="ft-versus-tag">{item.versus}</span>
+            <div>
+              <h3>{item.title}</h3>
+              <p>{item.description}</p>
+            </div>
+          </li>
         ))}
-      </div>
+      </ul>
     </div>
   </section>
 
-  <!-- CTA -->
-  <section class="section-padding bg-gradient-to-b from-bg-primary to-bg-secondary">
-    <div class="container-main text-center">
-      <h2 class="mb-4">Want to shape the future?</h2>
-      <p class="text-text-secondary max-w-2xl mx-auto mb-8">
-        Join our Discord to vote on features and get early access to new releases.
-      </p>
-      <div class="flex flex-col sm:flex-row items-center justify-center gap-4">
-        <Button href="https://discord.gg/S8uJpcK3qJ" variant="primary" size="lg">
-          Join Discord
-        </Button>
-        <Button href="/download" variant="secondary" size="lg">
-          Free trial details
-        </Button>
+  <!-- CLOSING -->
+  <section class="ft-closing" aria-labelledby="closing-title">
+    <div class="wrap ft-closing-grid" data-reveal>
+      <h2 id="closing-title" class="display ft-closing-title"><span>Want to shape</span> the future?</h2>
+      <div class="ft-closing-side">
+        <p>Join our Discord to vote on features and get early access to new releases.</p>
+        <div class="ft-actions">
+          <a class="btn-primary" href="https://discord.gg/S8uJpcK3qJ">Join Discord</a>
+          <a class="arrow-link" href="/download">Free trial details</a>
+        </div>
       </div>
     </div>
   </section>
 </BaseLayout>
 
 <style>
-  /* ===== Events / Flow spotlight ===== */
-  .spot-kicker { margin: 0 0 .6rem; font: 600 .75rem/1 ui-monospace, SFMono-Regular, Menlo, monospace; letter-spacing: .14em; text-transform: uppercase; color: #ff5959; }
-  .spot-shot { position: relative; overflow: hidden; border-radius: 14px; border: 1px solid #262626; background: #07080b; box-shadow: 0 30px 60px rgba(0, 0, 0, .45); }
-  .spot-shot img { display: block; width: 100%; height: auto; }
-  .spot-tag { position: absolute; top: 12px; right: 12px; padding: .3rem .6rem; border-radius: 999px; background: rgba(10, 10, 10, .78); border: 1px solid rgba(255, 255, 255, .14); color: #d4d4d4; font-size: .7rem; font-weight: 600; backdrop-filter: blur(4px); }
-  @media (min-width: 1024px) { .spot-flip .spot-shot { order: 2; } }
-
-  /* ===== Mobile App Hero ===== */
-  .app-hero-section {
-    height: 70vh;
-    min-height: 500px;
-    position: relative;
-    overflow: hidden;
-    background: linear-gradient(180deg, #0a0a0a 0%, #101010 100%);
+  /* ---------- Shared pieces ---------- */
+  .ft-stop {
+    display: inline-block;
+    width: 0.2em;
+    height: 0.195em;
+    margin-left: 0.05em;
+    border-radius: 0.02em;
+    background: currentColor;
   }
+  .ft-stop--y { background: var(--yellow); }
+  .ft-h2 { font-size: clamp(2.5rem, 5vw, 4.25rem); }
+  .ft-h2 > span { color: var(--ink-3); }
 
-  .app-hero-content {
-    position: relative;
-    width: 100%;
-    height: 100%;
-    max-width: 1400px;
-    margin: 0 auto;
+  /* Status: a marker square and a mono word. Yellow is "being built". */
+  .ft-state {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.55rem;
+    font-family: var(--font-mono);
+    font-size: 0.74rem;
+    font-weight: 500;
+    letter-spacing: 0.09em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+    white-space: nowrap;
   }
+  .ft-state i { width: 0.6rem; height: 0.58rem; border-radius: 1.5px; background: var(--ink-3); flex: none; }
+  .ft-state--dev { color: var(--yellow); }
+  .ft-state--dev i { background: var(--yellow); }
 
-  .mockup-wrapper {
-    position: absolute;
-    opacity: 0;
-    transition: opacity 0.3s ease-out, transform 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+  .ft-tag {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.5rem 0.75rem;
+    font-family: var(--font-mono);
+    font-size: 0.8rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--ink-3);
   }
+  .ft-tag-when { padding-left: 0.75rem; border-left: 1px solid var(--rule-strong); }
 
-  .mockup-wrapper.animate-in {
-    opacity: 1;
-  }
+  /* ---------- Top ---------- */
+  .ft-top { padding: calc(var(--nav-h) + clamp(2.5rem, 6vw, 5rem)) 0 clamp(3.5rem, 7vw, 6rem); }
+  .ft-top-grid { display: grid; gap: 3rem; }
+  .ft-top-grid > * { min-width: 0; }
+  .ft-title { margin-top: 1.1rem; font-size: clamp(2.9rem, 7.4vw, 6.25rem); line-height: 0.86; font-stretch: 62%; }
+  .ft-title > span { display: block; color: var(--ink-3); }
+  .ft-lede { margin-top: 1.5rem; max-width: 31rem; font-size: clamp(1.1rem, 1.5vw, 1.25rem); line-height: 1.5; color: var(--ink); }
 
-  .mockup-wrapper img {
-    max-width: 100%;
-    height: auto;
-    display: block;
-  }
-
-  .mockup-portrait img {
-    max-width: 260px;
-  }
-
-  .mockup-landscape img {
-    max-width: 480px;
-  }
-
-  /* Portrait mockup (back layer) */
-  .mockup-portrait {
-    left: 22%;
-    top: 50%;
-    transform: translateY(-50%) translateX(-80px) scale(0.85);
-    z-index: 1;
-  }
-
-  .mockup-portrait.animate-in {
-    transform: translateY(-50%) translateX(0) scale(0.85);
-  }
-
-  /* Landscape mockup (front layer) */
-  .mockup-landscape {
-    right: 17%;
-    top: 50%;
-    transform: translateY(-50%) translateX(80px) scale(1);
-    z-index: 2;
-    filter: drop-shadow(0 25px 50px rgba(0, 0, 0, 0.5));
-  }
-
-  .mockup-landscape.animate-in {
-    transform: translateY(-50%) translateX(0) scale(1);
-  }
-
-  /* ===== Mobile App Benefits ===== */
-  .app-benefits-section {
-    background: #0a0a0a;
-  }
-
-  .app-benefits-grid {
+  .ft-index-head { margin-bottom: 0.85rem; }
+  .ft-index ul { list-style: none; margin: 0; padding: 0; border-top: 1px solid var(--rule-strong); }
+  .ft-index a {
     display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 24px;
-    max-width: 900px;
-    margin: 0 auto;
+    grid-template-columns: 2.5rem minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 0.5rem 1rem;
+    min-height: 3.75rem;
+    padding: 0.9rem 0;
+    border-bottom: 1px solid var(--rule);
+    color: var(--ink);
+    text-decoration: none;
+    transition: border-color 0.18s ease;
+  }
+  .ft-index a:hover { border-bottom-color: var(--yellow); }
+  .ft-index-num { font-family: var(--font-mono); font-size: 0.8rem; font-weight: 600; letter-spacing: 0.08em; color: var(--ink-3); }
+  .ft-index-name { font-size: 1.15rem; font-weight: 650; }
+
+  @media (min-width: 960px) {
+    .ft-top-grid { grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr); gap: clamp(3rem, 6vw, 6rem); align-items: end; }
+  }
+  @media (max-width: 420px) {
+    .ft-index a { grid-template-columns: 2.25rem minmax(0, 1fr); }
+    .ft-index a .ft-state { grid-column: 2; }
   }
 
-  .app-benefit-card {
-    background: rgba(255, 255, 255, 0.03);
-    border: 1px solid rgba(255, 255, 255, 0.08);
-    border-radius: 16px;
-    padding: 32px;
-    opacity: 0;
-    transform: translateY(30px);
-    transition: opacity 0.6s ease-out, transform 0.6s ease-out, border-color 0.3s ease;
-    transition-delay: var(--delay, 0ms);
+  /* ---------- The stance ---------- */
+  .ft-stance { padding: clamp(4rem, 8vw, 6.5rem) 0; border-top: 1px solid var(--rule); background: #0c0c0c; }
+  .ft-stance-grid { display: grid; gap: 2rem; }
+  .ft-stance .ft-h2 > span { display: block; }
+  .ft-stance-body { display: grid; gap: 1.1rem; max-width: 36rem; }
+  .ft-stance-body p { font-size: clamp(1.1rem, 1.5vw, 1.3rem); line-height: 1.5; color: var(--ink); }
+  .ft-stance-body p + p { color: var(--ink-2); }
+  @media (min-width: 960px) {
+    .ft-stance-grid { grid-template-columns: minmax(0, 1fr) minmax(0, 1.3fr); gap: clamp(3rem, 7vw, 7rem); align-items: end; }
   }
 
-  .app-benefit-card.animate-in {
-    opacity: 1;
-    transform: translateY(0);
+  /* ---------- Events and Flow AI ---------- */
+  .ft-feature { padding: clamp(4rem, 8vw, 6.5rem) 0; border-top: 1px solid var(--rule); scroll-margin-top: var(--nav-h); }
+  .ft-feature-grid { display: grid; gap: 2.5rem; }
+  .ft-feature-grid > * { min-width: 0; }
+  .ft-feature-title { margin-top: 1.25rem; }
+  .ft-feature-lead { margin-top: 1.25rem; max-width: 31rem; font-size: clamp(1.1rem, 1.5vw, 1.25rem); line-height: 1.5; color: var(--ink); }
+  .ft-facts { list-style: none; margin: 1.75rem 0 0; padding: 0; max-width: 34rem; border-top: 1px solid var(--rule-strong); }
+  .ft-facts li {
+    position: relative;
+    padding: 0.85rem 0 0.85rem 1.5rem;
+    border-bottom: 1px solid var(--rule);
+    font-size: 0.99rem;
+    line-height: 1.5;
+    color: var(--ink-2);
+  }
+  .ft-facts li::before {
+    content: '';
+    position: absolute;
+    left: 0.1rem;
+    top: 1.34rem;
+    width: 0.5rem;
+    height: 0.48rem;
+    border-radius: 1.5px;
+    background: var(--ink-3);
   }
 
-  .app-benefit-card:hover {
-    border-color: rgba(244, 63, 63, 0.3);
-  }
-
-  .app-benefit-icon {
-    width: 48px;
-    height: 48px;
-    color: #f43f43;
-  }
-
-  .app-benefit-icon svg {
+  .ft-shot { margin: 0; }
+  .ft-shot img {
+    display: block;
     width: 100%;
-    height: 100%;
+    height: auto;
+    border: 1px solid var(--rule-strong);
+    border-radius: 10px;
+    background: #07080b;
+  }
+  .ft-shot figcaption {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    gap: 0.3rem 1.25rem;
+    margin-top: 0.9rem;
+    font-size: 0.68rem;
+  }
+  @media (min-width: 1000px) {
+    .ft-feature-grid { grid-template-columns: minmax(0, 5fr) minmax(0, 6fr); gap: clamp(3rem, 6vw, 6rem); align-items: start; }
+    .ft-feature-grid--flip { grid-template-columns: minmax(0, 6fr) minmax(0, 5fr); }
+    .ft-feature-grid--flip > .ft-feature-copy { order: 2; }
+    .ft-shot { position: sticky; top: calc(var(--nav-h) + 2rem); }
+  }
+  @media (min-width: 640px) and (max-width: 999px) {
+    .ft-shot { max-width: 42rem; }
   }
 
-  /* ===== Responsive ===== */
-  @media (max-width: 1024px) {
-    .mockup-portrait {
-      left: 15%;
-    }
+  /* ---------- Companion app ---------- */
+  .ft-app { padding: clamp(4rem, 8vw, 6.5rem) 0; border-top: 1px solid var(--rule); background: #0c0c0c; scroll-margin-top: var(--nav-h); }
+  .ft-app-grid { display: grid; gap: 3rem; }
+  .ft-app-grid > * { min-width: 0; }
+  .ft-app-head .ft-h2 { margin-top: 1.25rem; }
+  .ft-app-head .ft-h2 > span { display: block; }
+  .ft-phones { display: flex; align-items: center; justify-content: center; gap: 5%; max-width: 40rem; }
+  .ft-phone { display: block; height: auto; filter: drop-shadow(0 24px 40px rgba(0, 0, 0, 0.55)); }
+  .ft-phone--portrait { width: 27%; }
+  .ft-phone--landscape { width: 68%; }
 
-    .mockup-landscape {
-      right: 10%;
-    }
-
-    .mockup-portrait img {
-      max-width: 220px;
-    }
-
-    .mockup-landscape img {
-      max-width: 400px;
-    }
+  .ft-benefits {
+    list-style: none;
+    display: grid;
+    gap: 0 2.5rem;
+    margin: clamp(3rem, 6vw, 4.5rem) 0 0;
+    padding: 0;
+    border-top: 1px solid var(--rule-strong);
+  }
+  .ft-benefits li { padding: 1.4rem 0 1.5rem; border-bottom: 1px solid var(--rule); }
+  .ft-benefit-num { font-family: var(--font-mono); font-size: 0.8rem; font-weight: 600; letter-spacing: 0.08em; color: var(--ink-3); }
+  .ft-benefits h3 { margin-top: 0.7rem; font-size: 1.15rem; line-height: 1.3; }
+  .ft-benefits p { margin-top: 0.5rem; font-size: 0.97rem; line-height: 1.55; }
+  @media (min-width: 640px) {
+    .ft-benefits { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  }
+  @media (min-width: 960px) {
+    .ft-app-grid { grid-template-columns: minmax(0, 1fr) minmax(0, 1.15fr); gap: clamp(3rem, 6vw, 6rem); align-items: center; }
+    .ft-phones { margin-left: auto; }
+  }
+  @media (min-width: 1100px) {
+    .ft-benefits { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+    .ft-benefits li { border-bottom: 0; padding-bottom: 0; }
   }
 
-  @media (max-width: 768px) {
-    .app-hero-section {
-      height: auto;
-      min-height: auto;
-      padding: 60px 20px;
-    }
-
-    .app-hero-content {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 40px;
-      height: auto;
-    }
-
-    .mockup-wrapper {
-      position: relative;
-      left: auto !important;
-      right: auto !important;
-      top: auto !important;
-      transform: none !important;
-    }
-
-    .mockup-wrapper.animate-in {
-      transform: none !important;
-    }
-
-    .mockup-portrait img {
-      max-width: 180px;
-    }
-
-    .mockup-landscape img {
-      max-width: 300px;
-    }
-
-    .app-benefits-grid {
-      grid-template-columns: 1fr;
-    }
-
-    .app-benefit-card {
-      padding: 24px;
-    }
-
+  /* ---------- Comparison ---------- */
+  .ft-why { padding: clamp(4rem, 8vw, 6.5rem) 0; border-top: 1px solid var(--rule); }
+  .ft-why-grid { display: grid; gap: 3rem; }
+  .ft-why-head .ft-h2 { margin-top: 1rem; }
+  .ft-why-head > p:not(.label) { margin-top: 1.5rem; max-width: 26rem; }
+  .ft-versus { list-style: none; margin: 0; padding: 0; border-top: 1px solid var(--rule-strong); }
+  .ft-versus li {
+    display: grid;
+    grid-template-columns: 8.5rem minmax(0, 1fr);
+    gap: 1rem;
+    padding: 1.4rem 0 1.5rem;
+    border-bottom: 1px solid var(--rule);
+  }
+  .ft-versus-tag {
+    padding-top: 0.3rem;
+    font-family: var(--font-mono);
+    font-size: 0.76rem;
+    font-weight: 700;
+    letter-spacing: 0.09em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+  }
+  .ft-versus h3 { font-size: 1.25rem; line-height: 1.3; }
+  .ft-versus p { margin-top: 0.45rem; font-size: 1rem; line-height: 1.55; }
+  @media (min-width: 960px) {
+    .ft-why-grid { grid-template-columns: minmax(0, 1fr) minmax(0, 1.3fr); gap: clamp(3rem, 7vw, 7rem); }
+    .ft-why-head { position: sticky; top: calc(var(--nav-h) + 2rem); align-self: start; }
+  }
+  @media (max-width: 520px) {
+    .ft-versus li { grid-template-columns: 1fr; gap: 0.4rem; }
+    .ft-versus-tag { padding-top: 0; }
   }
 
-  /* Reduced motion */
-  @media (prefers-reduced-motion: reduce) {
-    .mockup-wrapper,
-    .app-benefit-card {
-      opacity: 1;
-      transform: none;
-      transition: none;
-    }
-
+  /* ---------- Closing ---------- */
+  .ft-closing { padding: clamp(4rem, 8vw, 6.5rem) 0; border-top: 1px solid var(--rule); }
+  .ft-closing-grid { display: grid; gap: 2rem; }
+  .ft-closing-title { font-size: clamp(2.7rem, 6vw, 5.4rem); line-height: 0.88; font-stretch: 62%; }
+  .ft-closing-title span { display: block; color: var(--ink-3); }
+  .ft-closing-side p { max-width: 28rem; font-size: 1.06rem; color: var(--ink); }
+  .ft-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 0.75rem 1.75rem; margin-top: 1.6rem; }
+  .ft-actions .btn-primary { min-height: 3.4rem; padding: 0.9rem 1.6rem; font-size: 1.08rem; }
+  @media (min-width: 1000px) {
+    .ft-closing-grid { grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr); gap: 3rem 5rem; align-items: end; }
   }
 </style>
-
-<script>
-  document.addEventListener('DOMContentLoaded', () => {
-    // ===== Hero entrance animations =====
-    const portraitMock = document.querySelector('.mockup-portrait');
-    const landscapeMock = document.querySelector('.mockup-landscape');
-
-    // Use Intersection Observer to trigger entrance when section is visible
-    const heroSection = document.querySelector('.app-hero-section');
-
-    const heroObserver = new IntersectionObserver((entries) => {
-      entries.forEach((entry) => {
-        if (entry.isIntersecting) {
-          setTimeout(() => {
-            portraitMock?.classList.add('animate-in');
-            setTimeout(() => {
-              landscapeMock?.classList.add('animate-in');
-            }, 200);
-          }, 200);
-          heroObserver.unobserve(entry.target);
-        }
-      });
-    }, {
-      threshold: 0.3
-    });
-
-    if (heroSection) {
-      heroObserver.observe(heroSection);
-    }
-
-    // ===== Mouse parallax for mockups =====
-    if (window.matchMedia('(hover: hover)').matches && heroSection) {
-      let mouseX = 0;
-      let mouseY = 0;
-      let currentPortraitX = 0;
-      let currentPortraitY = 0;
-      let currentLandscapeX = 0;
-      let currentLandscapeY = 0;
-
-      heroSection.addEventListener('mousemove', (e: MouseEvent) => {
-        const rect = heroSection.getBoundingClientRect();
-        const centerX = rect.width / 2;
-        const centerY = rect.height / 2;
-        mouseX = (e.clientX - rect.left - centerX) / centerX;
-        mouseY = (e.clientY - rect.top - centerY) / centerY;
-      });
-
-      heroSection.addEventListener('mouseleave', () => {
-        mouseX = 0;
-        mouseY = 0;
-      });
-
-      const animateMouse = () => {
-        // Smooth easing
-        const ease = 0.08;
-
-        // Portrait moves OPPOSITE to mouse (depth effect) - max 25px
-        const targetPortraitX = mouseX * -25;
-        const targetPortraitY = mouseY * -15;
-        currentPortraitX += (targetPortraitX - currentPortraitX) * ease;
-        currentPortraitY += (targetPortraitY - currentPortraitY) * ease;
-
-        // Landscape moves WITH mouse (foreground) - max 20px
-        const targetLandscapeX = mouseX * 20;
-        const targetLandscapeY = mouseY * 12;
-        currentLandscapeX += (targetLandscapeX - currentLandscapeX) * ease;
-        currentLandscapeY += (targetLandscapeY - currentLandscapeY) * ease;
-
-        if (portraitMock && portraitMock.classList.contains('animate-in')) {
-          (portraitMock as HTMLElement).style.transform =
-            `translateY(-50%) translateX(${currentPortraitX}px) translateY(${currentPortraitY}px) scale(0.85)`;
-        }
-
-        if (landscapeMock && landscapeMock.classList.contains('animate-in')) {
-          (landscapeMock as HTMLElement).style.transform =
-            `translateY(-50%) translateX(${currentLandscapeX}px) translateY(${currentLandscapeY}px) scale(1)`;
-        }
-
-        requestAnimationFrame(animateMouse);
-      };
-
-      animateMouse();
-    }
-
-    // ===== Scroll fade for mockups =====
-    const handleScroll = () => {
-      if (!heroSection || !portraitMock || !landscapeMock) return;
-
-      const rect = heroSection.getBoundingClientRect();
-      const heroHeight = heroSection.clientHeight;
-
-      // Only fade when scrolling past the hero section
-      if (rect.top < 0) {
-        const scrolledPast = Math.abs(rect.top);
-        const fadeEnd = heroHeight * 0.5;
-        const opacity = Math.max(0, 1 - scrolledPast / fadeEnd);
-
-        (portraitMock as HTMLElement).style.opacity = String(opacity);
-        (landscapeMock as HTMLElement).style.opacity = String(opacity);
-      }
-    };
-
-    let ticking = false;
-    window.addEventListener('scroll', () => {
-      if (!ticking) {
-        requestAnimationFrame(() => {
-          handleScroll();
-          ticking = false;
-        });
-        ticking = true;
-      }
-    });
-
-    // ===== Benefits scroll animation =====
-    const benefitCards = document.querySelectorAll('.app-benefit-card');
-
-    const benefitsObserver = new IntersectionObserver((entries) => {
-      entries.forEach((entry) => {
-        if (entry.isIntersecting) {
-          entry.target.classList.add('animate-in');
-          benefitsObserver.unobserve(entry.target);
-        }
-      });
-    }, {
-      threshold: 0.2,
-      rootMargin: '0px 0px -50px 0px'
-    });
-
-    benefitCards.forEach(card => benefitsObserver.observe(card));
-  });
-</script>
