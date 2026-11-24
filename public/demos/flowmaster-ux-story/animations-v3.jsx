@@ -371,6 +371,8 @@ function Stage({
   const loopEff = playback ? playback.mode === 'loop' : loop;
 
   const [time, setTime] = React.useState(() => {
+    // A site embed always starts from the beginning, with its start screen.
+    if (embedded) return 0;
     try {
       const v = parseFloat(localStorage.getItem(persistKey + ':t') || '0');
       return isFinite(v) ? clamp(v, 0, duration) : 0;
@@ -435,8 +437,9 @@ function Stage({
 
   // Persist playhead
   React.useEffect(() => {
+    if (embedded) return;
     try { localStorage.setItem(persistKey + ':t', String(time)); } catch {}
-  }, [time, persistKey]);
+  }, [time, persistKey, embedded]);
 
   // Auto-scale to fit viewport
   React.useEffect(() => {

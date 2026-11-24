@@ -10,17 +10,17 @@ const film = '/media/flowmaster/film-v26';
 <div id="film" class:list={['film-section', { 'is-bare': bare }]}>
   <figure>
     <div class="film-window" data-film>
-      <video class="film-video" controls playsinline preload="none" poster={`${film}-poster.jpg`} aria-label="The Flowmaster film">
+      <video class="film-video" controls playsinline preload="none" poster={`${film}-poster.jpg`} aria-label="Flowmaster video">
         <source src={`${film}.mp4`} type="video/mp4" />
         <track kind="captions" src={`${film}.en.vtt`} srclang="en" label="English" />
-        <p>Your browser cannot play this film. <a href={`${film}.mp4`}>Open the Flowmaster film.</a></p>
+        <p>Your browser cannot play this video. <a href={`${film}.mp4`}>Open the Flowmaster video.</a></p>
       </video>
       <div class="film-gate" data-film-gate hidden>
         <div class="gate-stack">
           <img class="gate-logo" src="/demos/flowmaster-ux-story/assets/logo-horizontal-lockup.svg" alt="Flowmaster" width="380" height="76" />
-          <p class="gate-label" role="status" data-film-status>The film</p>
+          <p class="gate-label" role="status" data-film-status>Flowmaster</p>
           <button type="button" class="gate-play" data-film-play disabled aria-controls="flowmaster-film-player">
-            <span class="gate-spin" aria-hidden="true"></span><span data-film-play-text>Loading film…</span>
+            <span class="gate-spin" aria-hidden="true"></span><span data-film-play-text>Loading…</span>
           </button>
         </div>
       </div>
@@ -112,8 +112,8 @@ const film = '/media/flowmaster/film-v26';
       gate.classList.toggle('is-paused', mode === 'paused');
       button.disabled = false;
       label.textContent = text;
-      status.textContent = mode === 'error' ? 'The film couldn’t load. Please try again.' : 'The film';
-      button.setAttribute('aria-label', `${text.replace(/^[▶↻]\s*/, '').replace(/ ·.*$/, '')} the Flowmaster film`);
+      status.textContent = mode === 'error' ? 'The video couldn’t load. Please try again.' : 'Flowmaster';
+      button.setAttribute('aria-label', `${text.replace(/^[▶↻]\s*/, '').replace(/ ·.*$/, '')} the Flowmaster video`);
     };
     const markReady = () => {
       if (ready || !gated) return;
@@ -128,14 +128,14 @@ const film = '/media/flowmaster/film-v26';
       clearTimeout(readyTimer);
       clearTimeout(failTimer);
       loading = false;
-      showGate('Retry film', 'error');
+      showGate('Retry', 'error');
     };
     const load = () => {
       if (loading || ready) return;
       loading = true;
       button.disabled = true;
-      label.textContent = 'Loading film…';
-      status.textContent = 'The film';
+      label.textContent = 'Loading…';
+      status.textContent = 'Flowmaster';
       video.preload = 'auto';
       video.load();
       failTimer = setTimeout(fail, 20000);
@@ -214,7 +214,7 @@ const film = '/media/flowmaster/film-v26';
       if (gated) {
         win.tabIndex = 0;
         win.setAttribute('role', 'group');
-        win.setAttribute('aria-label', 'Flowmaster film. Press Space to play or pause.');
+        win.setAttribute('aria-label', 'Flowmaster video. Press Space to play or pause.');
         if (ready) showGate(`▶ Play · ${length()}`, 'start');
         if (lazy) lazy.observe(win); else load();
         offscreen?.observe(win);

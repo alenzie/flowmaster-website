@@ -1,136 +1,70 @@
 ---
 import BaseLayout from '../../layouts/BaseLayout.astro';
-
-const docs = [
-  {
-    title: 'Getting Started',
-    description: 'Quick start guide to get Flowmaster running',
-    href: '/docs',
-    current: true,
-  },
-  {
-    title: 'OBS Setup',
-    description: 'Configure OBS to work with Flowmaster',
-    href: '/docs/obs-setup',
-  },
-  {
-    title: 'Configuration',
-    description: 'Customize Flowmaster settings',
-    href: '#',
-    comingSoon: true,
-  },
-  {
-    title: 'Troubleshooting',
-    description: 'Common issues and solutions',
-    href: '#',
-    comingSoon: true,
-  },
-];
+import DocsNav from '../../components/docs/DocsNav.astro';
+import '../../styles/docs.css';
 ---
 
 <BaseLayout title="Documentation">
-  <div class="section-padding pt-32">
-    <div class="container-main">
-      <div class="grid grid-cols-1 lg:grid-cols-4 gap-8">
+  <div class="docs">
+    <div class="wrap docs-grid">
+      <aside class="docs-side">
+        <DocsNav current="/docs" />
+      </aside>
 
-        <!-- Sidebar -->
-        <aside class="lg:col-span-1">
-          <h3 class="font-semibold mb-4">Documentation</h3>
-          <nav class="space-y-2">
-            {docs.map(doc => (
-              <a
-                href={doc.comingSoon ? '#' : doc.href}
-                class={`block py-2 px-3 rounded-lg transition-colors ${
-                  doc.current
-                    ? 'bg-brand-red/20 text-brand-red'
-                    : doc.comingSoon
-                      ? 'text-gray-600 cursor-not-allowed'
-                      : 'text-text-secondary hover:text-white hover:bg-bg-tertiary'
-                }`}
-              >
-                {doc.title}
-                {doc.comingSoon && <span class="text-xs ml-2">(soon)</span>}
-              </a>
-            ))}
-          </nav>
-        </aside>
+      <article class="docs-main">
+        <header>
+          <p class="label docs-crumb">Docs<span aria-hidden="true">/</span>Getting started</p>
+          <h1 class="display docs-title">Getting started<span class="docs-stop" aria-hidden="true"></span></h1>
+          <p class="docs-lede">Get Flowmaster running in 5 minutes</p>
+        </header>
 
-        <!-- Main Content -->
-        <main class="lg:col-span-3">
-          <h1 class="mb-4">Getting Started</h1>
-          <p class="text-xl text-text-secondary mb-8">Get Flowmaster running in 5 minutes</p>
+        <section class="docs-section" aria-labelledby="quick-start">
+          <h2 id="quick-start" class="docs-sub-head">Quick start</h2>
+          <ol class="docs-steps">
+            <li>
+              <div>
+                <h3>Download and install Flowmaster</h3>
+                <p>Get the installer from the <a href="/download" class="text-link">download page</a>.</p>
+              </div>
+            </li>
+            <li>
+              <div>
+                <h3>Set up OBS integration</h3>
+                <p>Follow the <a href="/docs/obs-setup" class="text-link">OBS setup guide</a> to connect Flowmaster with OBS.</p>
+              </div>
+            </li>
+            <li>
+              <div>
+                <h3>Configure your output folder</h3>
+                <p>Tell Flowmaster where your OBS recordings are saved.</p>
+              </div>
+            </li>
+            <li>
+              <div>
+                <h3>Start recording and press F9</h3>
+                <p>Hit <span class="key">F9</span> whenever something highlight-worthy happens.</p>
+              </div>
+            </li>
+            <li>
+              <div>
+                <h3>Run Clip</h3>
+                <p>Process your footage with one click.</p>
+              </div>
+            </li>
+            <li>
+              <div>
+                <h3>Run Clean</h3>
+                <p>Free up space by removing processed originals.</p>
+              </div>
+            </li>
+          </ol>
 
-          <div class="prose prose-invert max-w-none">
-            <h2 class="text-2xl font-semibold mb-4 mt-8">Quick Start</h2>
-
-            <ol class="space-y-6 text-gray-300">
-              <li class="flex gap-4">
-                <span class="flex-shrink-0 w-8 h-8 rounded-full bg-brand-red/20 text-brand-red flex items-center justify-center font-bold">1</span>
-                <div>
-                  <strong class="text-white">Download and install Flowmaster</strong>
-                  <p class="text-text-secondary mt-1">Get the installer from the <a href="/download" class="text-brand-red hover:underline">download page</a>.</p>
-                </div>
-              </li>
-
-              <li class="flex gap-4">
-                <span class="flex-shrink-0 w-8 h-8 rounded-full bg-brand-red/20 text-brand-red flex items-center justify-center font-bold">2</span>
-                <div>
-                  <strong class="text-white">Set up OBS integration</strong>
-                  <p class="text-text-secondary mt-1">Follow the <a href="/docs/obs-setup" class="text-brand-red hover:underline">OBS setup guide</a> to connect Flowmaster with OBS.</p>
-                </div>
-              </li>
-
-              <li class="flex gap-4">
-                <span class="flex-shrink-0 w-8 h-8 rounded-full bg-brand-red/20 text-brand-red flex items-center justify-center font-bold">3</span>
-                <div>
-                  <strong class="text-white">Configure your output folder</strong>
-                  <p class="text-text-secondary mt-1">Tell Flowmaster where your OBS recordings are saved.</p>
-                </div>
-              </li>
-
-              <li class="flex gap-4">
-                <span class="flex-shrink-0 w-8 h-8 rounded-full bg-brand-red/20 text-brand-red flex items-center justify-center font-bold">4</span>
-                <div>
-                  <strong class="text-white">Start recording and press F9</strong>
-                  <p class="text-text-secondary mt-1">Hit F9 whenever something highlight-worthy happens.</p>
-                </div>
-              </li>
-
-              <li class="flex gap-4">
-                <span class="flex-shrink-0 w-8 h-8 rounded-full bg-brand-red/20 text-brand-red flex items-center justify-center font-bold">5</span>
-                <div>
-                  <strong class="text-white">Run Clip</strong>
-                  <p class="text-text-secondary mt-1">Process your footage with one click.</p>
-                </div>
-              </li>
-
-              <li class="flex gap-4">
-                <span class="flex-shrink-0 w-8 h-8 rounded-full bg-brand-red/20 text-brand-red flex items-center justify-center font-bold">6</span>
-                <div>
-                  <strong class="text-white">Run Clean</strong>
-                  <p class="text-text-secondary mt-1">Free up space by removing processed originals.</p>
-                </div>
-              </li>
-            </ol>
-
-          <div class="mt-8 p-4 bg-bg-secondary rounded-lg border border-bg-tertiary">
-            <p class="text-sm text-text-secondary mb-2">Need more help?</p>
-            <a
-              href="https://www.flowmaster.live/docs/"
-              target="_blank"
-              rel="noopener noreferrer"
-              class="text-brand-red hover:underline text-sm inline-flex items-center gap-1"
-            >
-              View full documentation
-              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6" />
-              </svg>
-            </a>
+          <div class="docs-more">
+            <p>Need more help?</p>
+            <a href="https://www.flowmaster.live/docs/" target="_blank" rel="noopener noreferrer" class="arrow-link">View full documentation</a>
           </div>
-          </div>
-        </main>
-
-      </div>
+        </section>
+      </article>
     </div>
   </div>
 </BaseLayout>

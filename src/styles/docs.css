@@ -1,0 +1,304 @@
+/* Documentation pages (/docs, /docs/obs-setup). Imported by those pages only. */
+
+.docs { padding: calc(var(--nav-h) + clamp(2.5rem, 6vw, 5rem)) 0 clamp(4rem, 8vw, 6.5rem); }
+.docs-grid { display: grid; gap: 2.5rem; }
+.docs-grid > * { min-width: 0; }
+
+/* ---------- Side navigation ---------- */
+.docs-nav-head { margin-bottom: 0.85rem; }
+.docs-nav ul {
+  list-style: none;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0 1.75rem;
+  margin: 0;
+  padding: 0;
+  border-top: 1px solid var(--rule-strong);
+  border-bottom: 1px solid var(--rule);
+}
+.docs-nav-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+  min-height: 3rem;
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--ink-2);
+  text-decoration: none;
+  transition: color 0.18s ease;
+}
+a.docs-nav-item:hover { color: var(--ink); }
+.docs-nav-item[aria-current='page'] { color: var(--ink); }
+.docs-nav-item[aria-current='page']::before {
+  content: '';
+  width: 0.6rem;
+  height: 0.58rem;
+  border-radius: 1.5px;
+  background: var(--red);
+  flex: none;
+}
+.docs-nav-item--soon { color: var(--ink-3); font-weight: 500; }
+.docs-nav-soon {
+  font-family: var(--font-mono);
+  font-size: 0.66rem;
+  font-weight: 500;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  padding: 0.12rem 0.4rem;
+  border: 1px solid var(--rule-strong);
+  border-radius: 4px;
+  color: var(--ink-3);
+}
+
+@media (min-width: 960px) {
+  .docs-grid { grid-template-columns: 13rem minmax(0, 1fr); gap: clamp(3rem, 6vw, 6rem); }
+  .docs-side { position: sticky; top: calc(var(--nav-h) + 2rem); align-self: start; }
+  .docs-nav ul { display: block; border-bottom: 0; }
+  .docs-nav li { border-bottom: 1px solid var(--rule); }
+  .docs-nav-item { display: flex; }
+  .docs-nav-item--soon { justify-content: space-between; }
+}
+
+/* ---------- Page head ---------- */
+.docs-crumb a { color: inherit; text-decoration: none; }
+.docs-crumb a:hover { color: var(--ink); }
+.docs-crumb span[aria-hidden] { margin: 0 0.5em; color: var(--rule-strong); }
+.docs-title { margin-top: 1.1rem; font-size: clamp(2.9rem, 6.6vw, 5.75rem); line-height: 0.88; font-stretch: 62%; }
+.docs-stop {
+  display: inline-block;
+  width: 0.2em;
+  height: 0.195em;
+  margin-left: 0.05em;
+  border-radius: 0.02em;
+  background: currentColor;
+}
+.docs-stop--g { background: var(--green); }
+.docs-lede { margin-top: 1.4rem; max-width: 32rem; font-size: clamp(1.1rem, 1.5vw, 1.25rem); line-height: 1.5; color: var(--ink); }
+
+/* A small mono heading over a list or a note. */
+.docs-sub-head {
+  font-family: var(--font-mono);
+  font-stretch: 100%;
+  font-size: 0.75rem;
+  font-weight: 500;
+  line-height: 1.4;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+  margin-bottom: 0.85rem;
+}
+
+.docs-main strong { color: var(--ink); font-weight: 650; }
+.docs-main code {
+  padding: 0.08em 0.4em;
+  border: 1px solid var(--rule);
+  border-radius: 4px;
+  background: var(--ground-3);
+  font-size: 0.88em;
+  color: var(--ink);
+}
+
+/* ---------- Numbered steps (getting started) ---------- */
+.docs-section { margin-top: clamp(3rem, 6vw, 4.5rem); }
+.docs-steps { list-style: none; counter-reset: step; margin: 0; padding: 0; max-width: 46rem; border-top: 1px solid var(--rule-strong); }
+.docs-steps li {
+  counter-increment: step;
+  display: grid;
+  grid-template-columns: 3.5rem minmax(0, 1fr);
+  gap: 1rem;
+  align-items: baseline;
+  padding: 1.2rem 0 1.3rem;
+  border-bottom: 1px solid var(--rule);
+}
+.docs-steps li::before {
+  content: counter(step, decimal-leading-zero);
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  color: var(--ink-3);
+}
+.docs-steps h3 { font-size: 1.15rem; line-height: 1.35; }
+.docs-steps p { margin-top: 0.3rem; font-size: 1rem; line-height: 1.55; }
+
+.docs-more {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.25rem 1.75rem;
+  max-width: 46rem;
+  margin-top: 2.5rem;
+}
+.docs-more p { color: var(--ink-2); }
+
+/* ---------- Quick reference strip ---------- */
+.docs-ref {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0 1.5rem;
+  margin: 2.25rem 0 0;
+  max-width: 40rem;
+  border-top: 1px solid var(--rule-strong);
+  border-bottom: 1px solid var(--rule);
+}
+.docs-ref > div { padding: 0.9rem 0 1rem; }
+.docs-ref dt {
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+}
+.docs-ref dd { margin: 0.3rem 0 0; font-size: 1.15rem; font-weight: 650; color: var(--ink); }
+.docs-ref dd.docs-mono { font-family: var(--font-mono); font-weight: 600; }
+
+/* ---------- Notes: plugins, status light ---------- */
+.docs-notes { display: grid; gap: 2.25rem; margin-top: clamp(2.5rem, 5vw, 3.5rem); }
+.docs-notes p { font-size: 0.98rem; }
+.docs-notes p + p { margin-top: 0.6rem; }
+@media (min-width: 700px) {
+  .docs-notes { grid-template-columns: 1fr 1fr; gap: 3rem; }
+}
+
+.docs-lights { list-style: none; margin: 0.9rem 0 0; padding: 0; border-top: 1px solid var(--rule); }
+.docs-lights li {
+  display: flex;
+  align-items: baseline;
+  gap: 0.75rem;
+  padding: 0.6rem 0;
+  border-bottom: 1px solid var(--rule);
+  font-size: 0.98rem;
+  line-height: 1.5;
+  color: var(--ink-2);
+}
+.docs-light {
+  width: 0.6rem;
+  height: 0.6rem;
+  border-radius: 50%;
+  background: var(--ink-3);
+  flex: none;
+  translate: 0 -0.02rem;
+}
+.docs-light--g { background: var(--green); }
+.docs-light--r { background: var(--red); }
+.docs-light--y { background: var(--yellow); }
+
+/* ---------- Guide steps (OBS setup) ---------- */
+.docs-step {
+  display: grid;
+  gap: 1.75rem;
+  margin-top: clamp(3rem, 6vw, 4.5rem);
+  padding-top: clamp(2.5rem, 5vw, 3.5rem);
+  border-top: 1px solid var(--rule);
+  scroll-margin-top: var(--nav-h);
+}
+.docs-step > * { min-width: 0; }
+.docs-step-num {
+  display: block;
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+}
+.docs-h2 { margin-top: 0.9rem; font-size: clamp(2rem, 3.4vw, 2.9rem); line-height: 0.94; }
+.docs-step-head > p { margin-top: 1.1rem; max-width: 26rem; font-size: 1rem; }
+
+.docs-sub { list-style: none; margin: 0; padding: 0; border-top: 1px solid var(--rule-strong); }
+.docs-sub li {
+  display: grid;
+  grid-template-columns: 3.5rem minmax(0, 1fr);
+  gap: 1rem;
+  align-items: baseline;
+  padding: 1rem 0 1.05rem;
+  border-bottom: 1px solid var(--rule);
+  font-size: 1.02rem;
+  line-height: 1.55;
+  color: var(--ink-2);
+}
+.docs-sub-num { font-family: var(--font-mono); font-size: 0.8rem; font-weight: 600; letter-spacing: 0.08em; color: var(--ink-3); }
+
+.docs-expect { margin-top: 2rem; }
+.docs-expect .docs-lights { margin-top: 0; border-top-color: var(--rule-strong); }
+
+@media (min-width: 1100px) {
+  .docs-step { grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.2fr); gap: clamp(2.5rem, 5vw, 4.5rem); }
+}
+
+/* ---------- Troubleshooting ---------- */
+.docs-faq { border-top: 1px solid var(--rule-strong); }
+.docs-faq details { border-bottom: 1px solid var(--rule); }
+.docs-faq summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1.5rem;
+  min-height: 3.75rem;
+  padding: 0.9rem 0;
+  font-size: 1.08rem;
+  font-weight: 650;
+  line-height: 1.35;
+  color: var(--ink);
+  cursor: pointer;
+  list-style: none;
+}
+.docs-faq summary::-webkit-details-marker { display: none; }
+.docs-faq summary::after {
+  content: '+';
+  flex: none;
+  font-family: var(--font-mono);
+  font-size: 1.15rem;
+  font-weight: 500;
+  color: var(--ink-3);
+  transition: color 0.18s ease;
+}
+.docs-faq details[open] summary::after { content: '\2212'; }
+.docs-faq summary:hover::after { color: var(--yellow); }
+.docs-faq-body { padding: 0 0 1.4rem; max-width: 38rem; }
+.docs-faq-body p { font-size: 0.98rem; }
+.docs-faq-body p + p, .docs-faq-body ul + p { margin-top: 0.6rem; }
+.docs-faq-body ul { list-style: none; margin: 0.7rem 0 0; padding: 0; }
+.docs-faq-body li {
+  position: relative;
+  padding: 0.3rem 0 0.3rem 1.4rem;
+  font-size: 0.98rem;
+  line-height: 1.5;
+  color: var(--ink-2);
+}
+.docs-faq-body li::before {
+  content: '';
+  position: absolute;
+  left: 0.1rem;
+  top: 0.82rem;
+  width: 0.45rem;
+  height: 0.43rem;
+  border-radius: 1.5px;
+  background: var(--ink-3);
+}
+.docs-after { margin-top: 1.75rem; max-width: 38rem; font-size: 0.98rem; }
+.docs-soon-inline { color: var(--ink-3); }
+
+/* ---------- Done ---------- */
+.docs-done-body p { max-width: 34rem; font-size: 1.06rem; color: var(--ink); }
+.docs-back {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-height: 3rem;
+  margin-top: 1.25rem;
+  font-weight: 600;
+  color: var(--ink);
+  text-decoration: none;
+  border-bottom: 1px solid var(--rule-strong);
+  transition: border-color 0.18s ease;
+}
+.docs-back::before { content: '\2190'; font-family: var(--font-mono); transition: transform 0.18s ease; }
+.docs-back:hover { border-color: var(--yellow); }
+.docs-back:hover::before { transform: translateX(-3px); }
+
+@media (max-width: 520px) {
+  .docs-steps li, .docs-sub li { grid-template-columns: 2.5rem minmax(0, 1fr); gap: 0.5rem; }
+  .docs-ref { grid-template-columns: 1fr 1fr; }
+  .docs-ref > div:last-child { grid-column: 1 / -1; border-top: 1px solid var(--rule); }
+}

@@ -8,7 +8,7 @@ const START = 21;
 const END = 35.5;
 ---
 
-<section class="pitch" aria-labelledby="pitch-title">
+<section id="pitch" class="pitch" aria-labelledby="pitch-title">
   <div class="wrap pitch-grid">
     <div class="pitch-copy" data-reveal>
       <p class="label">Where it started &middot; February 2025</p>
@@ -16,6 +16,7 @@ const END = 35.5;
       <p>
         Back in February 2025, when I first started working on this, I gave a pitch for it. This is fifteen seconds of that recording: the part where I explain the idea the app is still built on. Record everything, and decide what is worth keeping while it happens.
       </p>
+      <slot />
     </div>
 
     <figure class="pitch-figure" data-reveal style="--reveal-delay:.1s">
@@ -45,7 +46,7 @@ const END = 35.5;
           <span class="pitch-time"><span data-pitch-cur>0:00</span> / 0:14</span>
         </div>
       </div>
-      <figcaption class="label"><span>From my first pitch recording, February 2025</span><span>14 seconds &middot; has sound</span></figcaption>
+      <figcaption class="label"><span>From my first pitch recording, February 2025</span></figcaption>
     </figure>
   </div>
 </section>

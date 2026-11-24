@@ -30,7 +30,7 @@ const THEMES = {
 const STEPS = [
   ['Get set up', 'It’s time to get started!'],
   ['Open OBS Studio', 'Launch OBS like any other session.'],
-  ['Start Flowmaster', 'Run Flowmaster — it finds OBS and connects on its own.'],
+  ['Flowmaster opens automatically', 'When OBS starts, Flowmaster opens with it and connects on its own.'],
   ['Hit record', 'Click Start Recording in OBS. Flowmaster follows along.'],
   ['Then Just Play', 'Flowmaster sits in the tray while OBS records.'],
   ['Press your mark key', 'Hit F9 the moment something good happens, then keep playing.'],
@@ -105,7 +105,7 @@ function ReadyGate({ rootRef, needsVideo = true }) {
 }
 
 /* ── real gameplay footage, clock-synced to the composition ──── */
-function GameVideo({ src, T, offset = 0, vt = null, hold = false, volume = 0.65, style }) {
+function GameVideo({ src, T, offset = 0, vt = null, hold = false, volume = 0.65, rate = 1, style }) {
   const ref = React.useRef(null);
   const tl = useTimeline();
   const active = tl.playing || tl.extPlaying;
@@ -122,6 +122,7 @@ function GameVideo({ src, T, offset = 0, vt = null, hold = false, volume = 0.65,
     /* while playing, only correct on a scrub or gross drift so audio never chops */
     const tol = active ? (jumped ? 0.12 : 1.2) : 0.05;
     if (v.readyState >= 2 && !atEnd && Math.abs(v.currentTime - want) > tol) v.currentTime = want;
+    if (v.playbackRate !== rate) v.playbackRate = rate;
     v.muted = !window.__fmAudioOK;
     v.volume = clamp(volume, 0, 1) * 0.126; /* hard −18 dB pad on game audio */
     if (active && !atEnd && !hold) {
@@ -993,6 +994,18 @@ function Piece({ webgl }) {
   const gameIn = seg(T, CUES.Idle - 0.4, CUES.Idle + 1.0, 0, 1, MOTION.draw);
   const deskIn = seg(T, CUES.OpenOBS - 0.35, CUES.OpenOBS + 0.45, 0, 1, MOTION.draw);
   const gameOut = seg(T, CUES.Session - 0.2, CUES.Session + 1.1, 0, 1, MOTION.draw);
+  /* The 20 s clip would run out at about Session - 0.4 and freeze before the fade.
+     The marks are tied to clip seconds (10, 12.7, 16.9, also used by the player and
+     the editor), so instead of shifting the footage, ease it into a slow finish that
+     lands on the last frame just as the fade completes. */
+  const gameClip = (() => {
+    const offset = CUES.Idle - 8;
+    const a = CUES.Session - 1.6, b = CUES.Session + 1.1;
+    const ca = a - offset, cb = 19.9;
+    const r = (cb - ca) / (b - a);
+    if (T < a) return { offset, vt: T - offset, rate: 1, hold: false };
+    return { offset, vt: ca + (Math.min(T, b) - a) * r, rate: r, hold: T >= b };
+  })();
   const appIn = seg(T, CUES.Session + 0.25, CUES.Session + 1.4, 0, 1, MOTION.enter);
 
   /* marks during recording — keyed to the Idle scene so intro retimes don't move them */
@@ -1132,7 +1145,7 @@ function Piece({ webgl }) {
   const recSecs = Math.floor(clamp(T - (CUES.Record + 1.55), 0, 359999)) + Math.floor(skipP * 872);
   const recClock = fmt(Math.floor(recSecs / 3600)) + ':' + fmt(Math.floor((recSecs % 3600) / 60)) + ':' + fmt(recSecs % 60);
   const skipPulse = clamp(seg(T, CUES.Idle + 0.1, CUES.Idle + 0.5, 0, 1, MOTION.enter) - seg(T, CUES.Idle + 1.3, CUES.Idle + 1.9, 0, 1, MOTION.draw), 0, 1);
-  const fmTrayOn = T >= CUES.OpenFM + 1.45;
+  const fmTrayOn = T >= CUES.OpenFM + 2.2; // lights up once Flowmaster has connected to OBS
 
   return (
     <div ref={rootRef} style={{ position: 'absolute', inset: 0, background: '#07080b', overflow: 'hidden' }}>
@@ -1164,15 +1177,16 @@ function Piece({ webgl }) {
         const tO = CUES.OpenOBS, tF = CUES.OpenFM, tR = CUES.Record, tG = CUES.Idle;
         const deskO = clamp(deskIn - gameIn, 0, 1);
         const obsOpen = seg(T, tO + 2.7, tO + 3.5, 0, 1, MOTION.enter);
-        const fmOpen = seg(T, tF + 1.8, tF + 2.6, 0, 1, MOTION.enter);
-        const connected = T >= tF + 3.4;
+        // Flowmaster is launched by OBS (a startup script), a moment after OBS opens: no click.
+        const fmOpen = seg(T, tF + 0.25, tF + 0.95, 0, 1, MOTION.enter);
+        const connected = T >= tF + 2.2;
         const recOn = T >= tR + 1.55;
         const recT = '00:00:0' + Math.min(9, Math.max(0, Math.floor(T - (tR + 1.55))));
         const sm = p => p * p * (3 - 2 * p);
         const W = [
           [tO + 0.2, 1150, 620], [tO + 1.0, 1150, 620], [tO + 2.0, 96, 148],
-          [tF + 0.3, 96, 148], [tF + 1.2, 92, 350],
-          [tR + 0.3, 92, 350], [tR + 1.3, 1560, 768], [tR + 2.4, 1560, 768],
+          [tF + 0.3, 96, 148], [tF + 1.2, 96, 148],
+          [tR + 0.3, 96, 148], [tR + 1.3, 1560, 768], [tR + 2.4, 1560, 768],
           [tR + 3.4, 92, 466], [tG + 40, 92, 466],
         ];
         let cx = W[0][1], cy = W[0][2];
@@ -1180,10 +1194,10 @@ function Piece({ webgl }) {
           const a = W[i - 1], b = W[i];
           if (T >= a[0]) { const q = sm(clamp((T - a[0]) / (b[0] - a[0]), 0, 1)); cx = a[1] + (b[1] - a[1]) * q; cy = a[2] + (b[2] - a[2]) * q; }
         }
-        const pulse = Math.max(...[tO + 2.25, tO + 2.5, tF + 1.45, tR + 1.5, tR + 3.55, tR + 3.8].map(t => T >= t ? clamp(1 - (T - t) / 0.4, 0, 1) : 0));
+        const pulse = Math.max(...[tO + 2.25, tO + 2.5, tR + 1.5, tR + 3.55, tR + 3.8].map(t => T >= t ? clamp(1 - (T - t) / 0.4, 0, 1) : 0));
         const obsSel = T >= tO + 2.25 && obsOpen < 1;
         const gameSel = T >= tR + 3.55;
-        const fmSel = T >= tF + 1.45 && fmOpen < 1;
+        const fmSel = false;
         return (
           <div style={{ position: 'absolute', left: 0, top: 0, right: 0, bottom: 36, overflow: 'hidden', opacity: deskO }}>
             <div style={{ position: 'absolute', inset: 0, background: 'radial-gradient(95% 130% at 72% 88%, #1d4173 0%, #12244a 42%, #0a1226 78%, #070b18 100%)' }} />
@@ -1235,11 +1249,12 @@ function Piece({ webgl }) {
                 <div style={{ padding: '14px 16px', display: 'flex', alignItems: 'center', gap: 12 }}>
                   <span style={{
                     width: 10, height: 10, borderRadius: '50%', flexShrink: 0,
-                    background: recOn ? '#ff3b30' : connected ? '#34c759' : '#f5d440',
-                    boxShadow: recOn ? '0 0 12px rgba(255,59,48,.9)' : connected ? '0 0 10px rgba(52,199,89,.7)' : '0 0 10px rgba(245,212,64,.7)',
+                    background: recOn ? '#ff3b30' : connected ? '#34c759' : '#8e8e93',
+                    boxShadow: recOn ? '0 0 12px rgba(255,59,48,.9)' : connected ? '0 0 10px rgba(52,199,89,.7)' : 'none',
+                    transition: 'background .35s ease, box-shadow .35s ease',
                   }} />
                   <span style={{ color: '#f2f4f7', fontSize: 14, fontWeight: 600, whiteSpace: 'nowrap' }}>
-                    {recOn ? 'Recording' : connected ? 'Connected to OBS' : 'Connecting to OBS…'}
+                    {recOn ? 'OBS: Recording' : connected ? 'OBS: Connected' : 'OBS: Disconnected'}
                   </span>
                   <span style={{ marginLeft: 'auto', fontFamily: 'ui-monospace,Menlo,monospace', fontSize: 13, color: '#c9d1dc', whiteSpace: 'nowrap' }}>
                     {recOn ? recT : connected ? 'WebSocket :4455' : ''}
@@ -1278,7 +1293,7 @@ function Piece({ webgl }) {
             <GameHUD T={T} events={[markTimes[0] - 0.6, markTimes[1] - 0.6, markTimes[2] - 0.6]} />
           </React.Fragment>
         ) : (
-          <GameVideo src="uploads/gameplay-h264.mp4" T={T} offset={CUES.Idle - 8} volume={0.65 * gameIn * (1 - gameOut)} />
+          <GameVideo src="uploads/gameplay-h264.mp4" T={T} offset={gameClip.offset} vt={gameClip.vt} rate={gameClip.rate} hold={gameClip.hold} volume={0.65 * gameIn * (1 - gameOut)} />
         )}
         <div style={{ position: 'absolute', inset: 0, background: 'radial-gradient(70% 60% at 50% 45%, rgba(0,0,0,0) 0%, rgba(0,0,0,.55) 100%)' }} />
         <div style={{

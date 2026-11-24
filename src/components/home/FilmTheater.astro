@@ -1,6 +1,6 @@
 ---
 // The 90-second Flowmaster film in its own player (FlowmasterFilm), shown as a
-// theatre rather than a page section. "Watch the film" dims the page almost to
+// theatre rather than a page section. "Watch it work" dims the page almost to
 // black and swings the screen up; the player's own Play control starts it.
 // Escape, the close button or a click on the dark closes it and pauses the film.
 // Staging follows the synth reveal in the portfolio (portfolio26, SynthReveal.astro).
@@ -12,18 +12,18 @@ const { class: className = '' } = Astro.props;
 
 <button type="button" class:list={['film-trigger', className]} data-film-open aria-haspopup="dialog" aria-controls="film-theater">
   <span class="film-trigger-icon" aria-hidden="true"><svg viewBox="0 0 16 16"><path d="M5 3.2v9.6L12.6 8z" /></svg></span>
-  <span>Watch the film</span>
+  <span>Watch it work</span>
   <span class="film-trigger-len">1:30</span>
 </button>
 
-<dialog class="theater" id="film-theater" aria-label="The Flowmaster film" data-film-dialog>
+<dialog class="theater" id="film-theater" aria-label="Flowmaster video" data-film-dialog>
   <div class="theater-lights" data-film-lights></div>
   <div class="theater-stage">
     <div class="theater-screen" data-film-screen>
       <FlowmasterFilm bare />
     </div>
   </div>
-  <button type="button" class="theater-close" data-film-close aria-label="Close the film">
+  <button type="button" class="theater-close" data-film-close aria-label="Close the video">
     <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3 3l10 10M13 3L3 13" /></svg>
   </button>
 </dialog>
@@ -54,12 +54,12 @@ const { class: className = '' } = Astro.props;
     width: 2.3rem;
     height: 2.3rem;
     border-radius: 50%;
-    background: var(--red);
-    box-shadow: 0 0 0 0 rgba(244, 63, 67, 0.45);
+    background: var(--ink);
+    box-shadow: 0 0 0 0 rgba(242, 240, 234, 0.3);
     transition: box-shadow 0.3s ease;
   }
-  .film-trigger:hover .film-trigger-icon { box-shadow: 0 0 0 6px rgba(244, 63, 67, 0.16); }
-  .film-trigger-icon svg { width: 0.95rem; height: 0.95rem; margin-left: 2px; fill: #140606; }
+  .film-trigger:hover .film-trigger-icon { box-shadow: 0 0 0 6px rgba(242, 240, 234, 0.12); }
+  .film-trigger-icon svg { width: 0.95rem; height: 0.95rem; margin-left: 2px; fill: #111; }
   .film-trigger-len { font-family: var(--font-mono); font-size: 0.8rem; font-weight: 500; color: var(--ink-3); }
 
   /* ---------- Theatre ---------- */

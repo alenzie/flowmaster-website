@@ -1,0 +1,28 @@
+---
+// Side navigation shared by the documentation pages.
+interface Props {
+  current: string;
+}
+const { current } = Astro.props;
+
+const docs = [
+  { title: 'Getting started', href: '/docs' },
+  { title: 'OBS setup', href: '/docs/obs-setup' },
+  { title: 'Configuration', comingSoon: true },
+  { title: 'Troubleshooting', comingSoon: true },
+];
+---
+<nav class="docs-nav" aria-label="Documentation">
+  <p class="label docs-nav-head">Documentation</p>
+  <ul>
+    {docs.map((doc) => (
+      <li>
+        {doc.comingSoon ? (
+          <span class="docs-nav-item docs-nav-item--soon">{doc.title}<span class="docs-nav-soon">Soon</span></span>
+        ) : (
+          <a class="docs-nav-item" href={doc.href} aria-current={doc.href === current ? 'page' : undefined}>{doc.title}</a>
+        )}
+      </li>
+    ))}
+  </ul>
+</nav>

@@ -1,0 +1,49 @@
+/* Single-message pages (/404, /purchase-success). Imported by those pages only. */
+
+.nf { padding: calc(var(--nav-h) + clamp(3rem, 8vw, 6.5rem)) 0 clamp(4.5rem, 10vw, 8rem); }
+.nf-grid { display: grid; gap: 2.5rem; }
+.nf-grid > * { min-width: 0; }
+
+.nf-title { margin-top: 1.1rem; font-size: clamp(3.2rem, 8.6vw, 7.25rem); line-height: 0.86; font-stretch: 62%; }
+.nf-title--long { font-size: clamp(2.6rem, 6vw, 5rem); line-height: 0.9; }
+.nf-title > span { display: block; color: var(--ink-3); }
+.nf-stop {
+  display: inline-block;
+  width: 0.2em;
+  height: 0.195em;
+  margin-left: 0.05em;
+  border-radius: 0.02em;
+  background: currentColor;
+}
+.nf-lede { margin-top: 1.5rem; max-width: 31rem; font-size: clamp(1.1rem, 1.5vw, 1.25rem); line-height: 1.5; color: var(--ink); }
+.nf-more { margin-top: 1rem; max-width: 31rem; font-size: 0.98rem; }
+.nf-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 0.75rem 1.75rem; margin-top: 1.75rem; }
+.nf-actions .btn-primary { min-height: 3.4rem; padding: 0.9rem 1.6rem; font-size: 1.08rem; }
+
+/* The number itself, as large and as quiet as the footage bars on the homepage. */
+.nf-num {
+  font-family: var(--font-heading);
+  font-stretch: 62%;
+  font-weight: 800;
+  font-size: clamp(8.5rem, 27vw, 23rem);
+  line-height: 0.76;
+  letter-spacing: -0.01em;
+  color: var(--footage);
+  user-select: none;
+}
+
+/* Thirty squares: the trial, drawn the way the download page draws it. */
+.nf-thirty { display: grid; grid-template-columns: repeat(10, minmax(0, 1fr)); gap: 0.4rem; max-width: 26rem; }
+.nf-thirty i { aspect-ratio: 83.5 / 81.5; border-radius: 10%; background: #3d3c38; }
+.nf-thirty-cap { margin-top: 0.8rem; }
+
+@media (min-width: 960px) {
+  .nf-grid { grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr); gap: clamp(3rem, 6vw, 6rem); align-items: end; }
+  .nf-grid--solo { grid-template-columns: minmax(0, 1fr); }
+  .nf-side { justify-self: end; }
+  .nf-num { text-align: right; }
+}
+@media (max-width: 959px) {
+  .nf-side { order: -1; }
+  .nf-side--after { order: 0; margin-top: 0.5rem; }
+}

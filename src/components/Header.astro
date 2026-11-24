@@ -7,10 +7,12 @@ const navLinks = [
   { href: '/account', label: 'Account' },
 ];
 const path = Astro.url.pathname.replace(/\/$/, '') || '/';
+// On the homepage the logo is the identifier, so the nav waits until you scroll.
+const autohide = path === '/';
 const isCurrent = (href: string) => path === href || path.startsWith(`${href}/`);
 ---
 
-<header id="main-nav" class="site-nav">
+<header id="main-nav" class:list={['site-nav', { 'is-autohide': autohide }]} data-autohide={autohide ? '' : undefined}>
   <div class="nav-inner">
     <a href="/" class="nav-brand" aria-label="Flowmaster home">
       <img class="nav-emblem" src="/brand/LogoEmblem.svg" alt="" width="62" height="17" />
@@ -50,7 +52,10 @@ const isCurrent = (href: string) => path === href || path.startsWith(`${href}/`)
     -webkit-backdrop-filter: blur(14px);
     backdrop-filter: blur(14px);
     border-bottom: 1px solid var(--rule);
+    transition: opacity 0.3s ease, transform 0.3s ease;
   }
+  .site-nav.is-autohide:not(.is-shown):not(:focus-within) { opacity: 0; transform: translateY(-100%); pointer-events: none; }
+  @media (prefers-reduced-motion: reduce) { .site-nav { transition: none; } }
   .nav-inner {
     width: min(100% - 2 * var(--pad), var(--wrap));
     height: var(--nav-h);
@@ -164,6 +169,14 @@ const isCurrent = (href: string) => path === href || path.startsWith(`${href}/`)
 </style>
 
 <script>
+  const nav = document.querySelector<HTMLElement>('[data-autohide]');
+  if (nav) {
+    const update = () => nav.classList.toggle('is-shown', window.scrollY > window.innerHeight * 0.35);
+    update();
+    window.addEventListener('scroll', update, { passive: true });
+    window.addEventListener('resize', update);
+  }
+
   const button = document.getElementById('mobile-menu-btn');
   const drawer = document.getElementById('mobile-menu');
 

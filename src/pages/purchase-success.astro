@@ -1,11 +1,25 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
+import '../styles/notice.css';
 ---
 <BaseLayout title="Paid access unavailable" description="Flowmaster is preparing a free trial. Purchases and paid upgrades are unavailable.">
-  <section class="section-padding"><div class="container-main max-w-2xl mx-auto text-center">
-    <h1 class="mb-6">Paid access is unavailable.</h1>
-    <p class="text-lg mb-6">Flowmaster is preparing a free 30-action trial with a required free account. We are not accepting purchases or paid upgrades.</p>
-    <p class="mb-8">For help with an earlier purchase, use the community contact linked below.</p>
-    <a class="btn-primary" href="/download">Free trial details</a>
-  </div></section>
+  <section class="nf">
+    <div class="wrap nf-grid">
+      <div class="nf-copy">
+        <p class="label">Purchases</p>
+        <h1 class="display nf-title nf-title--long">Paid access <span>is unavailable<i class="nf-stop" aria-hidden="true"></i></span></h1>
+        <p class="nf-lede">Flowmaster is preparing a free 30-action trial with a required free account. We are not accepting purchases or paid upgrades.</p>
+        <p class="nf-more">For help with an earlier purchase, use the community contact linked below.</p>
+        <div class="nf-actions">
+          <a class="btn-primary" href="/download">Free trial details</a>
+        </div>
+      </div>
+      <div class="nf-side nf-side--after">
+        <div class="nf-thirty" role="img" aria-label="Thirty squares, one for each action in the free trial.">
+          {Array.from({ length: 30 }).map(() => <i></i>)}
+        </div>
+        <p class="label nf-thirty-cap">Free 30-action trial &middot; free account required</p>
+      </div>
+    </div>
+  </section>
 </BaseLayout>
