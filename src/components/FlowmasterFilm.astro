@@ -2,12 +2,15 @@
 // The Flowmaster product film (flowmaster-film repo, draft v26). On desktop it opens on the
 // same kind of loader as the walkthrough below, then plays in the frame with sound.
 // On mobile (and without JavaScript) it is the native video player.
+// `bare` drops the caption and page spacing, for use inside the theatre.
+interface Props { bare?: boolean }
+const { bare = false } = Astro.props;
 const film = '/media/flowmaster/film-v26';
 ---
-<div id="film" class="film-section">
+<div id="film" class:list={['film-section', { 'is-bare': bare }]}>
   <figure>
     <div class="film-window" data-film>
-      <video class="film-video" controls playsinline preload="none" poster={`${film}-poster.jpg`} aria-labelledby="film-heading">
+      <video class="film-video" controls playsinline preload="none" poster={`${film}-poster.jpg`} aria-label="The Flowmaster film">
         <source src={`${film}.mp4`} type="video/mp4" />
         <track kind="captions" src={`${film}.en.vtt`} srclang="en" label="English" />
         <p>Your browser cannot play this film. <a href={`${film}.mp4`}>Open the Flowmaster film.</a></p>
@@ -23,15 +26,20 @@ const film = '/media/flowmaster/film-v26';
       </div>
       <div class="film-progress" data-film-progress hidden><span></span></div>
     </div>
+    {!bare && (
     <figcaption>
       <p id="film-heading" class="film-cap-title">Edit as you record.</p>
       <p>90 seconds, from hours of footage to the moments worth keeping. Events and Flow AI are in development for the December release.</p>
     </figcaption>
+    )}
   </figure>
 </div>
 
 <style>
   .film-section { width: min(100% - 2 * var(--pad), var(--wrap)); margin: 0 auto; padding: 0 0 4rem; scroll-margin-top: 6rem; }
+  .film-section.is-bare { width: 100%; height: 100%; margin: 0; padding: 0; }
+  .is-bare figure, .is-bare .film-window { height: 100%; }
+  .is-bare .film-window { border: 0; border-radius: 0; aspect-ratio: auto; }
   figure { margin: 0; }
   .film-window { position: relative; width: 100%; aspect-ratio: 16 / 9; overflow: hidden; border-radius: 10px; border: 1px solid var(--rule); background: #07080b; }
   .film-video { display: block; width: 100%; height: 100%; background: #07080b; }

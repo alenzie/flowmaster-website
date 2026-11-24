@@ -1,13 +1,13 @@
 ---
-// The Flowmaster film, as a theatre rather than a page section.
-// A small "Watch the film" button opens a modal dialog: the page lights go down
-// almost to black, then the screen swings up out of the dark and the film starts
-// with sound (the click is the visitor's own, so the browser allows it).
+// The 90-second Flowmaster film in its own player (FlowmasterFilm), shown as a
+// theatre rather than a page section. "Watch the film" dims the page almost to
+// black and swings the screen up; the player's own Play control starts it.
 // Escape, the close button or a click on the dark closes it and pauses the film.
 // Staging follows the synth reveal in the portfolio (portfolio26, SynthReveal.astro).
+import FlowmasterFilm from '../FlowmasterFilm.astro';
 interface Props { class?: string }
 const { class: className = '' } = Astro.props;
-const film = '/media/flowmaster/film-v26';
+
 ---
 
 <button type="button" class:list={['film-trigger', className]} data-film-open aria-haspopup="dialog" aria-controls="film-theater">
@@ -20,13 +20,8 @@ const film = '/media/flowmaster/film-v26';
   <div class="theater-lights" data-film-lights></div>
   <div class="theater-stage">
     <div class="theater-screen" data-film-screen>
-      <video class="theater-video" controls playsinline preload="none" poster={`${film}-poster.jpg`} data-film-video>
-        <source src={`${film}.mp4`} type="video/mp4" />
-        <track kind="captions" src={`${film}.en.vtt`} srclang="en" label="English" />
-        <p>Your browser cannot play this film. <a href={`${film}.mp4`}>Open the Flowmaster film.</a></p>
-      </video>
+      <FlowmasterFilm bare />
     </div>
-    <p class="theater-cap label"><span>The Flowmaster film</span><span>1:30 &middot; has sound</span></p>
   </div>
   <button type="button" class="theater-close" data-film-close aria-label="Close the film">
     <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3 3l10 10M13 3L3 13" /></svg>
@@ -93,6 +88,8 @@ const film = '/media/flowmaster/film-v26';
   .theater.is-open .theater-lights { opacity: 0.985; }
 
   .theater-stage {
+    /* Sized from the viewport, not the content, so the screen is always large. */
+    --screen-w: min(calc(100vw - 2 * clamp(1rem, 5vw, 4.5rem)), calc((100dvh - 9rem) * 16 / 9), 1400px);
     position: absolute;
     inset: 0;
     display: grid;
@@ -105,7 +102,7 @@ const film = '/media/flowmaster/film-v26';
   }
   .theater-screen {
     position: relative;
-    width: min(100%, calc((100dvh - 9rem) * 16 / 9), 1400px);
+    width: var(--screen-w);
     aspect-ratio: 16 / 9;
     border-radius: 12px;
     overflow: hidden;
@@ -125,18 +122,6 @@ const film = '/media/flowmaster/film-v26';
     opacity: 1;
     transition: transform 1.5s cubic-bezier(0.16, 1, 0.3, 1) 0.55s, opacity 0.8s ease 0.55s;
   }
-  .theater-video { display: block; width: 100%; height: 100%; background: #000; }
-  .theater-cap {
-    display: flex;
-    justify-content: space-between;
-    gap: 1.5rem;
-    width: min(100%, calc((100dvh - 9rem) * 16 / 9), 1400px);
-    font-size: 0.68rem;
-    color: var(--ink-3);
-    opacity: 0;
-    transition: opacity 0.4s ease;
-  }
-  .theater.is-open .theater-cap { opacity: 1; transition: opacity 0.8s ease 1.6s; }
 
   .theater-close {
     position: absolute;
@@ -160,16 +145,16 @@ const film = '/media/flowmaster/film-v26';
   .theater-close svg { width: 0.95rem; height: 0.95rem; stroke: var(--ink); stroke-width: 1.8; stroke-linecap: round; fill: none; }
 
   @media (prefers-reduced-motion: reduce) {
-    .theater-lights, .theater-screen, .theater-cap, .theater-close,
+    .theater-lights, .theater-screen, .theater-close,
     .theater.is-open .theater-lights, .theater.is-open .theater-screen,
-    .theater.is-open .theater-cap, .theater.is-open .theater-close { transition: none; }
+    .theater.is-open .theater-close { transition: none; }
     .theater-screen { transform: none; }
   }
 </style>
 
 <script>
   const dialog = document.querySelector<HTMLDialogElement>('[data-film-dialog]');
-  const video = dialog?.querySelector<HTMLVideoElement>('[data-film-video]');
+  const video = dialog?.querySelector<HTMLVideoElement>('video');
   const closeButton = dialog?.querySelector<HTMLButtonElement>('[data-film-close]');
   const triggers = [...document.querySelectorAll<HTMLButtonElement>('[data-film-open]')];
   if (dialog && video && closeButton) {
@@ -185,14 +170,9 @@ const film = '/media/flowmaster/film-v26';
       lastTrigger = trigger;
       previousOverflow = document.body.style.overflow;
       document.body.style.overflow = 'hidden';
-      // Stop any other sound on the page first.
-      document.querySelectorAll('video, audio').forEach((m) => { if (m !== video) (m as HTMLMediaElement).pause(); });
       dialog!.showModal();
       closeButton!.focus();
-      video!.preload = 'auto';
       requestAnimationFrame(() => requestAnimationFrame(() => dialog!.classList.add('is-open')));
-      // Start once the screen has risen; the click that opened it allows sound.
-      timers.push(window.setTimeout(() => { video!.play().catch(() => {}); }, reduced.matches ? 0 : 1700));
     }
 
     function close() {
@@ -211,6 +191,5 @@ const film = '/media/flowmaster/film-v26';
     closeButton.addEventListener('click', close);
     dialog.querySelector('[data-film-lights]')?.addEventListener('click', close);
     dialog.addEventListener('cancel', (event) => { event.preventDefault(); close(); });
-    video.addEventListener('ended', () => { timers.push(window.setTimeout(close, 1200)); });
   }
 </script>

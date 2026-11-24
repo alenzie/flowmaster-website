@@ -88,7 +88,7 @@ function ReadyGate({ rootRef, needsVideo = true }) {
   return (
     <div style={{position:'absolute', inset:0, zIndex:90, display:'flex', alignItems:'center', justifyContent:'center', background:'#07080b', fontFamily:'system-ui,-apple-system,Segoe UI,Roboto,sans-serif'}}>
       <div style={{display:'flex', flexDirection:'column', alignItems:'center', gap:24}}>
-        <img src="assets/logo-horizontal-lockup.svg" alt="Flowmaster — Live Studio" style={{width:380, display:'block', animation:'fmfadeup .6s ease-out both'}} />
+        <img src="assets/logo-horizontal-lockup.svg" alt="Flowmaster — Live Editor" style={{width:380, display:'block', animation:'fmfadeup .6s ease-out both'}} />
         <div role="status" style={{fontSize:19, color:'#b6bcc6'}}>{error ? 'The footage couldn’t load. Please try again.' : 'How it works'}</div>
         <button type="button" aria-label={error ? 'Retry Flowmaster walkthrough' : 'Play Flowmaster walkthrough'}
           onClick={() => {
@@ -1153,7 +1153,7 @@ function Piece({ webgl }) {
             display: 'flex', flexDirection: 'column', alignItems: 'center',
             transform: `scale(${1 + 0.04 * clamp((T - CUES.Setup) / 5, 0, 1)})`,
           }}>
-            <img src="assets/logo-horizontal-lockup.svg" alt="Flowmaster — Live Studio" style={{ width: 780, display: 'block' }} />
+            <img src="assets/logo-horizontal-lockup.svg" alt="Flowmaster — Live Editor" style={{ width: 780, display: 'block' }} />
           </div>
         </div>
       )}

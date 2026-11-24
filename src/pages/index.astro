@@ -1,7 +1,6 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
 import '../styles/home.css';
-import LiveStrip from '../components/home/LiveStrip.astro';
 import MarkWindow from '../components/home/MarkWindow.astro';
 import MarkLoop from '../components/home/MarkLoop.astro';
 import { LOOKBACK, LOOKFORWARD, formatDuration } from '../components/home/session';
@@ -98,54 +97,6 @@ const HERO_KEEP = HERO_KEPT.length * (LOOKBACK + LOOKFORWARD); // 12:50
 
   <ChapterClip />
   <ChapterClean />
-
-  <!-- TRY IT: the whole session, driven by the visitor -->
-  <section class="try" id="try" aria-labelledby="try-title">
-    <div class="wrap try-head">
-      <p class="label">Try it</p>
-      <h2 id="try-title" class="display try-title">Mark, stop, clip, clean.</h2>
-    </div>
-    <LiveStrip />
-  </section>
-
-  <!-- THE ASK -->
-  <aside class="band" aria-label="Create an account">
-    <div class="wrap band-inner">
-      <div>
-        <p class="display band-line">
-          <span class="band-squares" aria-hidden="true"><span class="sq"></span><span class="sq y"></span><span class="sq g"></span></span>Mark it, clip it, clean it.
-        </p>
-        <p class="band-sub">That is the whole app. Free account, 30 actions per PC, no time limit, no payment card.</p>
-      </div>
-      <a class="btn-primary hero-cta" href="/account">Create a free account</a>
-    </div>
-  </aside>
-
-  <!-- NOTE -->
-  <section class="note" aria-labelledby="note-title">
-    <div class="wrap note-grid">
-      <div class="note-head" data-reveal>
-        <p class="label">Who makes this</p>
-        <h2 id="note-title" class="display note-title">It started as a script I wrote for myself.</h2>
-      </div>
-      <div class="note-body" data-reveal style="--reveal-delay:.1s">
-        <p>
-          I make Flowmaster on my own. It exists because I got tired of the rough cut in my own recordings, and I built my way out of it one piece at a time.
-        </p>
-        <ol class="note-steps">
-          <li><span class="label">First</span><p>A small AutoHotkey script that logged a timestamp every time I pressed F9.</p></li>
-          <li><span class="label">Then</span><p>A Python auto-cutter that read that log and used FFmpeg to cut out the keepers.</p></li>
-          <li><span class="label">Then</span><p>A cleaner script that found recordings with both an original and an edit.</p></li>
-          <li><span class="label">Now</span><p>All of it rewritten in Rust as one application. That application is Flowmaster.</p></li>
-        </ol>
-        <p>
-          If something is broken or confusing, tell me. I read
-          <a class="text-link" href="mailto:support@flowmastersuite.com">support@flowmastersuite.com</a> and the
-          <a class="text-link" href="https://discord.gg/S8uJpcK3qJ" target="_blank" rel="noopener noreferrer">Discord</a>.
-        </p>
-      </div>
-    </div>
-  </section>
 
   <!-- IN DEVELOPMENT -->
   <section class="next" aria-label="In development">
@@ -261,49 +212,6 @@ const HERO_KEEP = HERO_KEPT.length * (LOOKBACK + LOOKFORWARD); // 12:50
   }
 
   #mark :global(.mark-loop) { margin-top: 1.75rem; max-width: 33rem; }
-
-  /* ---------- Try it ---------- */
-  .try { padding-top: clamp(4.5rem, 9vw, 7.5rem); }
-  .try-head { display: grid; gap: 0.9rem; justify-items: start; }
-  .try-title { font-size: clamp(2.5rem, 5vw, 4.25rem); }
-
-  /* ---------- The ask ---------- */
-  .band { border-block: 1px solid var(--rule-strong); background: #0c0c0c; }
-  .band-inner { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 1.25rem 3rem; padding: clamp(1.6rem, 3vw, 2.25rem) 0; }
-  .band-line { font-size: clamp(1.9rem, 3.6vw, 2.9rem); line-height: 1; }
-  .band-squares { display: inline-flex; gap: 0.12em; margin-right: 0.4em; font-size: 0.78em; }
-  .band-sub { margin-top: 0.55rem; font-size: 0.97rem; color: var(--ink-2); }
-
-
-  /* ---------- Note ---------- */
-  .note { padding: clamp(4rem, 8vw, 7rem) 0; border-top: 1px solid var(--rule); background: #0c0c0c; }
-  .note-grid { display: grid; gap: 2.5rem; }
-  .note-title { margin-top: 1rem; font-size: clamp(2.5rem, 5vw, 4.25rem); }
-  .note-body { max-width: 38rem; }
-  .note-body > p { font-size: 1.1rem; color: var(--ink); line-height: 1.6; }
-  .note-steps { list-style: none; margin: 2rem 0; padding: 0; border-top: 1px solid var(--rule); }
-  .note-steps li {
-    display: grid;
-    grid-template-columns: 4.5rem minmax(0, 1fr);
-    gap: 1rem;
-    align-items: baseline;
-    padding: 0.9rem 0;
-    border-bottom: 1px solid var(--rule);
-  }
-  .note-steps li:last-child .label { color: var(--red); }
-  .note-steps p { font-size: 1.02rem; color: var(--ink-2); }
-  .note-sign {
-    margin-top: 1.75rem;
-    font-family: var(--font-heading);
-    font-stretch: 68%;
-    font-weight: 800;
-    font-size: 1.5rem !important;
-    text-transform: uppercase;
-    letter-spacing: 0.01em;
-  }
-  @media (min-width: 900px) {
-    .note-grid { grid-template-columns: minmax(0, 1fr) minmax(0, 1.3fr); gap: clamp(3rem, 7vw, 7rem); }
-  }
 
   /* ---------- In development ---------- */
   .next { border-top: 1px solid var(--rule); border-bottom: 1px solid var(--rule); }
