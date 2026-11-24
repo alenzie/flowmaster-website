@@ -3,23 +3,23 @@
 // with the exact counting rules left to the download page.
 import BaseLayout from '../layouts/BaseLayout.astro';
 
-const ACTIONS = 30;
+const ACTIONS = 90;
 const facts = [
-  ['30 actions per PC', 'Recording sessions, clipping runs and project assemblies each use one.'],
+  ['90 actions per PC', 'Recording sessions, clipping runs and project assemblies each use one.'],
   ['No time limit', 'The actions do not expire.'],
   ['Free account', 'Required. Sign in with email or Google.'],
   ['Online', 'An internet connection is needed to verify usage.'],
 ];
 ---
 
-<BaseLayout title="Free trial" description="Flowmaster's free trial: 30 actions per PC, a free account, no time limit and no payment card. Paid trials and upgrades are currently unavailable.">
+<BaseLayout title="Free trial" description="Flowmaster's free trial: 90 actions per PC, a free account, no time limit and no payment card. Paid trials and upgrades are currently unavailable.">
   <section class="trial">
     <div class="wrap trial-grid">
       <div class="trial-copy">
         <p class="label">Free trial</p>
         <h1 class="display trial-title">Try the workflow. <span>No payment card.</span></h1>
         <p class="trial-lede">
-          Flowmaster&rsquo;s trial includes 30 actions per PC. It requires an internet connection to verify usage, and a free account, with no time limit.
+          Flowmaster&rsquo;s trial includes 90 actions per PC. It requires an internet connection to verify usage, and a free account, with no time limit.
         </p>
         <div class="trial-actions">
           <a class="btn-primary trial-cta" href="/account">Create a free account</a>
@@ -30,11 +30,11 @@ const facts = [
         </p>
       </div>
 
-      <figure class="trial-meter" aria-label="30 actions in the free trial">
+      <figure class="trial-meter" aria-label="90 actions in the free trial">
         <div class="trial-squares" aria-hidden="true">
           {Array.from({ length: ACTIONS }, (_, i) => <i style={`--i:${i}`}></i>)}
         </div>
-        <figcaption class="label">30 actions &middot; one PC &middot; no time limit</figcaption>
+        <figcaption class="label">90 actions &middot; one PC &middot; no time limit</figcaption>
       </figure>
     </div>
 
@@ -61,17 +61,18 @@ const facts = [
   .trial-cta { min-height: 3.4rem; padding: 0.9rem 1.6rem; font-size: 1.08rem; }
   .trial-fine { margin-top: 1.2rem; max-width: 32rem; font-size: 0.92rem; color: var(--ink-3); }
 
-  /* Thirty squares, one per action, landing in the brand's three colours. */
+  /* Ninety squares, one per action, landing in the brand's three colours. */
   .trial-meter { margin: 0; display: grid; gap: 1rem; justify-items: start; }
-  .trial-squares { display: grid; grid-template-columns: repeat(10, 1fr); gap: clamp(0.4rem, 1vw, 0.65rem); width: min(100%, 30rem); }
+  .trial-squares { display: grid; grid-template-columns: repeat(15, 1fr); gap: clamp(0.3rem, 0.7vw, 0.5rem); width: min(100%, 32rem); }
   .trial-squares i {
     aspect-ratio: 1;
     border-radius: 18%;
     background: var(--red);
-    animation: ts-in 0.45s cubic-bezier(0.3, 1.4, 0.5, 1) calc(0.15s + var(--i) * 0.035s) both;
+    animation: ts-in 0.45s cubic-bezier(0.3, 1.4, 0.5, 1) calc(0.15s + var(--i) * 0.016s) both;
   }
-  .trial-squares i:nth-child(10n + 4), .trial-squares i:nth-child(10n + 5), .trial-squares i:nth-child(10n + 6), .trial-squares i:nth-child(10n + 7) { background: var(--yellow); }
-  .trial-squares i:nth-child(10n + 8), .trial-squares i:nth-child(10n + 9), .trial-squares i:nth-child(10n) { background: var(--green); }
+  /* Fifteen to a row: five red, five yellow, five green. */
+  .trial-squares i:nth-child(15n + 6), .trial-squares i:nth-child(15n + 7), .trial-squares i:nth-child(15n + 8), .trial-squares i:nth-child(15n + 9), .trial-squares i:nth-child(15n + 10) { background: var(--yellow); }
+  .trial-squares i:nth-child(15n + 11), .trial-squares i:nth-child(15n + 12), .trial-squares i:nth-child(15n + 13), .trial-squares i:nth-child(15n + 14), .trial-squares i:nth-child(15n) { background: var(--green); }
   .trial-meter figcaption { font-size: 0.7rem; }
   @keyframes ts-in { from { opacity: 0; transform: translateY(-30%) scale(0.6); } to { opacity: 1; transform: none; } }
 

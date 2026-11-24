@@ -21,7 +21,7 @@ const counts = [
   },
 ];
 ---
-<BaseLayout title="Download and free trial" description="Flowmaster for Windows. 30 actions per PC, a free account and no payment card. Check the current release and trial requirements.">
+<BaseLayout title="Download and free trial" description="Flowmaster for Windows. 90 actions per PC, a free account and no payment card. Check the current release and trial requirements.">
   <section class="dl-top">
     <div class="wrap dl-top-grid">
       <div class="dl-intro">
@@ -66,11 +66,11 @@ const counts = [
     <div class="wrap rules-grid">
       <div class="rules-head">
         <p class="label">The trial</p>
-        <h2 id="rules-title" class="display rules-title">30 actions, with no time limit</h2>
-        <div class="thirty" role="img" aria-label="Thirty squares, one for each action in the trial.">
-          {Array.from({ length: 30 }).map(() => <i></i>)}
+        <h2 id="rules-title" class="display rules-title">90 actions, with no time limit</h2>
+        <div class="thirty" role="img" aria-label="Ninety squares, one for each action in the trial.">
+          {Array.from({ length: 90 }).map(() => <i></i>)}
         </div>
-        <p class="label thirty-cap">30 actions per PC &middot; no payment card</p>
+        <p class="label thirty-cap">90 actions per PC &middot; no payment card</p>
         <p>The trial is tied to your PC and verified online. An internet connection and the trial service are required to start new work. Reinstalling does not restart the trial.</p>
       </div>
 
@@ -91,8 +91,8 @@ const counts = [
             <p>Failed or cancelled work releases its reserved action when the service reconnects. An interrupted run can count if completion cannot be confirmed.</p>
           </div>
           <div>
-            <h3 class="label rules-sub">After all 30</h3>
-            <p>After all 30 actions, existing recordings and outputs remain yours. You can still view them, edit saved marks, and use Clean. Accounts are free. Paid trials and upgrades are currently unavailable.</p>
+            <h3 class="label rules-sub">After all 90</h3>
+            <p>After all 90 actions, existing recordings and outputs remain yours. You can still view them, edit saved marks, and use Clean. Accounts are free. Paid trials and upgrades are currently unavailable.</p>
           </div>
         </div>
       </div>
@@ -188,7 +188,7 @@ const counts = [
   .rules { padding: clamp(4rem, 8vw, 6.5rem) 0; border-top: 1px solid var(--rule); scroll-margin-top: var(--nav-h); }
   .rules-grid { display: grid; gap: 3rem; }
   .rules-title, .first-title { margin-top: 1rem; font-size: clamp(2.5rem, 5vw, 4.25rem); }
-  .thirty { display: grid; grid-template-columns: repeat(10, minmax(0, 1fr)); gap: 0.4rem; max-width: 24rem; margin: 2rem 0 0.8rem; }
+  .thirty { display: grid; grid-template-columns: repeat(15, minmax(0, 1fr)); gap: 0.3rem; max-width: 26rem; margin: 2rem 0 0.8rem; }
   .thirty i { aspect-ratio: 83.5 / 81.5; border-radius: 10%; background: #3d3c38; }
   .thirty-cap { margin-bottom: 1.75rem; }
   .rules-head > p:not(.label) { max-width: 28rem; }
