@@ -2,123 +2,113 @@
 const currentYear = new Date().getFullYear();
 
 const productLinks = [
-  { href: '/account', label: 'Create a free account' },
   { href: '/download', label: 'Download' },
   { href: '/pricing', label: 'Free trial' },
+  { href: '/account', label: 'Account' },
   { href: '/docs', label: 'Docs' },
   { href: '/future', label: 'Future' },
 ];
 
-const smallPrint = [
+const legalLinks = [
   { href: '/data', label: 'Trial data' },
   { href: '/privacy', label: 'Privacy Policy' },
   { href: '/terms', label: 'Terms of Service' },
 ];
 
-const contact = [
+const contactLinks = [
   { href: 'https://discord.gg/S8uJpcK3qJ', label: 'Discord' },
   { href: 'mailto:support@flowmastersuite.com', label: 'support@flowmastersuite.com' },
 ];
 ---
 
-<footer class="site-footer">
-  <div class="wrap">
-    <div class="footer-top">
-      <div class="footer-brand">
-        <img src="/brand/LogoHorizontalLockup.svg" alt="Flowmaster" width="176" height="80" loading="lazy" />
-        <p>Record everything. Keep only what you meant to keep.</p>
-      </div>
-
-      <nav class="footer-col" aria-label="Product">
-        <h2 class="label">Flowmaster</h2>
-        <ul>
-          {productLinks.map((link) => <li><a href={link.href}>{link.label}</a></li>)}
-        </ul>
-      </nav>
-
-      <nav class="footer-col" aria-label="Policies">
-        <h2 class="label">The small print</h2>
-        <ul>
-          {smallPrint.map((link) => <li><a href={link.href}>{link.label}</a></li>)}
-        </ul>
-      </nav>
-
-      <div class="footer-col">
-        <h2 class="label">Talk to me</h2>
-        <ul>
-          {contact.map((link) => (
-            <li>
-              <a
-                href={link.href}
-                target={link.href.startsWith('http') ? '_blank' : undefined}
-                rel={link.href.startsWith('http') ? 'noopener noreferrer' : undefined}
-              >{link.label}</a>
-            </li>
-          ))}
-        </ul>
-      </div>
-    </div>
-
-    <div class="footer-bottom">
-      <p>
-        Made by Alexander Blair. An
-        <a href="https://alenzie.com" target="_blank" rel="noopener noreferrer">Alenzie</a> product.
+<footer class="site-foot">
+  <!-- The top edge of the footer is drawn as a timeline ruler. -->
+  <div class="foot-ruler" aria-hidden="true"></div>
+  <div class="wrap foot-inner">
+    <div class="foot-brand">
+      <a href="/" aria-label="Flowmaster home">
+        <img src="/brand/LogoHorizontalLockup.svg" alt="Flowmaster Live Studio" width="176" height="80" loading="lazy" />
+      </a>
+      <p>Mark it, clip it, clean it.</p>
+      <p class="foot-maker">
+        Built by one person, Alexander Blair, as
+        <a href="https://alenzie.com" target="_blank" rel="noopener noreferrer">Alenzie</a>.
       </p>
-      <p>&copy; {currentYear} Alenzie Solutions. All rights reserved.</p>
     </div>
+
+    <nav class="foot-col" aria-label="Product">
+      <h2 class="label">Product</h2>
+      <ul>
+        {productLinks.map((link) => <li><a href={link.href}>{link.label}</a></li>)}
+      </ul>
+    </nav>
+
+    <nav class="foot-col" aria-label="Legal">
+      <h2 class="label">Legal</h2>
+      <ul>
+        {legalLinks.map((link) => <li><a href={link.href}>{link.label}</a></li>)}
+      </ul>
+    </nav>
+
+    <nav class="foot-col foot-contact" aria-label="Contact">
+      <h2 class="label">Contact</h2>
+      <ul>
+        {contactLinks.map((link) => (
+          <li>
+            <a
+              href={link.href}
+              target={link.href.startsWith('http') ? '_blank' : undefined}
+              rel={link.href.startsWith('http') ? 'noopener noreferrer' : undefined}
+            >{link.label}</a>
+          </li>
+        ))}
+      </ul>
+    </nav>
+  </div>
+
+  <div class="wrap foot-base">
+    <p>&copy; {currentYear} Alenzie Solutions. All rights reserved.</p>
   </div>
 </footer>
 
 <style>
-  .site-footer {
-    border-top: 1px solid var(--rule);
-    background: #0b0b0b;
-    padding: 4rem 0 2rem;
+  .site-foot { background: #0c0c0c; }
+  .foot-ruler {
+    height: 14px;
+    border-top: 1px solid var(--rule-strong);
+    background-image:
+      repeating-linear-gradient(to right, var(--rule-strong) 0 1px, transparent 1px 60px),
+      repeating-linear-gradient(to right, var(--rule) 0 1px, transparent 1px 12px);
+    background-size: auto 14px, auto 6px;
+    background-repeat: repeat-x;
+    -webkit-mask-image: linear-gradient(to right, #000 60%, transparent);
+    mask-image: linear-gradient(to right, #000 60%, transparent);
   }
-  .footer-top {
+  .foot-inner {
+    padding: clamp(2.5rem, 6vw, 4rem) 0 2.5rem;
     display: grid;
-    gap: 2.5rem 2rem;
     grid-template-columns: 1fr 1fr;
+    gap: 2.5rem 2rem;
   }
-  .footer-brand { grid-column: 1 / -1; }
-  .footer-brand img { width: 9.5rem; height: auto; }
-  .footer-brand p {
-    margin-top: 1.25rem;
-    max-width: 18rem;
-    font-size: 0.95rem;
-    color: var(--ink-3);
-  }
-  .footer-col h2 {
-    font-family: var(--font-mono);
-    font-stretch: 100%;
-    margin-bottom: 0.9rem;
-  }
-  .footer-col ul { list-style: none; padding: 0; margin: 0; display: grid; gap: 0.15rem; }
-  .footer-col a {
-    display: inline-block;
-    padding: 0.4rem 0;
-    color: var(--ink-2);
-    font-size: 0.97rem;
-    text-decoration: none;
-    overflow-wrap: anywhere;
-  }
-  .footer-col a:hover { color: var(--ink); text-decoration: underline; text-underline-offset: 0.25em; }
+  .foot-brand { grid-column: 1 / -1; }
+  .foot-brand img { width: 176px; height: auto; display: block; margin-bottom: 1.1rem; }
+  .foot-brand p { margin: 0; color: var(--ink-2); font-size: 0.95rem; }
+  .foot-brand .foot-maker { margin-top: 0.35rem; color: var(--ink-3); }
+  .foot-maker a { color: var(--ink-2); text-decoration: underline; text-decoration-color: var(--rule-strong); text-underline-offset: 0.2em; }
+  .foot-maker a:hover { color: var(--ink); }
 
-  .footer-bottom {
-    margin-top: 3.5rem;
-    padding-top: 1.5rem;
-    border-top: 1px solid var(--rule);
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: space-between;
-    gap: 0.5rem 2rem;
-  }
-  .footer-bottom p { font-size: 0.85rem; color: var(--ink-3); }
-  .footer-bottom a { color: var(--color-alenzie-mint); text-decoration: none; }
-  .footer-bottom a:hover { text-decoration: underline; }
+  .foot-col h2 { margin: 0 0 0.9rem; font-stretch: 100%; font-size: 0.7rem; letter-spacing: 0.13em; }
+  .foot-col ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 0.15rem; }
+  .foot-col a { display: inline-block; padding: 0.3rem 0; color: var(--ink-2); font-size: 0.95rem; text-decoration: none; overflow-wrap: anywhere; }
+  .foot-col a:hover { color: var(--ink); }
 
-  @media (min-width: 900px) {
-    .footer-top { grid-template-columns: 1.6fr 1fr 1fr 1.2fr; }
-    .footer-brand { grid-column: auto; }
+  .foot-base { padding: 1.4rem 0 2.2rem; border-top: 1px solid var(--rule); }
+  .foot-base p { margin: 0; font-size: 0.82rem; color: var(--ink-3); }
+
+  .foot-contact { grid-column: 1 / -1; }
+
+  @media (min-width: 820px) {
+    .foot-inner { grid-template-columns: minmax(0, 1.7fr) repeat(3, minmax(0, 1fr)); }
+    .foot-brand, .foot-contact { grid-column: auto; }
   }
 </style>

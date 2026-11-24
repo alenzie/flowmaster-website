@@ -1,65 +1,17 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
+import '../styles/home.css';
 import LiveStrip from '../components/home/LiveStrip.astro';
-import Strip from '../components/home/Strip.astro';
-import AppWindow from '../components/home/AppWindow.astro';
+import MarkWindow from '../components/home/MarkWindow.astro';
+import PitchClip from '../components/home/PitchClip.astro';
+import ChapterClip from '../components/home/ChapterClip.astro';
+import ChapterClean from '../components/home/ChapterClean.astro';
 import FlowmasterFilm from '../components/FlowmasterFilm.astro';
 import release from '../data/release.json';
 
 // Same test the download page uses. While the download is closed, nothing on
 // this page may suggest the installer can be had today.
 const downloadOpen = release.available && !!release.downloadUrl && !!release.sha256;
-
-const chapters = [
-  {
-    id: 'mark',
-    n: '01',
-    box: '/brand/RedBox.svg',
-    when: 'While you record',
-    title: 'Press F9. Keep playing.',
-    body: [
-      'Flowmaster sits next to OBS Studio and waits for one key. When something happens that you would want in the video, press F9. It saves the timestamp and you carry on.',
-      'There is nothing to name, nothing to trim and nothing to decide later. You already made the decision, at the only moment you were sure.',
-    ],
-    facts: [
-      'F9 is the default mark key. You can change it in Settings.',
-      'It connects to OBS Studio through OBS’s own WebSocket server.',
-      'Each recording shows up in the Mark tab with its number of marks.',
-    ],
-  },
-  {
-    id: 'clip',
-    n: '02',
-    box: '/brand/YellowBox.svg',
-    when: 'After the session',
-    title: 'The keepers cut themselves out.',
-    body: [
-      'Open Clip and the recording is waiting with its marks. You press F9 after the good part happens, so Clip keeps the seconds before each mark as well as after. Set both, then choose a reel, separate clips, or both.',
-      'What comes out is MP4 files of the moments you marked. The rest of the recording stays out of your editor.',
-    ],
-    facts: [
-      'Double-click a recording to review and edit its marks.',
-      'Windows that overlap merge into one clip.',
-      'Works on MP4 recordings. If OBS saved MKV, remux it in OBS first.',
-    ],
-  },
-  {
-    id: 'clean',
-    n: '03',
-    box: '/brand/GreenBox.svg',
-    when: 'When the clips are safe',
-    title: 'Then get the drive back.',
-    body: [
-      'Raw recordings are huge. Once the clips exist, most of the original is weight you are storing for no reason. Clean scans your recordings folder and lists the originals that already have clips made from them.',
-      'You pick which ones go. They are moved to the Windows Recycle Bin, and recordings you have not clipped yet are left where they are.',
-    ],
-    facts: [
-      'Review your exported files before you select any originals.',
-      'Only originals with matching outputs, and orphaned files, are listed.',
-      'Clean keeps working after the trial’s 30 actions are used up.',
-    ],
-  },
-] as const;
 
 const specs = [
   ['Runs on', 'Windows 10 and 11, 64-bit. There are no builds for other platforms.'],
@@ -78,9 +30,9 @@ const specs = [
 ---
 
 <BaseLayout title="Never do the rough cut">
-  <!-- HERO -->
+  <!-- HERO: the headline, the app, and a recording you can mark, clip and clean -->
   <section id="hero" class="hero" aria-labelledby="hero-title">
-    <div class="wrap">
+    <div class="wrap hero-wrap">
       <p class="label hero-eyebrow">
         <img src="/brand/LogoEmblem.svg" alt="" width="44" height="12" />
         Works with OBS Studio, on Windows
@@ -90,6 +42,10 @@ const specs = [
 
       <div class="hero-cols">
         <div class="hero-pitch">
+          <dl class="hero-def">
+            <dt><span class="hero-def-term">rough cut</span> <span class="label">noun</span></dt>
+            <dd>The dead time between stopping the recording and starting the real edit: scrubbing through hours of footage to find the parts worth keeping.</dd>
+          </dl>
           <p class="hero-lede">
             You know a moment is worth keeping the second it happens. So I built a way to say so right then: press
             <span class="key">F9</span> and keep playing. When you stop recording, Flowmaster cuts those moments out as clips or a reel, and the hours of scrubbing never happen.
@@ -105,94 +61,61 @@ const specs = [
           </p>
         </div>
 
-        <dl class="hero-def">
-          <dt><span class="hero-def-term">rough cut</span> <span class="label">noun</span></dt>
-          <dd>The dead time between stopping the recording and starting the real edit: scrubbing through hours of footage to find the parts worth keeping.</dd>
-        </dl>
+        <figure class="hero-app">
+          <MarkWindow variant="live" />
+          <figcaption class="label">The app, rebuilt in HTML. Its tabs jump down the page.</figcaption>
+        </figure>
       </div>
     </div>
 
     <LiveStrip />
   </section>
 
-  <!-- THE IDEA -->
-  <section class="idea" aria-labelledby="idea-title">
-    <div class="wrap idea-grid">
-      <div data-reveal>
-        <p class="label">Why it works</p>
-        <h2 id="idea-title" class="display idea-title">This isn&rsquo;t an editing problem. <span>It&rsquo;s a recording problem.</span></h2>
-      </div>
-      <div class="idea-copy" data-reveal style="--reveal-delay:.1s">
-        <p>
-          I kept hitting the same obstacle in my own footage. I wanted to record everything, and then I had to go back through all of it to find the parts worth keeping, before any real editing could start.
-        </p>
-        <p>
-          A faster editor does not fix that, because the slow part is not editing. It is searching. So I moved the decision to the moment it is easy: while the thing is happening, with one key.
-        </p>
-      </div>
-    </div>
+  <!-- WHERE IT STARTED: a clip from the first pitch -->
+  <PitchClip />
 
-    <div class="wrap">
-      <div class="days" data-reveal role="img" aria-label="Two timelines. The usual way: record, then the rough cut, then edit. With marks: record while pressing F9, then edit. The rough cut is gone.">
-        <div class="day">
-          <span class="label day-name">The usual way</span>
-          <div class="day-bar">
-            <span class="seg seg-rec">Record</span>
-            <span class="seg seg-rough">Rough cut <i>scrub all of it to find the good parts</i></span>
-            <span class="seg seg-edit">Edit</span>
-          </div>
-        </div>
-        <div class="day">
-          <span class="label day-name">With marks</span>
-          <div class="day-bar">
-            <span class="seg seg-rec seg-marked">Record <i>and press F9</i><b></b><b></b><b></b><b></b></span>
-            <span class="seg seg-edit">Edit</span>
-            <span class="seg seg-gone">This part is gone</span>
-          </div>
-        </div>
+  <!-- MARK -->
+  <section class="chapter chapter--mark" id="mark" aria-labelledby="mark-title">
+    <div class="wrap chapter-grid">
+      <div class="chapter-copy" data-reveal>
+        <p class="chapter-tag">
+          <img src="/brand/RedBox.svg" alt="" width="26" height="25" />
+          <span class="chapter-num">01</span>
+          <span class="chapter-name">Mark</span>
+          <span class="chapter-when">While you record</span>
+        </p>
+        <h2 id="mark-title" class="display chapter-title">Press F9. Keep playing<span class="stop" aria-hidden="true"></span><span class="sr-only">.</span></h2>
+        <p class="chapter-body">
+          Flowmaster sits next to OBS Studio and waits for one key. When something happens that you would want in the video, press F9. It saves the timestamp and you carry on. There is nothing to name, nothing to trim and nothing to decide later.
+        </p>
+        <ul class="chapter-facts">
+          <li><strong>F9 is the default.</strong> You can change the mark key in Settings.</li>
+          <li><strong>It talks to OBS directly.</strong> Flowmaster connects through OBS&rsquo;s own WebSocket server.</li>
+          <li><strong>Every session is listed.</strong> Each recording shows up in the Mark tab with its marks and their timestamps.</li>
+        </ul>
       </div>
+      <figure class="chapter-app" data-reveal style="--reveal-delay:.12s">
+        <MarkWindow variant="log" />
+        <figcaption class="label"><span>Mark tab, rebuilt in HTML</span><span>The first session is the one from the hero</span></figcaption>
+      </figure>
     </div>
   </section>
 
-  <!-- THREE TABS -->
-  <section class="tabs" aria-labelledby="tabs-title">
-    <div class="wrap tabs-head" data-reveal>
+  <ChapterClip />
+  <ChapterClean />
+
+  <!-- THE ASK -->
+  <aside class="band" aria-label="Create an account">
+    <div class="wrap band-inner">
       <div>
-        <p class="label">The whole app</p>
-        <h2 id="tabs-title" class="display tabs-title">Three tabs. <span>One session, start to finish.</span></h2>
+        <p class="display band-line">
+          <span class="band-squares" aria-hidden="true"><span class="sq"></span><span class="sq y"></span><span class="sq g"></span></span>Mark it, clip it, clean it.
+        </p>
+        <p class="band-sub">That is the whole app. Free account, 30 actions per PC, no time limit, no payment card.</p>
       </div>
-      <p class="tabs-intro">
-        Below is the app, rebuilt for this page from its real interface, following one sample recording through all three tabs. The tabs switch and the controls respond, so poke at it.
-      </p>
+      <a class="btn-primary hero-cta" href="/account">Create a free account</a>
     </div>
-
-    {chapters.map((c) => (
-      <article class={`chapter chapter--${c.id}`} id={c.id} aria-labelledby={`${c.id}-title`}>
-        <div class="wrap chapter-grid">
-          <div class="chapter-copy" data-reveal>
-            <p class="chapter-tag">
-              <img src={c.box} alt="" width="26" height="25" />
-              <span class="chapter-num">{c.n}</span>
-              <span class="chapter-name">{c.id}</span>
-              <span class="chapter-when">{c.when}</span>
-            </p>
-            <h3 id={`${c.id}-title`} class="display chapter-title">{c.title}</h3>
-            {c.body.map((p) => <p class="chapter-body">{p}</p>)}
-            <ul class="chapter-facts">
-              {c.facts.map((f) => <li>{f}</li>)}
-            </ul>
-          </div>
-          <figure class="chapter-app" data-reveal style="--reveal-delay:.12s">
-            <AppWindow tab={c.id} />
-            <figcaption class="label">Flowmaster 0.2.2, {c.id} tab &middot; rebuilt in HTML &middot; sample data</figcaption>
-          </figure>
-        </div>
-        <div class="wrap chapter-strip">
-          <Strip stage={c.id} />
-        </div>
-      </article>
-    ))}
-  </section>
+  </aside>
 
   <!-- FILM -->
   <section class="film" aria-labelledby="film-title">
@@ -205,14 +128,16 @@ const specs = [
 
   <!-- SPEC SHEET -->
   <section class="spec" aria-labelledby="spec-title">
-    <div class="wrap spec-grid">
+    <div class="wrap">
       <div class="spec-head" data-reveal>
-        <p class="label">The straight facts</p>
-        <h2 id="spec-title" class="display spec-title">What it needs. What it costs.</h2>
-        <p>
-          The trial is free: 30 actions on one PC, with no time limit, and I do not ask for a payment card.
-        </p>
-        <a class="arrow-link" href="/download#trial-rules">Read the exact trial rules</a>
+        <div>
+          <p class="label">The straight facts</p>
+          <h2 id="spec-title" class="display spec-title">What it needs. What it costs.</h2>
+        </div>
+        <div class="spec-lede">
+          <p>The trial is free: 30 actions on one PC, with no time limit, and I do not ask for a payment card.</p>
+          <a class="arrow-link" href="/download#trial-rules">Read the exact trial rules</a>
+        </div>
       </div>
       <dl class="spec-list" data-reveal style="--reveal-delay:.1s">
         {specs.map(([term, detail]) => (
@@ -263,18 +188,19 @@ const specs = [
 
   <!-- CLOSING -->
   <section class="closing" aria-labelledby="closing-title">
-    <div class="wrap" data-reveal>
-      <img class="closing-emblem" src="/brand/LogoEmblem.svg" alt="" width="110" height="30" loading="lazy" />
+    <div class="wrap closing-grid" data-reveal>
       <h2 id="closing-title" class="display closing-title"><span>Record everything.</span> Keep only what you meant to keep.</h2>
-      <div class="closing-actions">
-        <a class="btn-primary hero-cta" href="/account">Create a free account</a>
-        <a class="arrow-link" href="/download">Download and trial details</a>
+      <div class="closing-side">
+        <div class="closing-actions">
+          <a class="btn-primary hero-cta" href="/account">Create a free account</a>
+          <a class="arrow-link" href="/download">Download and trial details</a>
+        </div>
+        <p class="hero-fine">
+          {downloadOpen
+            ? <>Free account. 30 actions per PC, no time limit, no payment card. Windows 10 and 11, 64-bit.</>
+            : <>The Windows download is not open yet. Your free account is ready for it when it opens. No payment card.</>}
+        </p>
       </div>
-      <p class="hero-fine">
-        {downloadOpen
-          ? <>Free account. 30 actions per PC, no time limit, no payment card. Windows 10 and 11, 64-bit.</>
-          : <>The Windows download is not open yet. Your free account is ready for it when it opens. No payment card.</>}
-      </p>
     </div>
   </section>
 </BaseLayout>
@@ -283,11 +209,11 @@ const specs = [
   .nowrap { white-space: nowrap; }
 
   /* ---------- Hero ---------- */
-  .hero { padding-top: calc(var(--nav-h) + clamp(1.75rem, 3.4vw, 2.75rem)); }
+  .hero { padding-top: calc(var(--nav-h) + clamp(1.4rem, 2vw, 1.75rem)); }
   .hero-eyebrow { display: flex; align-items: center; gap: 0.8rem; }
   .hero-eyebrow img { width: 2.75rem; height: auto; flex: none; }
   .hero-title {
-    margin-top: clamp(1rem, 2.4vw, 1.75rem);
+    margin-top: clamp(0.9rem, 1.6vw, 1.2rem);
     font-size: min(17.2vw, 9rem);
     line-height: 0.84;
     font-stretch: 62%;
@@ -301,14 +227,23 @@ const specs = [
     border-radius: 0.02em;
     background: var(--red);
   }
-  .hero-cols {
+  /* The dictionary entry sits directly under the words it defines. */
+  .hero-def {
     display: grid;
-    gap: 2rem;
-    margin-top: clamp(1.75rem, 2.8vw, 2.25rem);
+    gap: 0.35rem 1.5rem;
+    max-width: 40rem;
+    padding-left: 1.25rem;
+    border-left: 2px solid var(--footage);
   }
+  .hero-def dt { display: flex; align-items: baseline; gap: 0.75rem; white-space: nowrap; }
+  .hero-def-term { font-family: var(--font-heading); font-stretch: 100%; font-weight: 700; font-size: 1.15rem; color: var(--ink); }
+  .hero-def dd { margin: 0; font-size: 0.98rem; line-height: 1.5; color: var(--ink-2); }
+
+  .hero-cols { display: grid; gap: 2rem; margin-top: clamp(1.4rem, 2vw, 1.7rem); }
   .hero-lede {
+    margin-top: clamp(1.25rem, 1.8vw, 1.45rem);
     max-width: 38rem;
-    font-size: clamp(1.1rem, 1.5vw, 1.3rem);
+    font-size: clamp(1.1rem, 1.4vw, 1.22rem);
     line-height: 1.5;
     color: var(--ink);
   }
@@ -317,184 +252,77 @@ const specs = [
     flex-wrap: wrap;
     align-items: center;
     gap: 0.75rem 1.75rem;
-    margin-top: 1.75rem;
+    margin-top: 1.4rem;
   }
   .hero-cta { min-height: 3.4rem; padding: 0.9rem 1.6rem; font-size: 1.08rem; }
-  .hero-fine { margin-top: 1rem; max-width: 34rem; font-size: 0.92rem; color: var(--ink-3); }
-  .hero-def {
-    align-self: start;
-    max-width: 26rem;
-    padding-left: 1.25rem;
-    border-left: 2px solid var(--footage);
+  .hero-fine { margin-top: 0.85rem; max-width: 34rem; font-size: 0.92rem; color: var(--ink-3); }
+
+  .hero-app { position: relative; margin: 0; min-width: 0; }
+  .hero-app figcaption { margin-top: 0.8rem; font-size: 0.66rem; }
+  /* A little light behind the window, so it sits in front of the page. */
+  .hero-app::before {
+    content: '';
+    position: absolute;
+    inset: -14% -3% -6% -12%;
+    z-index: -1;
+    background: radial-gradient(closest-side, rgba(244, 63, 67, 0.1), transparent 72%);
+    pointer-events: none;
   }
-  .hero-def dt { display: flex; align-items: baseline; gap: 0.75rem; }
-  .hero-def-term { font-family: var(--font-heading); font-stretch: 100%; font-weight: 700; font-size: 1.15rem; color: var(--ink); }
-  .hero-def dd { margin: 0.4rem 0 0; font-size: 0.98rem; line-height: 1.55; color: var(--ink-2); }
 
   @media (min-width: 900px) {
     .hero-title { font-size: min(9.42vw, 8.45rem); }
-    .hero-cols { grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr); gap: 4rem; align-items: start; }
-    .hero-def { justify-self: end; margin-top: 0.35rem; }
+    .hero-cols { grid-template-columns: minmax(0, 1.1fr) minmax(0, 0.9fr); gap: clamp(2.5rem, 5vw, 4.5rem); align-items: start; }
+    .hero-pitch { padding-top: 0.35rem; }
+  }
+  /* On small screens the strip comes before the app window: the key is the point. */
+  @media (max-width: 899px) {
+    .hero { display: flex; flex-direction: column; }
+    .hero-wrap, .hero-cols { display: contents; }
+    .hero-wrap > :not(.hero-cols), .hero-pitch, .hero-app {
+      width: calc(100% - 2 * var(--pad));
+      margin-inline: var(--pad);
+    }
+    .hero-pitch { margin-top: 1.5rem; }
+    .hero :global(.live) { order: 1; }
+    .hero-app { order: 2; margin-top: 2.25rem; max-width: 34rem; }
   }
 
-  /* ---------- The idea ---------- */
-  .idea { padding: clamp(5rem, 11vw, 9rem) 0 clamp(4rem, 8vw, 6rem); }
-  .idea-grid { display: grid; gap: 2rem; }
-  .idea-title { margin-top: 1rem; font-size: clamp(2.6rem, 6.4vw, 5.5rem); }
-  .idea-title span { display: block; color: var(--ink-3); }
-  .idea-copy { display: grid; gap: 1.1rem; align-content: end; max-width: 34rem; }
-  .idea-copy p { font-size: 1.08rem; }
-  @media (min-width: 900px) {
-    .idea-grid { grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr); gap: 4rem; align-items: end; }
-  }
-
-  .days { display: grid; gap: 1.5rem; margin-top: clamp(3rem, 6vw, 5rem); }
-  .day { display: grid; gap: 0.6rem; }
-  .day-bar { display: flex; height: 4.25rem; gap: 3px; }
-  .seg {
-    position: relative;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    min-width: 0;
-    padding: 0 0.9rem;
-    font-family: var(--font-mono);
-    font-size: 0.78rem;
-    font-weight: 600;
-    letter-spacing: 0.06em;
-    text-transform: uppercase;
-    color: var(--ink);
-    white-space: nowrap;
-    overflow: hidden;
-  }
-  .seg i { font-style: normal; font-weight: 400; text-transform: none; letter-spacing: 0; color: var(--ink-2); overflow: hidden; text-overflow: ellipsis; }
-  .seg-rec { flex: 0 0 30%; background: var(--footage); }
-  .seg-edit { flex: 0 0 22%; background: #2b2a27; }
-  .seg-rough {
-    flex: 1;
-    color: var(--ink);
-    background-color: #191816;
-    background-image: repeating-linear-gradient(-45deg, transparent 0 9px, rgba(242, 240, 234, 0.07) 9px 10px);
-    box-shadow: inset 0 0 0 1px var(--rule-strong);
-  }
-  .seg-gone {
-    flex: 1;
-    color: var(--ink-3);
-    font-weight: 500;
-    border: 1px dashed var(--rule-strong);
-    background: transparent;
-  }
-  .seg-marked b { position: absolute; top: 0; bottom: 0; width: 3px; background: var(--red); }
-  .seg-marked b:nth-of-type(1) { left: 46%; }
-  .seg-marked b:nth-of-type(2) { left: 61%; }
-  .seg-marked b:nth-of-type(3) { left: 78%; }
-  .seg-marked b:nth-of-type(4) { left: 92%; }
-  @media (max-width: 640px) {
-    .day-bar { height: 3.75rem; }
-    .seg { padding: 0 0.55rem; font-size: 0.68rem; }
-    .seg i { display: none; }
-    .seg-rec { flex-basis: 34%; }
-    .seg-edit { flex-basis: 20%; }
-  }
-
-  /* ---------- Three tabs ---------- */
-  .tabs { border-top: 1px solid var(--rule); padding-top: clamp(4rem, 8vw, 6.5rem); }
-  .tabs-head { display: grid; gap: 1.5rem; padding-bottom: clamp(1rem, 3vw, 2.5rem); }
-  .tabs-title { margin-top: 1rem; font-size: clamp(2.6rem, 6.4vw, 5.5rem); }
-  .tabs-title span { display: block; color: var(--ink-3); }
-  .tabs-intro { max-width: 34rem; font-size: 1.08rem; }
-  @media (min-width: 900px) {
-    .tabs-head { grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr); gap: 4rem; align-items: end; }
-    .tabs-intro { padding-bottom: 0.6rem; }
-  }
-
-  .chapter { padding: clamp(3.5rem, 7vw, 6rem) 0; border-bottom: 1px solid var(--rule); scroll-margin-top: var(--nav-h); }
-  .chapter--mark { --c: var(--red); }
-  .chapter--clip { --c: var(--yellow); }
-  .chapter--clean { --c: var(--green); }
-  .chapter-grid { display: grid; gap: 2.5rem; }
-  .chapter-tag {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    gap: 0.5rem 0.75rem;
-    font-family: var(--font-mono);
-    font-size: 0.8rem;
-    letter-spacing: 0.1em;
-    text-transform: uppercase;
-    color: var(--ink-3);
-  }
-  .chapter-tag img { width: 1.6rem; height: auto; }
-  .chapter-num { color: var(--ink-3); }
-  .chapter-name { font-weight: 700; color: var(--c); }
-  .chapter-when { padding-left: 0.75rem; border-left: 1px solid var(--rule-strong); }
-  .chapter-title { margin-top: 1.25rem; font-size: clamp(2.5rem, 5vw, 4.25rem); font-stretch: 64%; }
-  .chapter-body { margin-top: 1.1rem; max-width: 33rem; font-size: 1.06rem; }
-  .chapter-title + .chapter-body { margin-top: 1.5rem; }
-  .chapter-facts {
-    list-style: none;
-    margin: 1.75rem 0 0;
-    padding: 0;
-    max-width: 33rem;
-    border-top: 1px solid var(--rule);
-  }
-  .chapter-facts li {
-    position: relative;
-    padding: 0.8rem 0 0.8rem 1.5rem;
-    border-bottom: 1px solid var(--rule);
-    font-size: 0.97rem;
-    color: var(--ink-2);
-  }
-  .chapter-facts li::before {
-    content: '';
-    position: absolute;
-    left: 0.1rem;
-    top: 1.28rem;
-    width: 0.5rem;
-    height: 0.48rem;
-    border-radius: 1.5px;
-    background: var(--c);
-  }
-  .chapter-app { margin: 0; min-width: 0; }
-  .chapter-app figcaption { margin-top: 0.9rem; font-size: 0.68rem; }
-  .chapter-strip { margin-top: clamp(2.5rem, 5vw, 4rem); }
-
-  @media (min-width: 1000px) {
-    .chapter-grid { grid-template-columns: minmax(0, 5fr) minmax(0, 6fr); gap: clamp(3rem, 6vw, 6rem); align-items: start; }
-    .chapter-copy { position: sticky; top: calc(var(--nav-h) + 2rem); }
-  }
+  /* ---------- The ask ---------- */
+  .band { border-block: 1px solid var(--rule-strong); background: #0c0c0c; }
+  .band-inner { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 1.25rem 3rem; padding: clamp(1.6rem, 3vw, 2.25rem) 0; }
+  .band-line { font-size: clamp(1.9rem, 3.6vw, 2.9rem); line-height: 1; }
+  .band-squares { display: inline-flex; gap: 0.12em; margin-right: 0.4em; font-size: 0.78em; }
+  .band-sub { margin-top: 0.55rem; font-size: 0.97rem; color: var(--ink-2); }
 
   /* ---------- Film ---------- */
-  .film { padding: clamp(4.5rem, 9vw, 7.5rem) 0 clamp(2rem, 4vw, 3rem); }
+  .film { padding: clamp(4rem, 8vw, 6.5rem) 0 clamp(2rem, 4vw, 3rem); }
   .film-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 0.75rem 2rem; margin-bottom: 2rem; }
   .film-title { font-size: clamp(2.5rem, 5vw, 4.25rem); order: -1; }
 
   /* ---------- Spec sheet ---------- */
-  .spec { padding: clamp(4rem, 8vw, 7rem) 0; border-top: 1px solid var(--rule); }
-  .spec-grid { display: grid; gap: 3rem; }
-  .spec-title { margin: 1rem 0 1.5rem; font-size: clamp(2.5rem, 5vw, 4.25rem); }
-  .spec-head p:not(.label) { max-width: 26rem; font-size: 1.06rem; margin-bottom: 1.25rem; }
-  .spec-list { margin: 0; border-top: 1px solid var(--rule-strong); }
-  .spec-row {
-    display: grid;
-    grid-template-columns: 7.5rem minmax(0, 1fr);
-    gap: 1rem;
-    padding: 0.95rem 0;
-    border-bottom: 1px solid var(--rule);
-  }
+  .spec { padding: clamp(3.5rem, 7vw, 5.5rem) 0; border-top: 1px solid var(--rule); }
+  .spec-head { display: grid; gap: 1.25rem 4rem; }
+  .spec-title { margin-top: 1rem; font-size: clamp(2.5rem, 5vw, 4.25rem); }
+  .spec-lede p { max-width: 30rem; font-size: 1.06rem; margin-bottom: 0.6rem; }
+  .spec-list { display: grid; gap: 0 2.5rem; margin: clamp(2rem, 4vw, 3rem) 0 0; border-top: 1px solid var(--rule-strong); }
+  .spec-row { display: grid; align-content: start; gap: 0.3rem; padding: 1rem 0 1.1rem; border-bottom: 1px solid var(--rule); }
   .spec-row dt {
     font-family: var(--font-mono);
-    font-size: 0.74rem;
+    font-size: 0.72rem;
     letter-spacing: 0.09em;
     text-transform: uppercase;
     color: var(--ink-3);
-    padding-top: 0.22rem;
   }
-  .spec-row dd { margin: 0; color: var(--ink); font-size: 1rem; line-height: 1.5; }
+  .spec-row dd { margin: 0; color: var(--ink); font-size: 0.98rem; line-height: 1.5; }
+  @media (min-width: 640px) {
+    .spec-list { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  }
   @media (min-width: 900px) {
-    .spec-grid { grid-template-columns: minmax(0, 1fr) minmax(0, 1.3fr); gap: clamp(3rem, 7vw, 7rem); }
-    .spec-head { position: sticky; top: calc(var(--nav-h) + 2rem); align-self: start; }
-    .spec-row { grid-template-columns: 9rem minmax(0, 1fr); }
+    .spec-head { grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr); align-items: end; }
+    .spec-lede { padding-bottom: 0.3rem; }
+  }
+  @media (min-width: 1000px) {
+    .spec-list { grid-template-columns: repeat(3, minmax(0, 1fr)); }
   }
 
   /* ---------- Note ---------- */
@@ -534,9 +362,13 @@ const specs = [
   .next-row p { flex: 1 1 20rem; color: var(--ink); }
 
   /* ---------- Closing ---------- */
-  .closing { padding: clamp(5rem, 11vw, 9rem) 0; }
-  .closing-emblem { width: 6.9rem; height: auto; }
-  .closing-title { margin-top: 2rem; font-size: clamp(2.7rem, 6.6vw, 6.1rem); line-height: 0.88; font-stretch: 62%; }
+  .closing { padding: clamp(4rem, 8vw, 6.5rem) 0; }
+  .closing-grid { display: grid; gap: 2rem; }
+  .closing-title { font-size: clamp(2.7rem, 6vw, 5.4rem); line-height: 0.88; font-stretch: 62%; }
   .closing-title span { display: block; color: var(--ink-3); }
-  .closing-actions { margin-top: 2.5rem; }
+  .closing-actions { margin-top: 0; }
+  @media (min-width: 1000px) {
+    .closing-grid { grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr); gap: 4rem; align-items: end; }
+    .closing-side { padding-bottom: 0.4rem; }
+  }
 </style>

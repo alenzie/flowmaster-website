@@ -1,0 +1,89 @@
+/* Homepage pieces shared by more than one component: the three chapters
+   (Mark, Clip, Clean) and the figure around each rebuilt app window. */
+
+.chapter {
+  padding: clamp(3.5rem, 7vw, 6rem) 0;
+  border-top: 1px solid var(--rule);
+  scroll-margin-top: -1.5rem;
+}
+.chapter--mark { --c: var(--red); }
+.chapter--clip { --c: var(--yellow); }
+.chapter--clean { --c: var(--green); }
+
+.chapter-grid { display: grid; gap: 2.5rem; }
+.chapter-grid > * { min-width: 0; }
+
+.chapter-tag {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem 0.75rem;
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+}
+.chapter-tag img { width: 1.6rem; height: auto; }
+.chapter-name { font-weight: 700; color: var(--c); }
+.chapter-when { padding-left: 0.75rem; border-left: 1px solid var(--rule-strong); }
+
+.chapter-title { margin-top: 1.25rem; font-size: clamp(2.5rem, 5vw, 4.25rem); font-stretch: 64%; }
+/* The full stop of each chapter title is that chapter's marker square. */
+.stop {
+  display: inline-block;
+  width: 0.2em;
+  height: 0.195em;
+  margin-left: 0.06em;
+  border-radius: 0.02em;
+  background: var(--c, var(--red));
+}
+.chapter-body { margin-top: 1.5rem; max-width: 33rem; font-size: 1.06rem; }
+.chapter-body + .chapter-body { margin-top: 1.1rem; }
+
+.chapter-facts {
+  list-style: none;
+  margin: 1.75rem 0 0;
+  padding: 0;
+  max-width: 33rem;
+  border-top: 1px solid var(--rule);
+}
+.chapter-facts li {
+  position: relative;
+  padding: 0.8rem 0 0.8rem 1.5rem;
+  border-bottom: 1px solid var(--rule);
+  font-size: 0.97rem;
+  line-height: 1.5;
+  color: var(--ink-2);
+}
+.chapter-facts li::before {
+  content: '';
+  position: absolute;
+  left: 0.1rem;
+  top: 1.28rem;
+  width: 0.5rem;
+  height: 0.48rem;
+  border-radius: 1.5px;
+  background: var(--c);
+}
+.chapter-facts strong { color: var(--ink); font-weight: 650; }
+
+.chapter-app { margin: 0; min-width: 0; }
+.chapter-app figcaption {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 0.3rem 1.25rem;
+  margin-top: 0.9rem;
+  font-size: 0.68rem;
+}
+
+@media (min-width: 1000px) {
+  .chapter-grid { grid-template-columns: minmax(0, 5fr) minmax(0, 6fr); gap: clamp(3rem, 6vw, 6rem); align-items: start; }
+  .chapter-grid--flip { grid-template-columns: minmax(0, 6fr) minmax(0, 5fr); }
+  .chapter-grid--flip > .chapter-copy { order: 2; }
+  .chapter-copy { position: sticky; top: calc(var(--nav-h) + 2rem); }
+}
+@media (min-width: 640px) and (max-width: 999px) {
+  .chapter-app { max-width: 42rem; }
+}

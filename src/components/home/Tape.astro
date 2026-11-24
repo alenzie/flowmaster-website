@@ -1,0 +1,60 @@
+---
+// A recording drawn as a strip of activity, with kept ranges and marks laid over
+// it. Decorative on its own: whatever uses it supplies the words.
+import { tapeLevels } from './session';
+
+interface Props { count?: number; }
+const { count = 120 } = Astro.props;
+const levels = tapeLevels(count);
+const H = 64;
+const bars = levels.map((level, i) => {
+  const h = Math.max(3, Math.round(level * H));
+  return { x: i * 4, y: (H - h) / 2, h };
+});
+---
+<div class="tape" data-tape>
+  <svg class="tape-bars" viewBox={`0 0 ${count * 4} ${H}`} preserveAspectRatio="none" aria-hidden="true">
+    {bars.map((b) => <rect x={b.x} y={b.y} width="2" height={b.h} rx="1" />)}
+  </svg>
+  <div class="tape-bands" data-bands><slot /></div>
+</div>
+
+<style is:global>
+  .tape {
+    position: relative;
+    height: var(--tape-h, 3.6rem);
+    border-block: 1px solid var(--rule);
+    background: repeating-linear-gradient(90deg, transparent 0 calc(25% - 1px), rgba(242, 240, 234, 0.07) calc(25% - 1px) 25%);
+  }
+  .tape-bars { position: absolute; inset: 0.6rem 0; width: 100%; height: calc(100% - 1.2rem); fill: #3a3936; }
+  .tape-bands { position: absolute; inset: 0; }
+  /* A kept range: the yellow that Clip cuts out. */
+  .tape-band {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    min-width: 3px;
+    background: rgba(245, 212, 64, 0.22);
+    box-shadow: inset 1px 0 0 var(--yellow), inset -1px 0 0 var(--yellow);
+    transition: left 0.25s cubic-bezier(0.2, 0.7, 0.2, 1), width 0.25s cubic-bezier(0.2, 0.7, 0.2, 1);
+  }
+  .tape-flag {
+    position: absolute;
+    top: -0.45rem;
+    bottom: 0;
+    width: 2px;
+    margin-left: -1px;
+    background: var(--red);
+  }
+  .tape-flag::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 50%;
+    width: 0.6rem;
+    height: 0.58rem;
+    transform: translate(-50%, -100%);
+    background: var(--red);
+    border-radius: 0.1rem;
+  }
+</style>

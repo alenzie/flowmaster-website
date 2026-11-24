@@ -1,0 +1,372 @@
+---
+// Chapter 02. The Clip tab, rebuilt from the app source, with the real
+// before/after window control. The strip in the copy column redraws from it,
+// and both follow the take recorded in the hero once there is one.
+import AppWindow from './AppWindow.astro';
+import Tape from './Tape.astro';
+import { DURATION, LOOKBACK, LOOKFORWARD, PRESET_MARKS, RECORDINGS, windows, kept, formatDuration, plural } from './session';
+
+const ranges = windows(PRESET_MARKS);
+const total = kept(ranges);
+const pct = (seconds: number) => `${(seconds / DURATION) * 100}%`;
+
+const videos = RECORDINGS.slice(0, 3).map((recording, i) => ({ ...recording, selected: i === 0, live: i === 0 }));
+---
+<section class="chapter chapter--clip" id="clip" aria-labelledby="clip-title">
+  <div class="wrap chapter-grid" data-clip-chapter>
+    <div class="chapter-copy" data-reveal>
+      <p class="chapter-tag">
+        <img src="/brand/YellowBox.svg" alt="" width="26" height="25" />
+        <span class="chapter-num">02</span>
+        <span class="chapter-name">Clip</span>
+        <span class="chapter-when">After the session</span>
+      </p>
+      <h2 class="display chapter-title" id="clip-title">The cut is already decided<span class="stop" aria-hidden="true"></span><span class="sr-only">.</span></h2>
+      <p class="chapter-body">
+        Open Clip when the session ends. Every recording is listed with the marks you left on it.
+        Say how much to keep before and after each press, and Flowmaster writes the MP4s.
+      </p>
+
+      <div class="clip-strip" data-strip>
+        <Tape count={120}>
+          {ranges.map(range => <span class="tape-band" style={`left:${pct(range.start)};width:${pct(range.end - range.start)}`}></span>)}
+          {PRESET_MARKS.map(at => <span class="tape-flag" style={`left:${pct(at)}`}></span>)}
+        </Tape>
+        <p class="label clip-strip-read" aria-live="polite">
+          <span data-strip-count>{plural(PRESET_MARKS.length, 'mark')}, {plural(ranges.length, 'clip')}</span>
+          <span data-strip-kept>{formatDuration(total)} kept of {formatDuration(DURATION)}</span>
+        </p>
+      </div>
+
+      <ul class="chapter-facts">
+        <li><strong>A reel, separate clips, or both.</strong> One file to drop in your editor, or one per moment.</li>
+        <li><strong>Windows that overlap merge.</strong> Two marks close together become one clip, not a stutter.</li>
+        <li><strong>Marks are not final.</strong> Double-click a recording to review and edit them first.</li>
+      </ul>
+    </div>
+
+    <figure class="chapter-app" data-reveal style="--reveal-delay:.12s">
+      <AppWindow tab="clip" label="The Clip tab of the Flowmaster app, rebuilt for this page">
+        <div class="clip-tab" data-clip>
+          <div class="clip-section">
+            <p class="section-title">Clippable Videos</p>
+            <div class="scrollable-list has-footer">
+              {videos.map(video => (
+                <div class:list={['session-item', { selected: video.selected }]} data-video data-first={video.live ? '' : undefined} data-short={video.short} data-marks={video.marks}>
+                  <label class="session-checkbox-wrapper">
+                    <input type="checkbox" class="session-checkbox" checked={video.selected} aria-label={`Select the recording from ${video.date}`} />
+                    <span class="session-checkbox-visual"></span>
+                  </label>
+                  <div class="session-left">
+                    <div class="row-thumb" aria-hidden="true"></div>
+                    <div class="session-info">
+                      <div class="session-date-title">{video.date}</div>
+                      <div class="session-details">
+                        <span data-marks-text={video.live ? '' : undefined}>{plural(video.marks, 'mark')}</span>
+                        <span class="dot-sep">·</span>
+                        <span><span data-highlights={video.live ? '' : undefined}>{formatDuration(video.highlights)}</span> highlights from <span data-length={video.live ? '' : undefined}>{formatDuration(video.duration)}</span></span>
+                        <span class="dot-sep">·</span>
+                        <span>{video.source}</span>
+                      </div>
+                    </div>
+                  </div>
+                  <span class="three-dot-btn" aria-hidden="true"><span class="dot"></span><span class="dot"></span><span class="dot"></span></span>
+                </div>
+              ))}
+            </div>
+            <div class="clip-list-footer">
+              <span class="clip-selection-count" data-count>1 of 3 selected</span>
+              <label class="clip-select-all-label">
+                <input type="checkbox" data-all />
+                <span class="clip-select-all-visual"></span>
+                Select All
+              </label>
+            </div>
+          </div>
+
+          <div class="clip-options">
+            <p class="section-title">Processing Options</p>
+            <div class="option-row">
+              <label>Lookback:
+                <input type="number" data-back min="5" max="300" value={LOOKBACK} /> sec
+              </label>
+              <label>Lookforward:
+                <input type="number" data-fwd min="0" max="60" value={LOOKFORWARD} /> sec
+              </label>
+            </div>
+            <div class="clip-window">
+              <div class="clip-window-heading"><span>Window kept around each mark</span><output data-total>{LOOKBACK + LOOKFORWARD}s per mark</output></div>
+              <div class="clip-window-track" data-track>
+                <div class="clip-window-band" data-band></div>
+                <span class="clip-window-mark" data-mark aria-hidden="true"></span>
+                <button type="button" class="clip-window-handle" data-start role="slider" aria-label="Clip start" aria-valuemin="-300" aria-valuemax="-5"></button>
+                <button type="button" class="clip-window-handle" data-end role="slider" aria-label="Clip end" aria-valuemin="0" aria-valuemax="60"></button>
+              </div>
+              <div class="clip-window-labels"><span data-before></span><span class="clip-window-mark-label" data-mark-label>mark</span><span data-after></span></div>
+              <p class="clip-window-note">Drag either edge or enter seconds above. Arrow keys adjust one second; Shift adjusts five. Overlapping windows merge, and windows stop at the recording’s edges.</p>
+            </div>
+            <div class="option-row">
+              <label class="checkbox-label">
+                <input type="checkbox" />
+                Single audio track
+                <span class="info-tooltip" title="Merges all audio tracks into one stereo track. Useful for editors that don't support multi-track audio." aria-hidden="true">ⓘ</span>
+              </label>
+            </div>
+          </div>
+
+          <div class="clip-mode-toggle">
+            <span class="clip-mode-label">Output Mode</span>
+            <div class="clip-output-options">
+              <label class="clip-output-checkbox" title="One concatenated highlight reel">
+                <input type="checkbox" data-reel checked />
+                <span>Reel</span>
+              </label>
+              <label class="clip-output-checkbox" title="Each highlight saved as a separate clip file">
+                <input type="checkbox" data-clips checked />
+                <span>Clips</span>
+              </label>
+            </div>
+          </div>
+
+          <div class="clip-action-section">
+            <button type="button" class="clip-action-btn clip-action-btn-primary" data-go>Clip Highlights</button>
+            <div class="clip-multi-buttons" data-multi hidden>
+              <button type="button" class="clip-action-btn clip-action-btn-alone" data-go title="Process each video separately">Clip Highlights Alone</button>
+              <button type="button" class="clip-action-btn clip-action-btn-together" data-go title="Merge all highlights into one video">Clip Highlights Together</button>
+            </div>
+          </div>
+
+          <div class="processing-overlay" data-overlay hidden>
+            <div class="processing-modal" role="status">
+              <h3>Processing Highlights</h3>
+              <p class="processing-video-name" data-proc-name></p>
+              <div class="progress-bar"><div class="progress-fill" data-proc-fill></div></div>
+              <div class="progress-text"><span data-proc-pct>0%</span><span data-proc-stage>Initializing</span></div>
+              <button type="button" class="cancel-btn" data-proc-cancel>Cancel</button>
+            </div>
+          </div>
+        </div>
+      </AppWindow>
+      <figcaption class="label"><span>Clip tab, rebuilt in HTML. It works: drag an edge.</span><span>Example recordings</span></figcaption>
+    </figure>
+  </div>
+</section>
+
+<style>
+  .clip-strip { --tape-h: 3.6rem; margin-top: 2.25rem; max-width: 33rem; }
+  .clip-strip-read { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 0.25rem 1rem; margin-top: 0.7rem; color: var(--ink-2); }
+</style>
+
+<script>
+  import { DURATION, PRESET_MARKS, windows, kept, formatDuration, plural, onTake } from './session';
+
+  const root = document.querySelector<HTMLElement>('[data-clip]');
+  const chapter = document.querySelector<HTMLElement>('[data-clip-chapter]');
+  if (root && chapter) {
+    const pick = <T extends HTMLElement = HTMLElement>(selector: string, from: HTMLElement = root) => from.querySelector<T>(selector)!;
+    const back = pick<HTMLInputElement>('[data-back]');
+    const forward = pick<HTMLInputElement>('[data-fwd]');
+    const track = pick('[data-track]');
+    const start = pick<HTMLButtonElement>('[data-start]');
+    const end = pick<HTMLButtonElement>('[data-end]');
+    const band = pick('[data-band]');
+    const mark = pick('[data-mark]');
+    const markLabel = pick('[data-mark-label]');
+    const totalOut = pick('[data-total]');
+    const beforeOut = pick('[data-before]');
+    const afterOut = pick('[data-after]');
+    const highlights = pick('[data-highlights]');
+    const stripBands = pick('[data-bands]', chapter);
+    const stripCount = pick('[data-strip-count]', chapter);
+    const stripKept = pick('[data-strip-kept]', chapter);
+    const firstRow = pick('[data-first]');
+    const marksText = pick('[data-marks-text]');
+    const lengthText = pick('[data-length]');
+
+    // The first recording is the take from the hero: the example session, until
+    // the visitor stops a recording of their own up there.
+    let marks: number[] = PRESET_MARKS;
+    let duration = DURATION;
+
+    // ── The before/after window. Same behaviour as the app's clip-window.js. ──
+    let scale = { left: -75, right: 20 };
+    let drag: { handle: HTMLButtonElement; id: number; original: string } | null = null;
+    const values = (): [number, number] => [
+      Math.min(300, Math.max(5, Number(back.value) || 5)),
+      Math.min(60, Math.max(0, Number(forward.value) || 0)),
+    ];
+
+    function drawStrip(before: number, after: number) {
+      const ranges = windows(marks, before, after, duration);
+      const pct = (seconds: number) => `${(seconds / duration) * 100}%`;
+      const bandCount = stripBands.querySelectorAll('.tape-band').length;
+      const flagCount = stripBands.querySelectorAll('.tape-flag').length;
+      if (bandCount !== ranges.length || flagCount !== marks.length) {
+        stripBands.innerHTML = ranges.map(() => '<span class="tape-band"></span>').join('') + marks.map(() => '<span class="tape-flag"></span>').join('');
+      }
+      stripBands.querySelectorAll<HTMLElement>('.tape-band').forEach((el, i) => {
+        el.style.left = pct(ranges[i].start);
+        el.style.width = pct(ranges[i].end - ranges[i].start);
+      });
+      stripBands.querySelectorAll<HTMLElement>('.tape-flag').forEach((el, i) => { el.style.left = pct(marks[i]); });
+      const total = kept(ranges);
+      stripCount.textContent = `${plural(marks.length, 'mark')}, ${plural(ranges.length, 'clip')}`;
+      stripKept.textContent = `${formatDuration(total)} kept of ${formatDuration(duration)}`;
+      highlights.textContent = formatDuration(total);
+    }
+
+    function render() {
+      const [before, after] = values();
+      if (!drag) scale = { left: -Math.max(60, before * 1.25), right: Math.max(20, after * 1.5) };
+      const percent = (value: number) => (100 * (value - scale.left)) / (scale.right - scale.left);
+      const left = percent(-before);
+      const right = percent(after);
+      start.style.left = `${left}%`;
+      end.style.left = `${right}%`;
+      band.style.left = `${left}%`;
+      band.style.width = `${right - left}%`;
+      mark.style.left = `${percent(0)}%`;
+      markLabel.style.left = `${percent(0)}%`;
+      start.setAttribute('aria-valuenow', String(-before));
+      start.setAttribute('aria-valuetext', `${before} seconds before the mark`);
+      end.setAttribute('aria-valuenow', String(after));
+      end.setAttribute('aria-valuetext', `${after} seconds after the mark`);
+      totalOut.textContent = `${before + after}s per mark`;
+      beforeOut.textContent = `−${before}s before`;
+      afterOut.textContent = `+${after}s after`;
+      drawStrip(before, after);
+    }
+
+    function set(handle: HTMLButtonElement, coordinate: number) {
+      const input = handle === start ? back : forward;
+      input.value = String(handle === start
+        ? Math.min(300, Math.max(5, -Math.round(coordinate)))
+        : Math.min(60, Math.max(0, Math.round(coordinate))));
+      render();
+    }
+
+    for (const handle of [start, end]) {
+      handle.addEventListener('pointerdown', event => {
+        if (event.button !== 0) return;
+        event.preventDefault();
+        drag = { handle, id: event.pointerId, original: (handle === start ? back : forward).value };
+        handle.setPointerCapture(event.pointerId);
+        handle.focus();
+      });
+      handle.addEventListener('pointermove', event => {
+        if (!drag || drag.handle !== handle || drag.id !== event.pointerId) return;
+        const box = track.getBoundingClientRect();
+        set(handle, scale.left + ((event.clientX - box.left) / box.width) * (scale.right - scale.left));
+      });
+      const finish = (event: PointerEvent) => {
+        if (!drag || drag.handle !== handle) return;
+        if (event.type === 'pointercancel') (handle === start ? back : forward).value = drag.original;
+        drag = null;
+        render();
+      };
+      handle.addEventListener('pointerup', finish);
+      handle.addEventListener('pointercancel', finish);
+      handle.addEventListener('keydown', event => {
+        const [before, after] = values();
+        let coordinate = handle === start ? -before : after;
+        const step = event.shiftKey ? 5 : 1;
+        if (['ArrowLeft', 'ArrowDown'].includes(event.key)) coordinate -= step;
+        else if (['ArrowRight', 'ArrowUp'].includes(event.key)) coordinate += step;
+        else if (event.key === 'Home') coordinate = handle === start ? -300 : 0;
+        else if (event.key === 'End') coordinate = handle === start ? -5 : 60;
+        else return;
+        event.preventDefault();
+        set(handle, coordinate);
+      });
+    }
+    for (const input of [back, forward]) {
+      input.addEventListener('input', render);
+      input.addEventListener('change', () => {
+        const [before, after] = values();
+        back.value = String(before);
+        forward.value = String(after);
+        render();
+      });
+    }
+    onTake((take) => {
+      marks = take.marks;
+      duration = take.duration;
+      firstRow.dataset.marks = String(marks.length);
+      marksText.textContent = plural(marks.length, 'mark');
+      lengthText.textContent = formatDuration(duration);
+      render();
+    });
+
+    // ── Selection: one recording shows one button, two or more show the pair. ──
+    const rows = [...root.querySelectorAll<HTMLElement>('[data-video]')];
+    const boxes = rows.map(row => pick<HTMLInputElement>('.session-checkbox', row));
+    const all = pick<HTMLInputElement>('[data-all]');
+    const count = pick('[data-count]');
+    const single = pick<HTMLButtonElement>('.clip-action-btn-primary');
+    const multi = pick('[data-multi]');
+    const reel = pick<HTMLInputElement>('[data-reel]');
+    const clips = pick<HTMLInputElement>('[data-clips]');
+    const selected = () => rows.filter((_, i) => boxes[i].checked);
+
+    function syncSelection() {
+      const chosen = selected();
+      rows.forEach((row, i) => row.classList.toggle('selected', boxes[i].checked));
+      count.textContent = chosen.length ? `${chosen.length} of ${rows.length} selected` : `${rows.length} videos`;
+      all.checked = chosen.length === rows.length;
+      const several = chosen.length > 1;
+      single.hidden = several;
+      multi.hidden = !several;
+      const blocked = chosen.length === 0 || (!reel.checked && !clips.checked);
+      root!.querySelectorAll<HTMLButtonElement>('[data-go]').forEach(button => { button.disabled = blocked; });
+    }
+    boxes.forEach(box => box.addEventListener('change', syncSelection));
+    all.addEventListener('change', () => { boxes.forEach(box => { box.checked = all.checked; }); syncSelection(); });
+    reel.addEventListener('change', syncSelection);
+    clips.addEventListener('change', syncSelection);
+    syncSelection();
+
+    // ── Clip Highlights: the app's progress modal, with its stage names. ──
+    const overlay = pick('[data-overlay]');
+    const fill = pick('[data-proc-fill]');
+    const pctOut = pick('[data-proc-pct]');
+    const stageOut = pick('[data-proc-stage]');
+    const nameOut = pick('[data-proc-name]');
+    let timers: number[] = [];
+    const close = () => { timers.forEach(id => window.clearTimeout(id)); timers = []; overlay.hidden = true; };
+
+    function run(opener: HTMLElement) {
+      const chosen = selected();
+      if (!chosen.length) return;
+      const first = chosen[0];
+      nameOut.textContent = `${first.dataset.short} • ${plural(Number(first.dataset.marks), 'mark')}`;
+      const stages: [number, string][] = [[4, 'Initializing'], [14, 'Parsing Timestamps'], [26, 'Calculating Ranges'], [48, 'Extracting Clips'], [71, 'Extracting Clips']];
+      if (reel.checked) stages.push([88, 'Assembling Video']);
+      stages.push([96, 'Verifying Output'], [100, 'Complete']);
+      fill.style.width = '0%';
+      pctOut.textContent = '0%';
+      stageOut.textContent = 'Initializing';
+      overlay.hidden = false;
+      stages.forEach(([percent, name], i) => {
+        timers.push(window.setTimeout(() => {
+          fill.style.width = `${percent}%`;
+          pctOut.textContent = `${percent}%`;
+          stageOut.textContent = name;
+        }, 350 + i * 520));
+      });
+      timers.push(window.setTimeout(() => { close(); opener.focus({ preventScroll: true }); }, 350 + stages.length * 520 + 700));
+    }
+    root.querySelectorAll<HTMLButtonElement>('[data-go]').forEach(button => button.addEventListener('click', () => run(button)));
+
+    // The first time the control is on screen, nudge the handle once so it reads as draggable.
+    if ('IntersectionObserver' in window) {
+      const hint = new IntersectionObserver(entries => {
+        if (!entries[0].isIntersecting) return;
+        hint.disconnect();
+        window.setTimeout(() => start.classList.add('is-hint'), 500);
+        start.addEventListener('animationend', () => start.classList.remove('is-hint'), { once: true });
+      }, { threshold: 1 });
+      hint.observe(track);
+    }
+    pick('[data-proc-cancel]').addEventListener('click', close);
+  }
+</script>
