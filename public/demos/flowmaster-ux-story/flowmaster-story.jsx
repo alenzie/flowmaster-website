@@ -1218,10 +1218,15 @@ function Piece({ webgl }) {
               <span style={{ fontSize: 12.5, color: '#eef2f8', textShadow: '0 1px 3px rgba(0,0,0,.9)', fontFamily: 'system-ui,Segoe UI,sans-serif' }}>Flowmaster</span>
             </div>
             <div style={{ position: 'absolute', left: 44, top: 424, width: 96, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 7, padding: '8px 0', borderRadius: 6, background: gameSel ? 'rgba(120,170,255,.22)' : 'transparent', border: '1px solid ' + (gameSel ? 'rgba(150,190,255,.5)' : 'transparent') }}>
-              <div style={{ width: 54, height: 54, marginTop: 4, borderRadius: 8, background: '#d31f3c', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                <svg width="34" height="34" viewBox="0 0 34 34"><path d="M6 26 L17 6 L21 13 L14 26 Z" fill="#fff" /><path d="M19 26 L24 17 L28 26 Z" fill="#fff" /></svg>
+              {/* A generic game, not a real title's icon or name. */}
+              <div style={{ width: 54, height: 54, marginTop: 4, borderRadius: 10, background: 'linear-gradient(160deg, #4a5468 0%, #2a3040 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: 'inset 0 1px 0 rgba(255,255,255,.12)' }}>
+                <svg width="36" height="36" viewBox="0 0 36 36" fill="none">
+                  <path d="M11 11h14c4 0 6.5 3 7.2 7.5l.9 6.2c.4 2.8-2.6 4.4-4.6 2.4L25 23.5H11l-3.5 3.6c-2 2-5-.4-4.6-2.4l.9-6.2C4.5 14 7 11 11 11Z" fill="#e8ecf4" />
+                  <path d="M10 16.5v5M7.5 19h5" stroke="#2a3040" strokeWidth="2" strokeLinecap="round" />
+                  <circle cx="25" cy="17.5" r="1.6" fill="#2a3040" /><circle cx="28" cy="20.5" r="1.6" fill="#2a3040" />
+                </svg>
               </div>
-              <span style={{ fontSize: 12.5, color: '#eef2f8', textShadow: '0 1px 3px rgba(0,0,0,.9)', fontFamily: 'system-ui,Segoe UI,sans-serif' }}>THE FINALS</span>
+              <span style={{ fontSize: 12.5, color: '#eef2f8', textShadow: '0 1px 3px rgba(0,0,0,.9)', fontFamily: 'system-ui,Segoe UI,sans-serif' }}>My Game</span>
             </div>
             {/* OBS window */}
             {obsOpen > 0 && (

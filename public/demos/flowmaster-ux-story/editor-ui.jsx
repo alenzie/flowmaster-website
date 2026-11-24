@@ -26,7 +26,7 @@
     const transcript = [
       { range: '00:00:02:10 - 00:00:06:04', text: '[…] Got you. I love him that match. […]' },
       { range: '00:00:08:15 - 00:00:12:20', text: 'You know what they say. You do what you love. You never work a day in your life. […]' },
-      { range: '00:00:14:02 - 00:00:19:11', text: '[…] Soared above the competition to secure the win. Congratulations from all of us here at the finals.' },
+      { range: '00:00:14:02 - 00:00:19:11', text: '[…] Soared above the competition to secure the win. Congratulations from all of us.' },
     ];
     const meterA = 0.42 + 0.2 * Math.abs(Math.sin(sec * 2.1)), meterB = 0.38 + 0.18 * Math.abs(Math.sin(sec * 1.7 + 1));
     const panelHead = { height: 30, display: 'flex', alignItems: 'center', padding: '0 8px', borderBottom: '1px solid #0f0f0f', flexShrink: 0, fontSize: 11 };
