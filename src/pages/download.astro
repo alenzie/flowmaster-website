@@ -7,30 +7,35 @@ const counts = [
   {
     tag: 'Mark',
     tone: 'r',
-    text: 'A recording session counts once, when you save its first mark. Additional marks in that session are included.',
+    text: 'Press F9 while you record, as often as you like. Every session keeps its marks.',
   },
   {
     tag: 'Clip',
     tone: 'y',
-    text: 'A clipping run counts once per recording. A reel and separate clips created together count as one run. Each recording in a batch counts separately.',
+    text: 'Extract a reel, separate clips, or both, from every recording you mark.',
+  },
+  {
+    tag: 'Clean',
+    tone: 'g',
+    text: 'Review the originals you have already clipped and send them to the Windows Recycle Bin.',
   },
   {
     tag: 'Assemble',
     tone: 'n',
-    text: 'A project assembly, including combining existing reels, counts once.',
+    text: 'Project Assembler opens your footage in your editor with the marks already on the timeline.',
   },
 ];
 ---
-<BaseLayout title="Download and free trial" description="Flowmaster for Windows. 30 actions per PC, a free account and no payment card. Check the current release and trial requirements.">
+<BaseLayout title="Download" description="Flowmaster for Windows. Free with a free account: no action limit and no payment card. Check the current release and requirements.">
   <section class="dl-top">
     <div class="wrap dl-top-grid">
       <div class="dl-intro">
-        <p class="label">Download and free trial</p>
+        <p class="label">Download</p>
         <h1 class="display dl-title">Flowmaster for Windows<span class="dl-stop" aria-hidden="true"></span></h1>
-        <p class="dl-lede">A free trial for Windows 10 and 11, 64-bit. A free account is required. No payment card.</p>
+        <p class="dl-lede">Free for Windows 10 and 11, 64-bit. A free account is required. No payment card.</p>
         <div class="dl-actions">
           <a class="btn-primary" href="/account">Create a free account</a>
-          <a class="arrow-link" href="#trial-rules">How the trial counts</a>
+          <a class="arrow-link" href="#trial-rules">What&rsquo;s free</a>
         </div>
       </div>
 
@@ -43,7 +48,7 @@ const counts = [
         {ready ? (
           <div class="release-body">
             <p class="release-version">Version {release.version} &middot; {Math.ceil((release.bytes ?? 0) / 1048576)} MB</p>
-            <a id="download-windows-btn" class="btn-primary release-btn" href={release.downloadUrl!}>Download free trial for Windows</a>
+            <a id="download-windows-btn" class="btn-primary release-btn" href={release.downloadUrl!}>Download Flowmaster for Windows</a>
             <p class="release-link"><a href={release.releaseUrl!} class="text-link">Release notes and installer details</a></p>
             <details class="release-sha"><summary>SHA-256 checksum</summary><code>{release.sha256}</code></details>
           </div>
@@ -65,17 +70,14 @@ const counts = [
   <section class="rules" id="trial-rules" aria-labelledby="rules-title">
     <div class="wrap rules-grid">
       <div class="rules-head">
-        <p class="label">The trial</p>
-        <h2 id="rules-title" class="display rules-title">30 actions, with no time limit</h2>
-        <div class="thirty" role="img" aria-label="Thirty squares, one for each action in the trial.">
-          {Array.from({ length: 30 }).map(() => <i></i>)}
-        </div>
-        <p class="label thirty-cap">30 actions per PC &middot; no payment card</p>
-        <p>The trial is tied to your PC and verified online. An internet connection and the trial service are required to start new work. Reinstalling does not restart the trial.</p>
+        <p class="label">Free</p>
+        <h2 id="rules-title" class="display rules-title">Free, with no action limit</h2>
+        <p class="label thirty-cap">No action limit &middot; no time limit &middot; no payment card</p>
+        <p>Mark, Clip and Clean are free with a free account. An internet connection is required to sign in and to start new work.</p>
       </div>
 
       <div class="rules-body">
-        <h3 class="label rules-sub">What uses an action</h3>
+        <h3 class="label rules-sub">What you get, free</h3>
         <ul class="counts">
           {counts.map((c) => (
             <li>
@@ -87,12 +89,12 @@ const counts = [
 
         <div class="rules-more">
           <div>
-            <h3 class="label rules-sub">If something fails</h3>
-            <p>Failed or cancelled work releases its reserved action when the service reconnects. An interrupted run can count if completion cannot be confirmed.</p>
+            <h3 class="label rules-sub">Your files stay yours</h3>
+            <p>Recordings and exports stay on your PC. Clean only removes originals you select, and sends them to the Windows Recycle Bin.</p>
           </div>
           <div>
-            <h3 class="label rules-sub">After all 30</h3>
-            <p>After all 30 actions, existing recordings and outputs remain yours. You can still view them, edit saved marks, and use Clean. Accounts are free. Paid trials and upgrades are currently unavailable.</p>
+            <h3 class="label rules-sub">What will be paid</h3>
+            <p>Flow AI and Events are in development for the December release and are planned as a paid subscription. Prices are not set, and nothing is on sale yet.</p>
           </div>
         </div>
       </div>
@@ -190,7 +192,7 @@ const counts = [
   .rules-title, .first-title { margin-top: 1rem; font-size: clamp(2.5rem, 5vw, 4.25rem); }
   .thirty { display: grid; grid-template-columns: repeat(10, minmax(0, 1fr)); gap: 0.4rem; max-width: 24rem; margin: 2rem 0 0.8rem; }
   .thirty i { aspect-ratio: 83.5 / 81.5; border-radius: 10%; background: #3d3c38; }
-  .thirty-cap { margin-bottom: 1.75rem; }
+  .thirty-cap { margin: 1.25rem 0 1.75rem; }
   .rules-head > p:not(.label) { max-width: 28rem; }
   .rules-sub { font-family: var(--font-mono); font-stretch: 100%; margin-bottom: 0.85rem; }
   .counts { list-style: none; margin: 0; padding: 0; border-top: 1px solid var(--rule-strong); }
@@ -216,6 +218,7 @@ const counts = [
   }
   .counts-tag i { width: 0.62rem; height: 0.6rem; border-radius: 1.5px; background: var(--ink-3); }
   .counts-tag--r i { background: var(--red); }
+  .counts-tag--g i { background: var(--green); }
   .counts-tag--y i { background: var(--yellow); }
   .rules-more { display: grid; gap: 2rem; margin-top: 2.5rem; }
   .rules-more p { font-size: 0.98rem; }

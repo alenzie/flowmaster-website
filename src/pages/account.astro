@@ -4,7 +4,7 @@ import service from '../data/supabase.json';
 ---
 <BaseLayout title="Your Flowmaster account" description="Sign in or create a free Flowmaster account with Google or email. Paid upgrades are unavailable.">
   <section class="account-shell">
-    <div class="account-intro"><p class="label">Account</p><h1 class="display account-title">One account.<br /><span>Every Moment.</span></h1><p>Create a free account to use Flowmaster. Each PC has a 30-action trial. Creating another account or reinstalling keeps that PC’s existing usage.</p><p>Paid trials and upgrades are unavailable.</p></div>
+    <div class="account-intro"><p class="label">Account</p><h1 class="display account-title">One account.<br /><span>Every Moment.</span></h1><p>Create a free account to use Flowmaster. Mark, Clip and Clean are free. Creating another account or reinstalling keeps that PC’s existing usage.</p><p>Paid trials and upgrades are unavailable.</p></div>
     <div class="account-card">
       <h2 id="account-title">Sign in</h2>
       {!service.emailReady && <p class="account-service-status" role="status">Free account signup and password-reset emails are being connected. These options will open when email delivery is verified. Existing accounts can still sign in.</p>}
@@ -29,7 +29,7 @@ import service from '../data/supabase.json';
         <button type="submit">Save password</button>
         <button id="password-cancel" type="button" hidden>Back to your account</button>
       </form>
-      <div id="account-signed-in" hidden><p id="account-ready">Your account is ready. Open Flowmaster and sign in with the same email and password.</p><button id="account-set-password" type="button" hidden>Set a Flowmaster password</button><a href="/download">Download and trial details →</a>
+      <div id="account-signed-in" hidden><p id="account-ready">Your account is ready. Open Flowmaster and sign in with the same email and password.</p><button id="account-set-password" type="button" hidden>Set a Flowmaster password</button><a href="/download">Download details →</a>
         <section id="release-preferences" class="release-preferences" aria-labelledby="release-preferences-title" hidden>
           <h3 id="release-preferences-title">Release emails</h3>
           <p>Occasional news when Flowmaster has something new. This is optional and separate from account and security emails.</p>
@@ -42,7 +42,7 @@ import service from '../data/supabase.json';
           <p id="release-preferences-message" role="status" aria-live="polite"></p>
         </section>
         <button id="account-signout" type="button">Sign out of this browser</button></div>
-      <p class="account-note">An internet connection is required to sign in and verify trial usage. <a href="/privacy">How we use your data</a> · <a href="/terms">Terms of Service</a></p>
+      <p class="account-note">An internet connection is required to sign in and to start new work. <a href="/privacy">How we use your data</a> · <a href="/terms">Terms of Service</a></p>
     </div>
   </section>
 </BaseLayout>
