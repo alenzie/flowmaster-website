@@ -15,7 +15,20 @@
 // ranges merge on one row instead of stacking; no checkmarks
 // that imply things the app does not show; no page-wide mousemove listener;
 // it pauses when off screen and holds a still frame under reduced motion.
+//
+// Interactive: pressing F9 (while this is on screen) or tapping the key turns the
+// loop into a live tape that zooms out as the recording grows (see the script).
+// Each press drops a range at the playhead; ranges that overlap cross-fade into one. Every press also sends a 'flowmaster:mark' event,
+// which the Mark tab mockup (MarkWindow) turns into a new timestamp line.
+import { timecode } from './session';
+
 const ticks = Array.from({ length: 120 }, (_, i) => i);
+// Time on the tape, exaggerated: every big tick (100 units) is 10 minutes of
+// recording, counted from the playhead's spot when the loop starts (x 300).
+// Labelled every other big tick (20 minutes).
+// The live script and the Mark tab use the same scale (SECONDS_PER_UNIT below).
+const SECONDS_PER_UNIT = 6;
+const times = [3, 5, 7, 9].map((k) => ({ x: k * 100, label: timecode((k * 100 - 300) * SECONDS_PER_UNIT) }));
 ---
 
 <figure class="mark-loop" data-mark-loop aria-label="Animation: pressing F9 while recording drops a clip range on the timeline; ranges close together merge into one clip.">
@@ -36,6 +49,16 @@ const ticks = Array.from({ length: 120 }, (_, i) => i);
         <stop offset="88%" stop-color="#252525" stop-opacity="1" />
         <stop offset="100%" stop-color="#252525" stop-opacity="0" />
       </linearGradient>
+      <!-- The time labels fade out in a wide oval around the key, so none crowd it. -->
+      <radialGradient id="ml-key-fade">
+        <stop offset="0%" stop-color="black" stop-opacity="1" />
+        <stop offset="50%" stop-color="black" stop-opacity="1" />
+        <stop offset="100%" stop-color="black" stop-opacity="0" />
+      </radialGradient>
+      <mask id="ml-label-mask" maskUnits="userSpaceOnUse" x="0" y="0" width="600" height="200">
+        <rect x="0" y="0" width="600" height="200" fill="white" />
+        <ellipse cx="300" cy="48" rx="110" ry="40" fill="url(#ml-key-fade)" />
+      </mask>
     </defs>
 
     <g class="ml-stage">
@@ -63,6 +86,19 @@ const ticks = Array.from({ length: 120 }, (_, i) => i);
             <text class="ml-note" x="548" y="146" text-anchor="middle" fill="#f5d440" font-size="11" letter-spacing="1.2" style="font-family: var(--font-mono), monospace">MERGED</text>
           </g>
         </g>
+        <!-- Time labels: the scripted loop's scroll with the tape (same animation); the live ones are drawn by the script. -->
+        <g mask="url(#ml-label-mask)">
+          <g class="ml-scroll ml-times ml-times--loop" aria-hidden="true">
+            {times.map(({ x, label }) => (
+              <g>
+                <line x1={x} y1="68" x2={x} y2="92" />
+                <text x={x} y="62" text-anchor="middle">{label}</text>
+              </g>
+            ))}
+          </g>
+          <g class="ml-times" data-live-times></g>
+        </g>
+        <g class="ml-live" data-live-ranges></g>
         </g>
 
         <g class="ml-playhead">
@@ -87,11 +123,14 @@ const ticks = Array.from({ length: 120 }, (_, i) => i);
       </g>
     </g>
   </svg>
+  <button type="button" class="ml-key-btn" data-mark-key aria-label="Press F9 to drop a mark on the timeline"></button>
+  <p class="ml-hint" data-ml-hint aria-hidden="true">Try it: press F9</p>
+  <button type="button" class="ml-stop" data-ml-stop tabindex="-1"><span aria-hidden="true"></span>Stop recording</button>
   <slot />
 </figure>
 
 <style>
-  .mark-loop { margin: 0; width: 100%; }
+  .mark-loop { position: relative; margin: 0; width: 100%; }
   .ml-svg { display: block; width: 100%; height: auto; overflow: visible; }
   .ml-svg * { transform-box: view-box; }
 
@@ -187,6 +226,98 @@ const ticks = Array.from({ length: 120 }, (_, i) => i);
 
   .mark-loop.is-paused * { animation-play-state: paused !important; }
 
+  /* ---------- Live: the visitor's own presses ---------- */
+  /* The key is an HTML button laid over the drawn one (key at 265,16, 70x49 of 600x200). */
+  .ml-key-btn {
+    position: absolute;
+    left: 42.5%;
+    top: 4%;
+    width: 15%;
+    height: 32%;
+    padding: 0;
+    border: 0;
+    border-radius: 10px;
+    background: transparent;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+  }
+  .ml-key-btn:focus-visible { outline: 2px solid var(--yellow); outline-offset: 2px; }
+  .mark-loop:has(.ml-key-btn:hover) .ml-press { filter: drop-shadow(0 0 8px rgba(245, 212, 64, 0.45)); }
+  .ml-hint {
+    position: absolute;
+    left: 50%;
+    bottom: 2%;
+    margin: 0;
+    translate: -50% 0;
+    font-family: var(--font-mono);
+    font-size: 0.68rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    white-space: nowrap;
+    color: var(--ink-3);
+    pointer-events: none;
+    transition: opacity 0.4s ease;
+  }
+  .mark-loop.is-live .ml-hint { opacity: 0; }
+
+  /* Recording time over the big ticks, scrolling with the tape. */
+  .mark-loop :global(.ml-times g line) { stroke: #3a3a3a; stroke-width: 1; }
+  .mark-loop :global(.ml-times text) { fill: #8c8a83; font-family: var(--font-mono), monospace; font-size: 13px; font-weight: 600; letter-spacing: 0.3px; }
+  .mark-loop.is-live .ml-times--loop, .mark-loop.is-live .ml-ticks { display: none; }
+  .mark-loop:not(.is-live) [data-live-times] { display: none; }
+
+  /* Stop recording: offered a few seconds into a live take. The tape stops, the clips
+     turn green, lift off and slide away, and the scripted loop starts again. */
+  .ml-stop {
+    position: absolute;
+    left: 50%;
+    bottom: 0;
+    translate: -50% 0;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.55rem;
+    min-height: 2.5rem;
+    padding: 0.5rem 0.95rem;
+    border: 1px solid var(--rule-strong);
+    border-radius: 6px;
+    background: rgba(16, 16, 16, 0.9);
+    color: var(--ink);
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    cursor: pointer;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.35s ease, visibility 0s linear 0.35s, border-color 0.18s ease;
+  }
+  .ml-stop span { width: 0.6rem; height: 0.6rem; border-radius: 2px; background: var(--red); }
+  .ml-stop.is-shown { opacity: 1; visibility: visible; transition: opacity 0.35s ease, border-color 0.18s ease; }
+  .ml-stop:hover { border-color: var(--ink); }
+  .ml-stop:focus-visible { outline: 2px solid var(--ink); outline-offset: 3px; }
+  .mark-loop.is-live.is-stopping .ml-playhead, .mark-loop.is-live.is-stopping .ml-key { opacity: 0; transition: opacity 0.4s ease; }
+  .mark-loop :global(.ml-lr.is-done) { fill: #6be553; transition: fill 0.35s ease; }
+  .mark-loop :global(.ml-lr.is-lift) { transform: translateY(-40px); transition: fill 0.35s ease, transform 0.35s cubic-bezier(0.2, 0.7, 0.2, 1); }
+  .mark-loop :global(.ml-lr.is-away) { transform: translate(-640px, -40px); transition: transform 0.6s cubic-bezier(0.5, 0, 0.75, 0); }
+
+  /* The scripted loop stops and holds its recording frame; the script drives the tape. */
+  .mark-loop.is-live * { animation: none !important; }
+  .mark-loop.is-live .ml-bob { animation: ml-bob 2s ease-in-out infinite !important; }
+  .mark-loop.is-live .ml-stage, .mark-loop.is-live .ml-playhead, .mark-loop.is-live .ml-key { opacity: 1; }
+  .mark-loop.is-live .ml-zoom, .mark-loop.is-live .ml-scroll { transform: none; }
+  .mark-loop.is-live .ml-press { transition: transform 0.09s ease-out; }
+  .mark-loop.is-live .ml-press.is-down { transform: translateY(5px); }
+  .mark-loop :global(.ml-lr) { fill: #f5d440; }
+  .mark-loop.is-live :global(.ml-lr--drop) { animation: ml-lr-drop 0.32s ease-out both !important; }
+  @keyframes ml-lr-drop { from { transform: translateY(-14px); fill: #ffffff; } to { transform: none; fill: #f5d440; } }
+  .mark-loop :global(.ml-lr--whole) { opacity: 0; }
+  .mark-loop :global(.ml-lr--whole.is-in) { opacity: 1; transition: opacity 0.22s ease; }
+  .mark-loop :global(.ml-lr.is-out) { opacity: 0; transition: opacity 0.22s ease; }
+  .mark-loop :global(.ml-lr-note) { fill: #f5d440; font-family: var(--font-mono), monospace; font-size: 11px; letter-spacing: 1.2px; }
+  .mark-loop.is-live :global(.ml-lr-note) { animation: ml-lr-note 1.4s ease-out both !important; }
+  @keyframes ml-lr-note { 0% { opacity: 0; } 15%, 70% { opacity: 1; } 100% { opacity: 0; } }
+
   /* Still frame: the finished tape, with the merged clip. */
   @media (prefers-reduced-motion: reduce) {
     .mark-loop * { animation: none !important; }
@@ -194,11 +325,240 @@ const ticks = Array.from({ length: 120 }, (_, i) => i);
     .ml-scroll { transform: translateX(-160px); }
     .ml-r1, .ml-r2, .ml-merged { opacity: 1; fill: #f5d440; }
     .ml-key, .ml-note { opacity: 0; }
+    .mark-loop.is-live :global(.ml-lr--drop), .mark-loop.is-live :global(.ml-lr-note) { animation: none !important; }
   }
 </style>
 
 <script>
+  // ── Live tape ──
+  // Time runs in tape units: 0 is the playhead's spot when the loop starts, and one
+  // unit is SECONDS_PER_UNIT of recording (one big tick, 100 units, is 10 minutes).
+  // The playhead stays at x 300 under the key. While the recording is short, its
+  // start stays pinned near the left edge and the tape zooms out to fit everything
+  // recorded so far, but only a little; past that it moves again and the oldest
+  // ranges slide off the left. Ticks and time labels re-space as the zoom changes.
+  // A few seconds in, "Stop recording" appears: the take ends like the scripted loop
+  // (clips turn green, lift and slide away) and the loop starts over.
+  const SPEED = 30;              // units per second of page time
+  const BACK = 45;               // a range reaches back from the press...
+  const AHEAD = 15;              // ...and a little ahead of it
+  const SECONDS_PER_UNIT = 6;
+  const PLAYHEAD = 300;
+  const PIN = 92;                // where the recording's start is held while zooming out
+  const MIN_ZOOM = 0.75;         // only a little zoom-out; past it the tape moves on
+  const MINOR = [20, 50, 100, 200, 300, 600, 1200];
+  const MAJOR = [100, 200, 300, 600, 1200, 1800, 3600];
+  const NS = 'http://www.w3.org/2000/svg';
+  const stamp = (seconds: number) => [Math.floor(seconds / 3600), Math.floor((seconds % 3600) / 60), Math.floor(seconds % 60)]
+    .map((n) => String(n).padStart(2, '0')).join(':');
+  type Part = { el: SVGElement; s: number; e: number };
+  type Range = { start: number; end: number; parts: Part[] };
+
   document.querySelectorAll<HTMLElement>('[data-mark-loop]').forEach((el) => {
-    new IntersectionObserver(([entry]) => el.classList.toggle('is-paused', !entry.isIntersecting), { threshold: 0.2 }).observe(el);
+    const scroll = el.querySelector<SVGGElement>('.ml-scroll')!;
+    const layer = el.querySelector<SVGGElement>('[data-live-ranges]')!;
+    const scale = el.querySelector<SVGGElement>('[data-live-times]')!;
+    const key = el.querySelector<SVGGElement>('.ml-press')!;
+    const button = el.querySelector<HTMLButtonElement>('[data-mark-key]')!;
+    const stopButton = el.querySelector<HTMLButtonElement>('[data-ml-stop]')!;
+    const hint = el.querySelector<HTMLElement>('[data-ml-hint]');
+    const still = window.matchMedia('(prefers-reduced-motion: reduce)');
+    if (hint && window.matchMedia('(hover: none)').matches) hint.textContent = 'Try it: tap F9';
+
+    let visible = false;
+    let live = false;
+    let now = 0;                 // tape units recorded so far
+    let zoom = 1;
+    let last = 0;
+    let ranges: Range[] = [];
+    let stopping = false;
+    let raf = 0;
+    let stopTimer = 0;
+    const toX = (u: number) => PLAYHEAD - (now - u) * zoom;
+
+    const make = <K extends keyof SVGElementTagNameMap>(tag: K, parent: SVGElement, attrs: Record<string, string>) => {
+      const node = document.createElementNS(NS, tag);
+      for (const [k, v] of Object.entries(attrs)) node.setAttribute(k, v);
+      parent.append(node);
+      return node;
+    };
+    const place = (part: Part) => {
+      if (part.el.tagName === 'text') part.el.setAttribute('x', String(toX((part.s + part.e) / 2)));
+      else {
+        part.el.setAttribute('x', String(toX(part.s)));
+        part.el.setAttribute('width', String(Math.max(2, (part.e - part.s) * zoom)));
+      }
+    };
+
+    // Pools for the scale, reused every frame.
+    const tickPool: SVGLineElement[] = [];
+    const labelPool: { g: SVGGElement; line: SVGLineElement; text: SVGTextElement }[] = [];
+    const tick = (i: number) => tickPool[i] ??= make('line', scale, { y2: '100', stroke: '#484848' });
+    const label = (i: number) => labelPool[i] ??= (() => {
+      const g = make('g', scale, {});
+      return { g, line: make('line', g, { y1: '68', y2: '92' }), text: make('text', g, { y: '62', 'text-anchor': 'middle' }) };
+    })();
+
+    const drawScale = () => {
+      const from = Math.max(0, now - (PLAYHEAD - 40) / zoom);
+      const to = now + (560 - PLAYHEAD) / zoom;
+      const minor = MINOR.find((m) => m * zoom >= 9) ?? MINOR[MINOR.length - 1];
+      const major = MAJOR.find((m) => m * zoom >= 140 && m % minor === 0) ?? MAJOR[MAJOR.length - 1];
+      let t = 0;
+      for (let u = Math.ceil(from / minor) * minor; u <= to; u += minor, t++) {
+        const line = tick(t);
+        const x = String(toX(u));
+        const big = u % major === 0;
+        line.setAttribute('x1', x); line.setAttribute('x2', x);
+        line.setAttribute('y1', big ? '94' : '97');
+        line.setAttribute('stroke-width', big ? '2' : '1');
+        line.removeAttribute('visibility');
+      }
+      for (; t < tickPool.length; t++) tickPool[t].setAttribute('visibility', 'hidden');
+      let l = 0;
+      for (let u = Math.ceil(from / major) * major; u <= to; u += major, l++) {
+        const { g, line, text } = label(l);
+        const x = String(toX(u));
+        line.setAttribute('x1', x); line.setAttribute('x2', x);
+        text.setAttribute('x', x);
+        const value = stamp(u * SECONDS_PER_UNIT);
+        if (text.textContent !== value) text.textContent = value;
+        g.removeAttribute('visibility');
+      }
+      for (; l < labelPool.length; l++) labelPool[l].g.setAttribute('visibility', 'hidden');
+    };
+
+    const draw = () => {
+      zoom = Math.min(1, Math.max(MIN_ZOOM, (PLAYHEAD - PIN) / Math.max(now, 1)));
+      drawScale();
+      ranges = ranges.filter((range) => {
+        if (toX(range.end) > 30) { range.parts.forEach(place); return true; }
+        range.parts.forEach((p) => p.el.remove());
+        return false;
+      });
+    };
+    const frame = (time: number) => {
+      if (!live) { last = 0; return; }
+      const dt = last ? Math.min(0.1, (time - last) / 1000) : 0;
+      last = time;
+      if (visible && !still.matches && !stopping) now += SPEED * dt;
+      draw();
+      raf = requestAnimationFrame(frame);
+    };
+
+    const goLive = () => {
+      if (live) return;
+      // Carry on from wherever the scripted tape had scrolled to.
+      const t = getComputedStyle(scroll).transform;
+      now = Math.max(0, t && t !== 'none' ? -new DOMMatrixReadOnly(t).m41 : 0);
+      live = true;
+      el.classList.add('is-live');
+      draw();
+      cancelAnimationFrame(raf);
+      raf = requestAnimationFrame(frame);
+    };
+
+    const press = () => {
+      if (stopping) return;
+      goLive();
+      if (!stopTimer) stopTimer = window.setTimeout(() => {
+        stopButton.classList.add('is-shown');
+        stopButton.tabIndex = 0;
+      }, 5000);
+      key.classList.add('is-down');
+      window.setTimeout(() => key.classList.remove('is-down'), 110);
+
+      const at = now;
+      const start = Math.max(0, at - BACK);
+      const end = at + AHEAD;
+      const freshEl = make('rect', layer, { y: '103', height: '24', rx: '3', class: 'ml-lr ml-lr--drop' });
+      const fresh: Part = { el: freshEl, s: start, e: end };
+      place(fresh);
+      const hits = ranges.filter((r) => r.start <= end && start <= r.end);
+      if (!hits.length) {
+        ranges.push({ start, end, parts: [fresh] });
+      } else {
+        // Overlap: once the new range lands, the pieces cross-fade into one clip.
+        const merged: Range = {
+          start: Math.min(start, ...hits.map((h) => h.start)),
+          end: Math.max(end, ...hits.map((h) => h.end)),
+          parts: [],
+        };
+        const pieces = [fresh, ...hits.flatMap((h) => h.parts)];
+        const whole: Part = { el: make('rect', layer, { y: '103', height: '24', rx: '3', class: 'ml-lr ml-lr--whole' }), s: merged.start, e: merged.end };
+        place(whole);
+        merged.parts = [whole, ...pieces];
+        ranges = ranges.filter((r) => !hits.includes(r));
+        ranges.push(merged);
+        window.setTimeout(() => {
+          whole.el.classList.add('is-in');
+          pieces.forEach((p) => p.el.classList.add('is-out'));
+          layer.querySelectorAll('.ml-lr-note').forEach((old) => old.remove());
+          const note: Part = { el: make('text', layer, { y: '146', 'text-anchor': 'middle', class: 'ml-lr-note' }), s: merged.start, e: merged.end };
+          note.el.textContent = 'MERGED';
+          place(note);
+          merged.parts.push(note);
+          window.setTimeout(() => {
+            pieces.forEach((p) => p.el.remove());
+            merged.parts = merged.parts.filter((p) => !pieces.includes(p));
+          }, 260);
+          window.setTimeout(() => {
+            note.el.remove();
+            merged.parts = merged.parts.filter((p) => p !== note);
+          }, 1500);
+        }, still.matches ? 0 : 320);
+      }
+      // The Mark tab writes the same time the labels show under the playhead.
+      window.dispatchEvent(new CustomEvent('flowmaster:mark', { detail: { anchor: button, at, time: at * SECONDS_PER_UNIT } }));
+      // Without motion the tape does not run; step it on so presses do not stack.
+      if (still.matches) { now += 25; draw(); }
+    };
+
+    const stop = () => {
+      if (!live || stopping) return;
+      stopping = true;
+      window.clearTimeout(stopTimer);
+      stopTimer = 0;
+      stopButton.classList.remove('is-shown');
+      stopButton.tabIndex = -1;
+      el.classList.add('is-stopping');
+      window.dispatchEvent(new CustomEvent('flowmaster:stop'));
+      // Finished clips: green, then lifted and sent off to the left, oldest first.
+      const clips = [...ranges].sort((a, b) => a.start - b.start);
+      const rects = (r: Range) => r.parts.filter((p) => p.el.tagName === 'rect' && !p.el.classList.contains('is-out'));
+      clips.forEach((r) => rects(r).forEach((p) => {
+        p.el.classList.remove('ml-lr--drop');
+        p.el.classList.add('is-in', 'is-done');
+      }));
+      const gap = still.matches ? 0 : 110;
+      const lift = still.matches ? 0 : 700;
+      clips.forEach((r, i) => {
+        window.setTimeout(() => rects(r).forEach((p) => p.el.classList.add('is-lift')), lift + i * gap);
+        window.setTimeout(() => rects(r).forEach((p) => p.el.classList.add('is-away')), lift + 450 + i * gap);
+      });
+      window.setTimeout(() => {
+        ranges.forEach((r) => r.parts.forEach((p) => p.el.remove()));
+        layer.replaceChildren();
+        ranges = [];
+        live = false;
+        cancelAnimationFrame(raf);
+        last = 0;
+        stopping = false;
+        now = 0;
+        el.classList.remove('is-live', 'is-stopping');
+      }, still.matches ? 0 : lift + 450 + clips.length * gap + 800);
+    };
+
+    stopButton.addEventListener('click', stop);
+    button.addEventListener('click', press);
+    document.addEventListener('keydown', (event) => {
+      if (event.key !== 'F9' || event.repeat || !visible) return;
+      event.preventDefault();
+      press();
+    });
+    new IntersectionObserver(([entry]) => {
+      visible = entry.isIntersecting;
+      el.classList.toggle('is-paused', !visible);
+    }, { threshold: 0.2 }).observe(el);
   });
 </script>
