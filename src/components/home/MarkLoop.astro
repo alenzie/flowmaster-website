@@ -17,8 +17,8 @@
 // it pauses when off screen and holds a still frame under reduced motion.
 //
 // Interactive: pressing F9 (while this is on screen) or tapping the key turns the
-// loop into a live tape. Each press drops a range at the playhead; ranges that
-// overlap cross-fade into one. Every press also sends a 'flowmaster:mark' event,
+// loop into a live tape that zooms out as the recording grows (see the script).
+// Each press drops a range at the playhead; ranges that overlap cross-fade into one. Every press also sends a 'flowmaster:mark' event,
 // which the Mark tab mockup (MarkWindow) turns into a new timestamp line.
 import { timecode } from './session';
 
@@ -247,9 +247,9 @@ const times = [3, 4, 5, 6, 7, 8, 9].map((k) => ({ x: k * 100, label: timecode((k
   .mark-loop.is-live .ml-hint { opacity: 0; }
 
   /* Recording time over the big ticks, scrolling with the tape. */
-  .mark-loop :global(.ml-times line) { stroke: #3a3a3a; stroke-width: 1; }
+  .mark-loop :global(.ml-times g line) { stroke: #3a3a3a; stroke-width: 1; }
   .mark-loop :global(.ml-times text) { fill: #8c8a83; font-family: var(--font-mono), monospace; font-size: 13px; font-weight: 600; letter-spacing: 0.3px; }
-  .mark-loop.is-live .ml-times--loop { display: none; }
+  .mark-loop.is-live .ml-times--loop, .mark-loop.is-live .ml-ticks { display: none; }
 
   /* The scripted loop stops and holds its recording frame; the script drives the tape. */
   .mark-loop.is-live * { animation: none !important; }
@@ -280,25 +280,32 @@ const times = [3, 4, 5, 6, 7, 8, 9].map((k) => ({ x: k * 100, label: timecode((k
 </style>
 
 <script>
-  // Live tape geometry, in the SVG's own units: the playhead sits at x 300, a range
-  // reaches 45 back from the press and 15 ahead, and the ticks repeat every 100.
-  const SPEED = 30;
-  const BACK = 45;
-  const AHEAD = 15;
-  const PERIOD = 100;
+  // ── Live tape ──
+  // Time runs in tape units: 0 is the playhead's spot when the loop starts, and one
+  // unit is SECONDS_PER_UNIT of recording (one big tick, 100 units, is 10 minutes).
+  // The playhead stays at x 300 under the key. While the recording is short, its
+  // start stays pinned near the left edge and the tape zooms out to fit everything
+  // recorded so far; once it reaches the widest zoom it tracks again, and the oldest
+  // ranges slide off the left. Ticks and time labels re-space as the zoom changes.
+  const SPEED = 30;              // units per second of page time
+  const BACK = 45;               // a range reaches back from the press...
+  const AHEAD = 15;              // ...and a little ahead of it
   const SECONDS_PER_UNIT = 6;
-  const timeAt = (x: number) => Math.max(0, (x - 300) * SECONDS_PER_UNIT);
+  const PLAYHEAD = 300;
+  const PIN = 92;                // where the recording's start is held while zooming out
+  const MIN_ZOOM = 0.12;         // widest view: about three hours of recording
+  const MINOR = [20, 50, 100, 200, 300, 600, 1200];
+  const MAJOR = [100, 200, 300, 600, 1200, 1800, 3600];
+  const NS = 'http://www.w3.org/2000/svg';
   const stamp = (seconds: number) => [Math.floor(seconds / 3600), Math.floor((seconds % 3600) / 60), Math.floor(seconds % 60)]
     .map((n) => String(n).padStart(2, '0')).join(':');
-  const NS = 'http://www.w3.org/2000/svg';
-  type Range = { start: number; end: number; els: SVGElement[] };
+  type Part = { el: SVGElement; s: number; e: number };
+  type Range = { start: number; end: number; parts: Part[] };
 
   document.querySelectorAll<HTMLElement>('[data-mark-loop]').forEach((el) => {
     const scroll = el.querySelector<SVGGElement>('.ml-scroll')!;
-    const ticks = el.querySelector<SVGGElement>('.ml-ticks')!;
     const layer = el.querySelector<SVGGElement>('[data-live-ranges]')!;
-    const timesLayer = el.querySelector<SVGGElement>('[data-live-times]')!;
-    const labels = new Map<number, SVGGElement>();
+    const scale = el.querySelector<SVGGElement>('[data-live-times]')!;
     const key = el.querySelector<SVGGElement>('.ml-press')!;
     const button = el.querySelector<HTMLButtonElement>('[data-mark-key]')!;
     const hint = el.querySelector<HTMLElement>('[data-ml-hint]');
@@ -307,70 +314,78 @@ const times = [3, 4, 5, 6, 7, 8, 9].map((k) => ({ x: k * 100, label: timecode((k
 
     let visible = false;
     let live = false;
-    let offset = 0;
+    let now = 0;                 // tape units recorded so far
+    let zoom = 1;
     let last = 0;
     let ranges: Range[] = [];
+    const toX = (u: number) => PLAYHEAD - (now - u) * zoom;
 
-    const shape = (start: number, end: number, cls: string) => {
-      const r = document.createElementNS(NS, 'rect');
-      r.setAttribute('x', String(start));
-      r.setAttribute('y', '103');
-      r.setAttribute('width', String(end - start));
-      r.setAttribute('height', '24');
-      r.setAttribute('rx', '3');
-      r.setAttribute('class', cls);
-      layer.append(r);
-      return r;
+    const make = <K extends keyof SVGElementTagNameMap>(tag: K, parent: SVGElement, attrs: Record<string, string>) => {
+      const node = document.createElementNS(NS, tag);
+      for (const [k, v] of Object.entries(attrs)) node.setAttribute(k, v);
+      parent.append(node);
+      return node;
     };
-    const note = (range: Range) => {
-      const t = document.createElementNS(NS, 'text');
-      t.setAttribute('x', String((range.start + range.end) / 2));
-      t.setAttribute('y', '146');
-      t.setAttribute('text-anchor', 'middle');
-      t.setAttribute('class', 'ml-lr-note');
-      t.textContent = 'MERGED';
-      layer.querySelectorAll('.ml-lr-note').forEach((old) => old.remove());
-      layer.append(t);
-      window.setTimeout(() => t.remove(), 1500);
+    const place = (part: Part) => {
+      if (part.el.tagName === 'text') part.el.setAttribute('x', String(toX((part.s + part.e) / 2)));
+      else {
+        part.el.setAttribute('x', String(toX(part.s)));
+        part.el.setAttribute('width', String(Math.max(2, (part.e - part.s) * zoom)));
+      }
     };
 
-    // Time labels for the big ticks on screen, made as they scroll in and dropped as they leave.
-    const label = (x: number) => {
-      const g = document.createElementNS(NS, 'g');
-      const line = document.createElementNS(NS, 'line');
-      line.setAttribute('x1', String(x)); line.setAttribute('x2', String(x));
-      line.setAttribute('y1', '68'); line.setAttribute('y2', '92');
-      const text = document.createElementNS(NS, 'text');
-      text.setAttribute('x', String(x)); text.setAttribute('y', '62');
-      text.setAttribute('text-anchor', 'middle');
-      text.textContent = stamp(timeAt(x));
-      g.append(line, text);
-      timesLayer.append(g);
-      return g;
+    // Pools for the scale, reused every frame.
+    const tickPool: SVGLineElement[] = [];
+    const labelPool: { g: SVGGElement; line: SVGLineElement; text: SVGTextElement }[] = [];
+    const tick = (i: number) => tickPool[i] ??= make('line', scale, { y2: '100', stroke: '#484848' });
+    const label = (i: number) => labelPool[i] ??= (() => {
+      const g = make('g', scale, {});
+      return { g, line: make('line', g, { y1: '68', y2: '92' }), text: make('text', g, { y: '62', 'text-anchor': 'middle' }) };
+    })();
+
+    const drawScale = () => {
+      const from = Math.max(0, now - (PLAYHEAD - 40) / zoom);
+      const to = now + (560 - PLAYHEAD) / zoom;
+      const minor = MINOR.find((m) => m * zoom >= 9) ?? MINOR[MINOR.length - 1];
+      const major = MAJOR.find((m) => m * zoom >= 82 && m % minor === 0) ?? MAJOR[MAJOR.length - 1];
+      let t = 0;
+      for (let u = Math.ceil(from / minor) * minor; u <= to; u += minor, t++) {
+        const line = tick(t);
+        const x = String(toX(u));
+        const big = u % major === 0;
+        line.setAttribute('x1', x); line.setAttribute('x2', x);
+        line.setAttribute('y1', big ? '94' : '97');
+        line.setAttribute('stroke-width', big ? '2' : '1');
+        line.removeAttribute('visibility');
+      }
+      for (; t < tickPool.length; t++) tickPool[t].setAttribute('visibility', 'hidden');
+      let l = 0;
+      for (let u = Math.ceil(from / major) * major; u <= to; u += major, l++) {
+        const { g, line, text } = label(l);
+        const x = String(toX(u));
+        line.setAttribute('x1', x); line.setAttribute('x2', x);
+        text.setAttribute('x', x);
+        const value = stamp(u * SECONDS_PER_UNIT);
+        if (text.textContent !== value) text.textContent = value;
+        g.removeAttribute('visibility');
+      }
+      for (; l < labelPool.length; l++) labelPool[l].g.setAttribute('visibility', 'hidden');
     };
-    const drawTimes = () => {
-      const first = Math.max(3, Math.ceil((offset - 40) / PERIOD));
-      const lastK = Math.floor((offset + 640) / PERIOD);
-      for (const [k, g] of labels) if (k < first || k > lastK) { g.remove(); labels.delete(k); }
-      for (let k = first; k <= lastK; k++) if (!labels.has(k)) labels.set(k, label(k * PERIOD));
-    };
+
     const draw = () => {
-      ticks.setAttribute('transform', `translate(${-(offset % PERIOD)} 0)`);
-      layer.setAttribute('transform', `translate(${-offset} 0)`);
-      timesLayer.setAttribute('transform', `translate(${-offset} 0)`);
-      drawTimes();
-    };
-    const frame = (now: number) => {
-      const dt = last ? Math.min(0.1, (now - last) / 1000) : 0;
-      last = now;
-      if (visible && !still.matches) offset += SPEED * dt;
-      draw();
-      // Ranges that have scrolled off the left edge are done.
+      zoom = Math.min(1, Math.max(MIN_ZOOM, (PLAYHEAD - PIN) / Math.max(now, 1)));
+      drawScale();
       ranges = ranges.filter((range) => {
-        if (range.end - offset > 0) return true;
-        range.els.forEach((e) => e.remove());
+        if (toX(range.end) > 30) { range.parts.forEach(place); return true; }
+        range.parts.forEach((p) => p.el.remove());
         return false;
       });
+    };
+    const frame = (time: number) => {
+      const dt = last ? Math.min(0.1, (time - last) / 1000) : 0;
+      last = time;
+      if (visible && !still.matches) now += SPEED * dt;
+      draw();
       requestAnimationFrame(frame);
     };
 
@@ -378,7 +393,7 @@ const times = [3, 4, 5, 6, 7, 8, 9].map((k) => ({ x: k * 100, label: timecode((k
       if (live) return;
       // Carry on from wherever the scripted tape had scrolled to.
       const t = getComputedStyle(scroll).transform;
-      offset = t && t !== 'none' ? -new DOMMatrixReadOnly(t).m41 : 0;
+      now = Math.max(0, t && t !== 'none' ? -new DOMMatrixReadOnly(t).m41 : 0);
       live = true;
       el.classList.add('is-live');
       draw();
@@ -390,39 +405,50 @@ const times = [3, 4, 5, 6, 7, 8, 9].map((k) => ({ x: k * 100, label: timecode((k
       key.classList.add('is-down');
       window.setTimeout(() => key.classList.remove('is-down'), 110);
 
-      const at = 300 + offset;
-      const start = at - BACK;
+      const at = now;
+      const start = Math.max(0, at - BACK);
       const end = at + AHEAD;
-      const fresh = shape(start, end, 'ml-lr ml-lr--drop');
+      const freshEl = make('rect', layer, { y: '103', height: '24', rx: '3', class: 'ml-lr ml-lr--drop' });
+      const fresh: Part = { el: freshEl, s: start, e: end };
+      place(fresh);
       const hits = ranges.filter((r) => r.start <= end && start <= r.end);
       if (!hits.length) {
-        ranges.push({ start, end, els: [fresh] });
+        ranges.push({ start, end, parts: [fresh] });
       } else {
         // Overlap: once the new range lands, the pieces cross-fade into one clip.
         const merged: Range = {
           start: Math.min(start, ...hits.map((h) => h.start)),
           end: Math.max(end, ...hits.map((h) => h.end)),
-          els: [],
+          parts: [],
         };
-        const pieces = [fresh, ...hits.flatMap((h) => h.els)];
-        const whole = shape(merged.start, merged.end, 'ml-lr ml-lr--whole');
-        merged.els = [whole, ...pieces];
+        const pieces = [fresh, ...hits.flatMap((h) => h.parts)];
+        const whole: Part = { el: make('rect', layer, { y: '103', height: '24', rx: '3', class: 'ml-lr ml-lr--whole' }), s: merged.start, e: merged.end };
+        place(whole);
+        merged.parts = [whole, ...pieces];
         ranges = ranges.filter((r) => !hits.includes(r));
         ranges.push(merged);
         window.setTimeout(() => {
-          whole.classList.add('is-in');
-          pieces.forEach((p) => p.classList.add('is-out'));
-          note(merged);
+          whole.el.classList.add('is-in');
+          pieces.forEach((p) => p.el.classList.add('is-out'));
+          layer.querySelectorAll('.ml-lr-note').forEach((old) => old.remove());
+          const note: Part = { el: make('text', layer, { y: '146', 'text-anchor': 'middle', class: 'ml-lr-note' }), s: merged.start, e: merged.end };
+          note.el.textContent = 'MERGED';
+          place(note);
+          merged.parts.push(note);
           window.setTimeout(() => {
-            pieces.forEach((p) => p.remove());
-            merged.els = merged.els.filter((e) => !pieces.includes(e));
+            pieces.forEach((p) => p.el.remove());
+            merged.parts = merged.parts.filter((p) => !pieces.includes(p));
           }, 260);
+          window.setTimeout(() => {
+            note.el.remove();
+            merged.parts = merged.parts.filter((p) => p !== note);
+          }, 1500);
         }, still.matches ? 0 : 320);
       }
       // The Mark tab writes the same time the labels show under the playhead.
-      window.dispatchEvent(new CustomEvent('flowmaster:mark', { detail: { anchor: button, at, time: timeAt(at) } }));
-      // Without motion the tape does not scroll; step it on so presses do not stack.
-      if (still.matches) { offset += 25; draw(); }
+      window.dispatchEvent(new CustomEvent('flowmaster:mark', { detail: { anchor: button, at, time: at * SECONDS_PER_UNIT } }));
+      // Without motion the tape does not run; step it on so presses do not stack.
+      if (still.matches) { now += 25; draw(); }
     };
 
     button.addEventListener('click', press);
