@@ -194,8 +194,9 @@ const videos = RECORDINGS.slice(0, 3).map((recording, i) => ({ ...recording, sel
     filter: drop-shadow(0 2px 6px rgba(0, 0, 0, 0.6));
     transition: opacity 0.4s ease;
   }
-  .try-me path { stroke-dasharray: 1; stroke-dashoffset: 1; }
-  .try-me.is-drawn path { animation: try-me-draw 0.32s ease-out forwards; }
+  /* Each stroke stays invisible until its own draw starts: a hidden dash still paints its round cap as a dot. */
+  .try-me path { stroke-dasharray: 1; stroke-dashoffset: 1; visibility: hidden; }
+  .try-me.is-drawn path { animation: try-me-draw 0.32s ease-out both; }
   .try-me.is-drawn .try-me-word path:nth-child(1) { animation-delay: 0s; }
   .try-me.is-drawn .try-me-word path:nth-child(2) { animation-delay: 0.12s; }
   .try-me.is-drawn .try-me-word path:nth-child(3) { animation-delay: 0.26s; }
@@ -212,12 +213,16 @@ const videos = RECORDINGS.slice(0, 3).map((recording, i) => ({ ...recording, sel
   .try-me.is-drawn .try-me-arrow path:nth-child(2) { animation-delay: 2.02s; }
   .try-me.is-drawn .try-me-arrow path:nth-child(3) { animation-delay: 2.12s; }
   .try-me.is-gone { opacity: 0; }
-  @keyframes try-me-draw { to { stroke-dashoffset: 0; } }
+  @keyframes try-me-draw {
+    0% { stroke-dashoffset: 1; visibility: hidden; }
+    0.1% { visibility: visible; }
+    100% { stroke-dashoffset: 0; visibility: visible; }
+  }
   @media (max-width: 600px) {
     .try-me { width: 116px; height: 60px; top: -38px; left: calc(14px + (100% - 28px) * 240 / 360 - 13px); }
   }
   @media (prefers-reduced-motion: reduce) {
-    .try-me path, .try-me.is-drawn path { animation: none; stroke-dashoffset: 0; }
+    .try-me path, .try-me.is-drawn path { animation: none; stroke-dashoffset: 0; visibility: visible; }
   }
 </style>
 
