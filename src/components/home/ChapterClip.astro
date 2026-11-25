@@ -433,13 +433,23 @@ const videos = RECORDINGS.slice(0, 3).map((recording, i) => ({ ...recording, sel
     }
     root.querySelectorAll<HTMLButtonElement>('[data-go]').forEach(button => button.addEventListener('click', () => run(button)));
 
-    // The first time the control is on screen, nudge the handle once so it reads as draggable.
-    if ('IntersectionObserver' in window) {
+    // Nudge the handle once so it reads as draggable: right after "Try me!" finishes
+    // drawing, or, without the doodle's animation, the first time the control is on screen.
+    const nudge = () => {
+      start.classList.add('is-hint');
+      start.addEventListener('animationend', () => start.classList.remove('is-hint'), { once: true });
+    };
+    const doodle = document.querySelector<SVGElement>('[data-try-me]');
+    const lastStroke = doodle?.querySelector('.try-me-arrow path:last-child');
+    if (lastStroke && !window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      lastStroke.addEventListener('animationend', () => {
+        window.setTimeout(() => { if (!doodle!.classList.contains('is-gone')) nudge(); }, 150);
+      }, { once: true });
+    } else if ('IntersectionObserver' in window) {
       const hint = new IntersectionObserver(entries => {
         if (!entries[0].isIntersecting) return;
         hint.disconnect();
-        window.setTimeout(() => start.classList.add('is-hint'), 500);
-        start.addEventListener('animationend', () => start.classList.remove('is-hint'), { once: true });
+        window.setTimeout(nudge, 500);
       }, { threshold: 1 });
       hint.observe(track);
     }
