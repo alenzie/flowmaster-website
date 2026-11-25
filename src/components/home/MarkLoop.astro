@@ -15,6 +15,11 @@
 // ranges merge on one row instead of stacking; no checkmarks
 // that imply things the app does not show; no page-wide mousemove listener;
 // it pauses when off screen and holds a still frame under reduced motion.
+//
+// Interactive: pressing F9 (while this is on screen) or tapping the key turns the
+// loop into a live tape. Each press drops a range at the playhead; ranges that
+// overlap cross-fade into one. Every press also sends a 'flowmaster:mark' event,
+// which the Mark tab mockup (MarkWindow) turns into a new timestamp line.
 const ticks = Array.from({ length: 120 }, (_, i) => i);
 ---
 
@@ -63,6 +68,7 @@ const ticks = Array.from({ length: 120 }, (_, i) => i);
             <text class="ml-note" x="548" y="146" text-anchor="middle" fill="#f5d440" font-size="11" letter-spacing="1.2" style="font-family: var(--font-mono), monospace">MERGED</text>
           </g>
         </g>
+        <g class="ml-live" data-live-ranges></g>
         </g>
 
         <g class="ml-playhead">
@@ -87,11 +93,13 @@ const ticks = Array.from({ length: 120 }, (_, i) => i);
       </g>
     </g>
   </svg>
+  <button type="button" class="ml-key-btn" data-mark-key aria-label="Press F9 to drop a mark on the timeline"></button>
+  <p class="ml-hint" data-ml-hint aria-hidden="true">Try it: press F9</p>
   <slot />
 </figure>
 
 <style>
-  .mark-loop { margin: 0; width: 100%; }
+  .mark-loop { position: relative; margin: 0; width: 100%; }
   .ml-svg { display: block; width: 100%; height: auto; overflow: visible; }
   .ml-svg * { transform-box: view-box; }
 
@@ -187,6 +195,58 @@ const ticks = Array.from({ length: 120 }, (_, i) => i);
 
   .mark-loop.is-paused * { animation-play-state: paused !important; }
 
+  /* ---------- Live: the visitor's own presses ---------- */
+  /* The key is an HTML button laid over the drawn one (key at 265,16, 70x49 of 600x200). */
+  .ml-key-btn {
+    position: absolute;
+    left: 42.5%;
+    top: 4%;
+    width: 15%;
+    height: 32%;
+    padding: 0;
+    border: 0;
+    border-radius: 10px;
+    background: transparent;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+  }
+  .ml-key-btn:focus-visible { outline: 2px solid var(--yellow); outline-offset: 2px; }
+  .mark-loop:has(.ml-key-btn:hover) .ml-press { filter: drop-shadow(0 0 8px rgba(245, 212, 64, 0.45)); }
+  .ml-hint {
+    position: absolute;
+    left: 50%;
+    bottom: 2%;
+    margin: 0;
+    translate: -50% 0;
+    font-family: var(--font-mono);
+    font-size: 0.68rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    white-space: nowrap;
+    color: var(--ink-3);
+    pointer-events: none;
+    transition: opacity 0.4s ease;
+  }
+  .mark-loop.is-live .ml-hint { opacity: 0; }
+
+  /* The scripted loop stops and holds its recording frame; the script drives the tape. */
+  .mark-loop.is-live * { animation: none !important; }
+  .mark-loop.is-live .ml-bob { animation: ml-bob 2s ease-in-out infinite !important; }
+  .mark-loop.is-live .ml-stage, .mark-loop.is-live .ml-playhead, .mark-loop.is-live .ml-key { opacity: 1; }
+  .mark-loop.is-live .ml-zoom, .mark-loop.is-live .ml-scroll { transform: none; }
+  .mark-loop.is-live .ml-press { transition: transform 0.09s ease-out; }
+  .mark-loop.is-live .ml-press.is-down { transform: translateY(5px); }
+  .mark-loop :global(.ml-lr) { fill: #f5d440; }
+  .mark-loop.is-live :global(.ml-lr--drop) { animation: ml-lr-drop 0.32s ease-out both !important; }
+  @keyframes ml-lr-drop { from { transform: translateY(-14px); fill: #ffffff; } to { transform: none; fill: #f5d440; } }
+  .mark-loop :global(.ml-lr--whole) { opacity: 0; }
+  .mark-loop :global(.ml-lr--whole.is-in) { opacity: 1; transition: opacity 0.22s ease; }
+  .mark-loop :global(.ml-lr.is-out) { opacity: 0; transition: opacity 0.22s ease; }
+  .mark-loop :global(.ml-lr-note) { fill: #f5d440; font-family: var(--font-mono), monospace; font-size: 11px; letter-spacing: 1.2px; }
+  .mark-loop.is-live :global(.ml-lr-note) { animation: ml-lr-note 1.4s ease-out both !important; }
+  @keyframes ml-lr-note { 0% { opacity: 0; } 15%, 70% { opacity: 1; } 100% { opacity: 0; } }
+
   /* Still frame: the finished tape, with the merged clip. */
   @media (prefers-reduced-motion: reduce) {
     .mark-loop * { animation: none !important; }
@@ -194,11 +254,138 @@ const ticks = Array.from({ length: 120 }, (_, i) => i);
     .ml-scroll { transform: translateX(-160px); }
     .ml-r1, .ml-r2, .ml-merged { opacity: 1; fill: #f5d440; }
     .ml-key, .ml-note { opacity: 0; }
+    .mark-loop.is-live :global(.ml-lr--drop), .mark-loop.is-live :global(.ml-lr-note) { animation: none !important; }
   }
 </style>
 
 <script>
+  // Live tape geometry, in the SVG's own units: the playhead sits at x 300, a range
+  // reaches 45 back from the press and 15 ahead, and the ticks repeat every 100.
+  const SPEED = 30;
+  const BACK = 45;
+  const AHEAD = 15;
+  const PERIOD = 100;
+  const NS = 'http://www.w3.org/2000/svg';
+  type Range = { start: number; end: number; els: SVGElement[] };
+
   document.querySelectorAll<HTMLElement>('[data-mark-loop]').forEach((el) => {
-    new IntersectionObserver(([entry]) => el.classList.toggle('is-paused', !entry.isIntersecting), { threshold: 0.2 }).observe(el);
+    const scroll = el.querySelector<SVGGElement>('.ml-scroll')!;
+    const ticks = el.querySelector<SVGGElement>('.ml-ticks')!;
+    const layer = el.querySelector<SVGGElement>('[data-live-ranges]')!;
+    const key = el.querySelector<SVGGElement>('.ml-press')!;
+    const button = el.querySelector<HTMLButtonElement>('[data-mark-key]')!;
+    const hint = el.querySelector<HTMLElement>('[data-ml-hint]');
+    const still = window.matchMedia('(prefers-reduced-motion: reduce)');
+    if (hint && window.matchMedia('(hover: none)').matches) hint.textContent = 'Try it: tap F9';
+
+    let visible = false;
+    let live = false;
+    let offset = 0;
+    let last = 0;
+    let ranges: Range[] = [];
+
+    const shape = (start: number, end: number, cls: string) => {
+      const r = document.createElementNS(NS, 'rect');
+      r.setAttribute('x', String(start));
+      r.setAttribute('y', '103');
+      r.setAttribute('width', String(end - start));
+      r.setAttribute('height', '24');
+      r.setAttribute('rx', '3');
+      r.setAttribute('class', cls);
+      layer.append(r);
+      return r;
+    };
+    const note = (range: Range) => {
+      const t = document.createElementNS(NS, 'text');
+      t.setAttribute('x', String((range.start + range.end) / 2));
+      t.setAttribute('y', '146');
+      t.setAttribute('text-anchor', 'middle');
+      t.setAttribute('class', 'ml-lr-note');
+      t.textContent = 'MERGED';
+      layer.querySelectorAll('.ml-lr-note').forEach((old) => old.remove());
+      layer.append(t);
+      window.setTimeout(() => t.remove(), 1500);
+    };
+
+    const draw = () => {
+      ticks.setAttribute('transform', `translate(${-(offset % PERIOD)} 0)`);
+      layer.setAttribute('transform', `translate(${-offset} 0)`);
+    };
+    const frame = (now: number) => {
+      const dt = last ? Math.min(0.1, (now - last) / 1000) : 0;
+      last = now;
+      if (visible && !still.matches) offset += SPEED * dt;
+      draw();
+      // Ranges that have scrolled off the left edge are done.
+      ranges = ranges.filter((range) => {
+        if (range.end - offset > 0) return true;
+        range.els.forEach((e) => e.remove());
+        return false;
+      });
+      requestAnimationFrame(frame);
+    };
+
+    const goLive = () => {
+      if (live) return;
+      // Carry on from wherever the scripted tape had scrolled to.
+      const t = getComputedStyle(scroll).transform;
+      offset = t && t !== 'none' ? -new DOMMatrixReadOnly(t).m41 : 0;
+      live = true;
+      el.classList.add('is-live');
+      draw();
+      requestAnimationFrame(frame);
+    };
+
+    const press = () => {
+      goLive();
+      key.classList.add('is-down');
+      window.setTimeout(() => key.classList.remove('is-down'), 110);
+
+      const at = 300 + offset;
+      const start = at - BACK;
+      const end = at + AHEAD;
+      const fresh = shape(start, end, 'ml-lr ml-lr--drop');
+      const hits = ranges.filter((r) => r.start <= end && start <= r.end);
+      if (!hits.length) {
+        ranges.push({ start, end, els: [fresh] });
+      } else {
+        // Overlap: once the new range lands, the pieces cross-fade into one clip.
+        const merged: Range = {
+          start: Math.min(start, ...hits.map((h) => h.start)),
+          end: Math.max(end, ...hits.map((h) => h.end)),
+          els: [],
+        };
+        const pieces = [fresh, ...hits.flatMap((h) => h.els)];
+        const whole = shape(merged.start, merged.end, 'ml-lr ml-lr--whole');
+        merged.els = [whole, ...pieces];
+        ranges = ranges.filter((r) => !hits.includes(r));
+        ranges.push(merged);
+        window.setTimeout(() => {
+          whole.classList.add('is-in');
+          pieces.forEach((p) => p.classList.add('is-out'));
+          note(merged);
+          window.setTimeout(() => {
+            pieces.forEach((p) => p.remove());
+            merged.els = merged.els.filter((e) => !pieces.includes(e));
+          }, 260);
+        }, still.matches ? 0 : 320);
+      }
+      // One tape unit stands for one recorded second, so the Mark tab's timestamps
+      // agree with what merges here (marks within a minute of each other).
+      window.dispatchEvent(new CustomEvent('flowmaster:mark', { detail: { anchor: button, at } }));
+      // Without motion the tape does not scroll; step it on so presses do not stack.
+      if (still.matches) { offset += 25; draw(); }
+    };
+
+    button.addEventListener('click', press);
+    document.addEventListener('keydown', (event) => {
+      if (event.key !== 'F9' || event.repeat || !visible) return;
+      event.preventDefault();
+      press();
+    });
+    new IntersectionObserver(([entry]) => {
+      visible = entry.isIntersecting;
+      el.classList.toggle('is-paused', !visible);
+    }, { threshold: 0.2 }).observe(el);
   });
 </script>
