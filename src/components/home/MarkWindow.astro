@@ -70,7 +70,7 @@ const rows = RECORDINGS.slice(0, live ? 2 : 3);
 </AppWindow>
 
 <script>
-  import { onTake, getTake, markLabel, timecode } from './session';
+  import { onTake, markLabel, timecode } from './session';
 
   // The finished session in the Mark chapter follows the take recorded in the hero.
   const log = document.querySelector<HTMLElement>('[data-mark-window="log"]');
@@ -89,9 +89,10 @@ const rows = RECORDINGS.slice(0, live ? 2 : 3);
     });
 
     // â”€â”€ Live marks from the F9 key in the Mark chapter (MarkLoop's 'flowmaster:mark'). â”€â”€
-    // The first press starts a recording; each press adds a timestamp line. The list
-    // holds a fixed number of lines, so once it is full the oldest slides off the top
-    // and the window keeps its shape.
+    // The first press starts a new recording in the first row (named from the
+    // visitor's clock); each press adds a timestamp line with the time under the
+    // playhead. The list holds a fixed number of lines, so once it is full the
+    // oldest slides off the top and the window keeps its shape.
     const MAX_LINES = 8;
     const DOCK_LINES = 4;
     const obsText = log.querySelector<HTMLElement>('[data-obs-text]');
@@ -99,9 +100,8 @@ const rows = RECORDINGS.slice(0, live ? 2 : 3);
     const recLabel = log.querySelector<HTMLElement>('[data-rec-label]');
     const firstRow = log.querySelector<HTMLElement>('.mark-session-item');
     let recording = false;
-    let base = 0;
-    let startAt = 0;
     let total = 0;
+    const pad = (n: number) => String(n).padStart(2, '0');
 
     const push = (list: HTMLElement, text: string, max: number) => {
       list.append(line(text, true));
@@ -163,19 +163,22 @@ const rows = RECORDINGS.slice(0, live ? 2 : 3);
     window.addEventListener('flowmaster:mark', (event) => {
       if (!stamps) return;
       const detail = (event as CustomEvent<{ anchor?: HTMLElement; at?: number }>).detail ?? {};
-      const at = detail.at ?? 0;
+      const time = detail.time ?? 0;
       if (!recording) {
         recording = true;
-        const marks = getTake().marks;
-        base = (marks[marks.length - 1] ?? 0) + 37;
-        startAt = at;
-        total = marks.length;
+        total = 0;
+        stamps.replaceChildren();
+        const began = new Date(Date.now() - time * 1000);
+        const name = firstRow?.querySelector('.session-name');
+        const date = firstRow?.querySelector('.session-date');
+        if (name) name.textContent = `${began.getFullYear()}-${pad(began.getMonth() + 1)}-${pad(began.getDate())} ${pad(began.getHours())}-${pad(began.getMinutes())}-${pad(began.getSeconds())}.mp4`;
+        if (date) date.textContent = 'Recording now';
         if (obsText) obsText.textContent = 'OBS: Recording';
         recInd?.classList.add('active');
         if (recLabel) recLabel.textContent = 'REC';
       }
       total += 1;
-      const text = `Mark ${total}: ${timecode(base + (at - startAt))}`;
+      const text = `Mark ${total}: ${timecode(time)}`;
       showDock(detail.anchor);
       push(stamps, text, MAX_LINES);
       bump(count, markLabel(total));

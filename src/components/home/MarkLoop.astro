@@ -20,7 +20,14 @@
 // loop into a live tape. Each press drops a range at the playhead; ranges that
 // overlap cross-fade into one. Every press also sends a 'flowmaster:mark' event,
 // which the Mark tab mockup (MarkWindow) turns into a new timestamp line.
+import { timecode } from './session';
+
 const ticks = Array.from({ length: 120 }, (_, i) => i);
+// Time on the tape, exaggerated: every big tick (100 units) is 10 minutes of
+// recording, counted from the playhead's spot when the loop starts (x 300).
+// The live script and the Mark tab use the same scale (SECONDS_PER_UNIT below).
+const SECONDS_PER_UNIT = 6;
+const times = [3, 4, 5, 6, 7, 8, 9].map((k) => ({ x: k * 100, label: timecode((k * 100 - 300) * SECONDS_PER_UNIT) }));
 ---
 
 <figure class="mark-loop" data-mark-loop aria-label="Animation: pressing F9 while recording drops a clip range on the timeline; ranges close together merge into one clip.">
@@ -49,6 +56,14 @@ const ticks = Array.from({ length: 120 }, (_, i) => i);
 
         <g mask="url(#ml-scroll-mask)">
         <g class="ml-scroll">
+          <g class="ml-times ml-times--loop" aria-hidden="true">
+            {times.map(({ x, label }) => (
+              <g>
+                <line x1={x} y1="68" x2={x} y2="92" />
+                <text x={x} y="62" text-anchor="middle">{label}</text>
+              </g>
+            ))}
+          </g>
           <g class="ml-ticks">
             {ticks.map((i) => {
               const x = (i - 10) * 20;
@@ -68,6 +83,7 @@ const ticks = Array.from({ length: 120 }, (_, i) => i);
             <text class="ml-note" x="548" y="146" text-anchor="middle" fill="#f5d440" font-size="11" letter-spacing="1.2" style="font-family: var(--font-mono), monospace">MERGED</text>
           </g>
         </g>
+        <g class="ml-times" data-live-times></g>
         <g class="ml-live" data-live-ranges></g>
         </g>
 
@@ -230,6 +246,11 @@ const ticks = Array.from({ length: 120 }, (_, i) => i);
   }
   .mark-loop.is-live .ml-hint { opacity: 0; }
 
+  /* Recording time over the big ticks, scrolling with the tape. */
+  .mark-loop :global(.ml-times line) { stroke: #3a3a3a; stroke-width: 1; }
+  .mark-loop :global(.ml-times text) { fill: #8c8a83; font-family: var(--font-mono), monospace; font-size: 13px; font-weight: 600; letter-spacing: 0.3px; }
+  .mark-loop.is-live .ml-times--loop { display: none; }
+
   /* The scripted loop stops and holds its recording frame; the script drives the tape. */
   .mark-loop.is-live * { animation: none !important; }
   .mark-loop.is-live .ml-bob { animation: ml-bob 2s ease-in-out infinite !important; }
@@ -265,6 +286,10 @@ const ticks = Array.from({ length: 120 }, (_, i) => i);
   const BACK = 45;
   const AHEAD = 15;
   const PERIOD = 100;
+  const SECONDS_PER_UNIT = 6;
+  const timeAt = (x: number) => Math.max(0, (x - 300) * SECONDS_PER_UNIT);
+  const stamp = (seconds: number) => [Math.floor(seconds / 3600), Math.floor((seconds % 3600) / 60), Math.floor(seconds % 60)]
+    .map((n) => String(n).padStart(2, '0')).join(':');
   const NS = 'http://www.w3.org/2000/svg';
   type Range = { start: number; end: number; els: SVGElement[] };
 
@@ -272,6 +297,8 @@ const ticks = Array.from({ length: 120 }, (_, i) => i);
     const scroll = el.querySelector<SVGGElement>('.ml-scroll')!;
     const ticks = el.querySelector<SVGGElement>('.ml-ticks')!;
     const layer = el.querySelector<SVGGElement>('[data-live-ranges]')!;
+    const timesLayer = el.querySelector<SVGGElement>('[data-live-times]')!;
+    const labels = new Map<number, SVGGElement>();
     const key = el.querySelector<SVGGElement>('.ml-press')!;
     const button = el.querySelector<HTMLButtonElement>('[data-mark-key]')!;
     const hint = el.querySelector<HTMLElement>('[data-ml-hint]');
@@ -307,9 +334,31 @@ const ticks = Array.from({ length: 120 }, (_, i) => i);
       window.setTimeout(() => t.remove(), 1500);
     };
 
+    // Time labels for the big ticks on screen, made as they scroll in and dropped as they leave.
+    const label = (x: number) => {
+      const g = document.createElementNS(NS, 'g');
+      const line = document.createElementNS(NS, 'line');
+      line.setAttribute('x1', String(x)); line.setAttribute('x2', String(x));
+      line.setAttribute('y1', '68'); line.setAttribute('y2', '92');
+      const text = document.createElementNS(NS, 'text');
+      text.setAttribute('x', String(x)); text.setAttribute('y', '62');
+      text.setAttribute('text-anchor', 'middle');
+      text.textContent = stamp(timeAt(x));
+      g.append(line, text);
+      timesLayer.append(g);
+      return g;
+    };
+    const drawTimes = () => {
+      const first = Math.max(3, Math.ceil((offset - 40) / PERIOD));
+      const lastK = Math.floor((offset + 640) / PERIOD);
+      for (const [k, g] of labels) if (k < first || k > lastK) { g.remove(); labels.delete(k); }
+      for (let k = first; k <= lastK; k++) if (!labels.has(k)) labels.set(k, label(k * PERIOD));
+    };
     const draw = () => {
       ticks.setAttribute('transform', `translate(${-(offset % PERIOD)} 0)`);
       layer.setAttribute('transform', `translate(${-offset} 0)`);
+      timesLayer.setAttribute('transform', `translate(${-offset} 0)`);
+      drawTimes();
     };
     const frame = (now: number) => {
       const dt = last ? Math.min(0.1, (now - last) / 1000) : 0;
@@ -370,9 +419,8 @@ const ticks = Array.from({ length: 120 }, (_, i) => i);
           }, 260);
         }, still.matches ? 0 : 320);
       }
-      // One tape unit stands for one recorded second, so the Mark tab's timestamps
-      // agree with what merges here (marks within a minute of each other).
-      window.dispatchEvent(new CustomEvent('flowmaster:mark', { detail: { anchor: button, at } }));
+      // The Mark tab writes the same time the labels show under the playhead.
+      window.dispatchEvent(new CustomEvent('flowmaster:mark', { detail: { anchor: button, at, time: timeAt(at) } }));
       // Without motion the tape does not scroll; step it on so presses do not stack.
       if (still.matches) { offset += 25; draw(); }
     };
