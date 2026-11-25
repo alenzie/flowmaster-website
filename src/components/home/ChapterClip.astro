@@ -96,7 +96,7 @@ const videos = RECORDINGS.slice(0, 3).map((recording, i) => ({ ...recording, sel
             <div class="clip-window">
               <!-- A hand-drawn nudge to drag the window. Draws in on view, fades on first touch. -->
               <svg class="try-me" data-try-me viewBox="0 0 156 80" fill="none" aria-hidden="true">
-                <g class="try-me-word">
+                <g class="try-me-word" transform="translate(10 0)">
                   <path pathLength="1" d="M42,8 C50,6 58,6 66,5" />
                   <path pathLength="1" d="M54,6 C53,15 53,24 55,32" />
                   <path pathLength="1" d="M66,18 C66,24 67,28 67,33" />
@@ -194,30 +194,35 @@ const videos = RECORDINGS.slice(0, 3).map((recording, i) => ({ ...recording, sel
     filter: drop-shadow(0 2px 6px rgba(0, 0, 0, 0.6));
     transition: opacity 0.4s ease;
   }
-  .try-me path { stroke-dasharray: 1; stroke-dashoffset: 1; }
-  .try-me.is-drawn path { animation: try-me-draw 0.32s ease-out forwards; }
+  /* Each stroke stays invisible until its own draw starts: a hidden dash still paints its round cap as a dot. */
+  .try-me path { stroke-dasharray: 1; stroke-dashoffset: 1; visibility: hidden; }
+  .try-me.is-drawn path { animation: try-me-draw 0.18s ease-out both; }
   .try-me.is-drawn .try-me-word path:nth-child(1) { animation-delay: 0s; }
-  .try-me.is-drawn .try-me-word path:nth-child(2) { animation-delay: 0.12s; }
-  .try-me.is-drawn .try-me-word path:nth-child(3) { animation-delay: 0.26s; }
-  .try-me.is-drawn .try-me-word path:nth-child(4) { animation-delay: 0.34s; }
-  .try-me.is-drawn .try-me-word path:nth-child(5) { animation-delay: 0.46s; }
-  .try-me.is-drawn .try-me-word path:nth-child(6) { animation-delay: 0.58s; }
-  .try-me.is-drawn .try-me-word path:nth-child(7) { animation-delay: 0.76s; }
-  .try-me.is-drawn .try-me-word path:nth-child(8) { animation-delay: 0.84s; }
-  .try-me.is-drawn .try-me-word path:nth-child(9) { animation-delay: 0.96s; }
-  .try-me.is-drawn .try-me-word path:nth-child(10) { animation-delay: 1.1s; }
-  .try-me.is-drawn .try-me-word path:nth-child(11) { animation-delay: 1.3s; }
-  .try-me.is-drawn .try-me-word path:nth-child(12) { animation-delay: 1.42s; }
-  .try-me.is-drawn .try-me-arrow path:nth-child(1) { animation-delay: 1.6s; animation-duration: 0.45s; }
-  .try-me.is-drawn .try-me-arrow path:nth-child(2) { animation-delay: 2.02s; }
-  .try-me.is-drawn .try-me-arrow path:nth-child(3) { animation-delay: 2.12s; }
+  .try-me.is-drawn .try-me-word path:nth-child(2) { animation-delay: 0.06s; }
+  .try-me.is-drawn .try-me-word path:nth-child(3) { animation-delay: 0.13s; }
+  .try-me.is-drawn .try-me-word path:nth-child(4) { animation-delay: 0.17s; }
+  .try-me.is-drawn .try-me-word path:nth-child(5) { animation-delay: 0.23s; }
+  .try-me.is-drawn .try-me-word path:nth-child(6) { animation-delay: 0.29s; }
+  .try-me.is-drawn .try-me-word path:nth-child(7) { animation-delay: 0.38s; }
+  .try-me.is-drawn .try-me-word path:nth-child(8) { animation-delay: 0.42s; }
+  .try-me.is-drawn .try-me-word path:nth-child(9) { animation-delay: 0.48s; }
+  .try-me.is-drawn .try-me-word path:nth-child(10) { animation-delay: 0.55s; }
+  .try-me.is-drawn .try-me-word path:nth-child(11) { animation-delay: 0.65s; }
+  .try-me.is-drawn .try-me-word path:nth-child(12) { animation-delay: 0.71s; }
+  .try-me.is-drawn .try-me-arrow path:nth-child(1) { animation-delay: 0.8s; animation-duration: 0.24s; }
+  .try-me.is-drawn .try-me-arrow path:nth-child(2) { animation-delay: 1.03s; }
+  .try-me.is-drawn .try-me-arrow path:nth-child(3) { animation-delay: 1.08s; }
   .try-me.is-gone { opacity: 0; }
-  @keyframes try-me-draw { to { stroke-dashoffset: 0; } }
+  @keyframes try-me-draw {
+    0% { stroke-dashoffset: 1; visibility: hidden; }
+    0.1% { visibility: visible; }
+    100% { stroke-dashoffset: 0; visibility: visible; }
+  }
   @media (max-width: 600px) {
     .try-me { width: 116px; height: 60px; top: -38px; left: calc(14px + (100% - 28px) * 240 / 360 - 13px); }
   }
   @media (prefers-reduced-motion: reduce) {
-    .try-me path, .try-me.is-drawn path { animation: none; stroke-dashoffset: 0; }
+    .try-me path, .try-me.is-drawn path { animation: none; stroke-dashoffset: 0; visibility: visible; }
   }
 </style>
 
@@ -433,13 +438,23 @@ const videos = RECORDINGS.slice(0, 3).map((recording, i) => ({ ...recording, sel
     }
     root.querySelectorAll<HTMLButtonElement>('[data-go]').forEach(button => button.addEventListener('click', () => run(button)));
 
-    // The first time the control is on screen, nudge the handle once so it reads as draggable.
-    if ('IntersectionObserver' in window) {
+    // Nudge the handle once so it reads as draggable: right after "Try me!" finishes
+    // drawing, or, without the doodle's animation, the first time the control is on screen.
+    const nudge = () => {
+      start.classList.add('is-hint');
+      start.addEventListener('animationend', () => start.classList.remove('is-hint'), { once: true });
+    };
+    const doodle = document.querySelector<SVGElement>('[data-try-me]');
+    const lastStroke = doodle?.querySelector('.try-me-arrow path:last-child');
+    if (lastStroke && !window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      lastStroke.addEventListener('animationend', () => {
+        window.setTimeout(() => { if (!doodle!.classList.contains('is-gone')) nudge(); }, 80);
+      }, { once: true });
+    } else if ('IntersectionObserver' in window) {
       const hint = new IntersectionObserver(entries => {
         if (!entries[0].isIntersecting) return;
         hint.disconnect();
-        window.setTimeout(() => start.classList.add('is-hint'), 500);
-        start.addEventListener('animationend', () => start.classList.remove('is-hint'), { once: true });
+        window.setTimeout(nudge, 500);
       }, { threshold: 1 });
       hint.observe(track);
     }
