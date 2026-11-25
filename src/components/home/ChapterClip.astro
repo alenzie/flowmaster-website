@@ -182,23 +182,22 @@ const videos = RECORDINGS.slice(0, 3).map((recording, i) => ({ ...recording, sel
   .clip-strip.is-docked {
     position: fixed;
     z-index: 60;
-    inset: 0 0 auto 0;
-    padding: calc(1.6rem + env(safe-area-inset-top)) var(--pad) 0.85rem;
+    /* A floating card a little way down from the edge, like the Mark tab's slice. */
+    inset: calc(12px + env(safe-area-inset-top)) 0.6rem auto 0.6rem;
+    padding: 2rem calc(var(--pad) - 0.6rem) 1.15rem;
     background: rgba(16, 16, 16, 0.95);
     -webkit-backdrop-filter: blur(14px);
     backdrop-filter: blur(14px);
-    border-bottom: 1px solid var(--rule-strong);
-    box-shadow: 0 18px 40px -22px rgba(0, 0, 0, 0.95);
-    transform: translateY(-105%);
+    border: 1px solid var(--rule-strong);
+    border-radius: 10px;
+    box-shadow: 0 18px 40px -18px rgba(0, 0, 0, 0.95);
+    transform: translateY(calc(-100% - 24px));
     transition: transform 0.32s cubic-bezier(0.2, 0.7, 0.2, 1);
   }
   .clip-strip.is-docked--bottom {
-    inset: auto 0 0 0;
-    padding: 1.6rem var(--pad) calc(0.85rem + env(safe-area-inset-bottom));
-    border-bottom: 0;
-    border-top: 1px solid var(--rule-strong);
-    box-shadow: 0 -18px 40px -22px rgba(0, 0, 0, 0.95);
-    transform: translateY(105%);
+    inset: auto 0.6rem calc(12px + env(safe-area-inset-bottom)) 0.6rem;
+    box-shadow: 0 -18px 40px -18px rgba(0, 0, 0, 0.95);
+    transform: translateY(calc(100% + 24px));
   }
   .clip-strip.is-docked.is-docked-in { transform: none; }
   @media (prefers-reduced-motion: reduce) { .clip-strip.is-docked { transition: none; } }
