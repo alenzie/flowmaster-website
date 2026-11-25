@@ -1,11 +1,11 @@
 ---
-// The Flowmaster product film (flowmaster-film repo, draft v27). On desktop it opens on the
+// The Flowmaster product film (flowmaster-film repo, draft v28). On desktop it opens on the
 // same kind of loader as the walkthrough below, then plays in the frame with sound.
 // On mobile (and without JavaScript) it is the native video player.
 // `bare` drops the caption and page spacing, for use inside the theatre.
 interface Props { bare?: boolean }
 const { bare = false } = Astro.props;
-const film = '/media/flowmaster/film-v27';
+const film = '/media/flowmaster/film-v28';
 ---
 <div id="film" class:list={['film-section', { 'is-bare': bare }]}>
   <figure>
