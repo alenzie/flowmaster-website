@@ -1,93 +1,107 @@
 ---
-// The Free trial page. Deliberately thin: what the trial is, in one screen,
-// with the exact counting rules left to the download page.
+// Pricing: the core app is free; Flow AI and Events are planned as a paid
+// subscription. Nothing is on sale, so the paid plan has no price and no button.
 import BaseLayout from '../layouts/BaseLayout.astro';
 
-const ACTIONS = 30;
-const facts = [
-  ['30 actions per PC', 'Recording sessions, clipping runs and project assemblies each use one.'],
-  ['No time limit', 'The actions do not expire.'],
-  ['Free account', 'Required. Sign in with email or Google.'],
-  ['Online', 'An internet connection is needed to verify usage.'],
+const free = [
+  ['Mark', 'Press F9 while you record, as often as you like.', 'r'],
+  ['Clip', 'A reel, separate clips, or both, from every recording.', 'y'],
+  ['Clean', 'Send originals you have already clipped to the Recycle Bin.', 'g'],
+  ['Assemble', 'Open your footage in your editor with the marks on the timeline.', 'n'],
+];
+const flow = [
+  ['Flow AI', 'Your AI editing buddy: it reads your marks and events and suggests what to make. You decide.'],
+  ['Events', 'Scans your recordings on your PC and finds kills, objectives and round wins next to your F9 marks.'],
 ];
 ---
 
-<BaseLayout title="Free trial" description="Flowmaster's free trial: 30 actions per PC, a free account, no time limit and no payment card. Paid trials and upgrades are currently unavailable.">
-  <section class="trial">
-    <div class="wrap trial-grid">
-      <div class="trial-copy">
-        <p class="label">Free trial</p>
-        <h1 class="display trial-title">Try the workflow. <span>No payment card.</span></h1>
-        <p class="trial-lede">
-          Flowmaster&rsquo;s trial includes 30 actions per PC. It requires an internet connection to verify usage, and a free account, with no time limit.
-        </p>
-        <div class="trial-actions">
-          <a class="btn-primary trial-cta" href="/account">Create a free account</a>
-          <a class="arrow-link" href="/download#trial-rules">Free trial details</a>
-        </div>
-        <p class="trial-fine">
-          Accounts are free. Paid trials and upgrades are currently unavailable. See the download page for the release status and exact trial rules.
-        </p>
-      </div>
-
-      <figure class="trial-meter" aria-label="30 actions in the free trial">
-        <div class="trial-squares" aria-hidden="true">
-          {Array.from({ length: ACTIONS }, (_, i) => <i style={`--i:${i}`}></i>)}
-        </div>
-        <figcaption class="label">30 actions &middot; one PC &middot; no time limit</figcaption>
-      </figure>
-    </div>
-
+<BaseLayout title="Pricing" description="Flowmaster is free: Mark, Clip and Clean with a free account, no action limit and no payment card. Flow AI and Events are planned as a paid subscription.">
+  <section class="pr">
     <div class="wrap">
-      <dl class="trial-facts">
-        {facts.map(([term, detail]) => (
-          <div>
-            <dt class="label">{term}</dt>
-            <dd>{detail}</dd>
+      <header class="pr-head">
+        <p class="label">Pricing</p>
+        <h1 class="display pr-title">Flowmaster is free. <span>Flow will be paid.</span></h1>
+        <p class="pr-lede">Everything you need to mark, clip and clean is free, with no action limit. The AI features in development will be a subscription.</p>
+      </header>
+
+      <div class="pr-plans">
+        <article class="plan plan--free" aria-labelledby="plan-free">
+          <div class="plan-top">
+            <h2 id="plan-free" class="plan-name">Free</h2>
+            <p class="plan-price">$0</p>
           </div>
-        ))}
-      </dl>
+          <p class="plan-sub">No action limit &middot; no time limit &middot; no payment card</p>
+          <ul class="plan-list">
+            {free.map(([name, text, tone]) => (
+              <li><span class={`plan-dot plan-dot--${tone}`} aria-hidden="true"></span><p><strong>{name}.</strong> {text}</p></li>
+            ))}
+          </ul>
+          <div class="plan-foot">
+            <a class="btn-primary plan-cta" href="/account">Create a free account</a>
+            <p class="plan-note">Windows 10 and 11, 64-bit. A free account and an internet connection are required to sign in and start new work.</p>
+          </div>
+        </article>
+
+        <article class="plan plan--flow" aria-labelledby="plan-flow">
+          <div class="plan-top">
+            <h2 id="plan-flow" class="plan-name">Flow</h2>
+            <p class="plan-status"><span aria-hidden="true"></span>In development &middot; December</p>
+          </div>
+          <p class="plan-sub">Subscription &middot; price not set &middot; not on sale yet</p>
+          <ul class="plan-list">
+            <li><span class="plan-dot plan-dot--all" aria-hidden="true"></span><p><strong>Everything in Free.</strong></p></li>
+            {flow.map(([name, text]) => (
+              <li><span class="plan-dot plan-dot--y" aria-hidden="true"></span><p><strong>{name}.</strong> {text}</p></li>
+            ))}
+          </ul>
+          <div class="plan-foot">
+            <a class="arrow-link" href="/future">See what&rsquo;s planned</a>
+            <p class="plan-note">Flow AI and Events are in development for the December release. Any paid offer will show its price and terms before you choose to buy.</p>
+          </div>
+        </article>
+      </div>
     </div>
   </section>
 </BaseLayout>
 
 <style>
-  .trial { padding: calc(var(--nav-h) + clamp(3rem, 8vw, 6rem)) 0 clamp(4rem, 9vw, 7rem); }
-  .trial-grid { display: grid; gap: clamp(2.5rem, 6vw, 4rem); align-items: center; }
-  .trial-title { margin-top: 1rem; font-size: clamp(2.8rem, 6.4vw, 5.5rem); }
-  .trial-title span { display: block; color: var(--ink-3); }
-  .trial-lede { margin-top: 1.4rem; max-width: 32rem; font-size: clamp(1.08rem, 1.4vw, 1.2rem); line-height: 1.55; color: var(--ink-2); }
-  .trial-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 0.75rem 1.75rem; margin-top: 1.8rem; }
-  .trial-cta { min-height: 3.4rem; padding: 0.9rem 1.6rem; font-size: 1.08rem; }
-  .trial-fine { margin-top: 1.2rem; max-width: 32rem; font-size: 0.92rem; color: var(--ink-3); }
+  .pr { padding: calc(var(--nav-h) + clamp(3rem, 8vw, 6rem)) 0 clamp(4rem, 9vw, 7rem); }
+  .pr-head { max-width: 46rem; }
+  .pr-title { margin-top: 1rem; font-size: clamp(2.8rem, 6.4vw, 5.5rem); }
+  .pr-title span { display: block; color: var(--ink-3); }
+  .pr-lede { margin-top: 1.4rem; max-width: 34rem; font-size: clamp(1.08rem, 1.4vw, 1.2rem); line-height: 1.55; color: var(--ink-2); }
 
-  /* Thirty squares, one per action, landing in the brand's three colours. */
-  .trial-meter { margin: 0; display: grid; gap: 1rem; justify-items: start; }
-  .trial-squares { display: grid; grid-template-columns: repeat(10, 1fr); gap: clamp(0.4rem, 1vw, 0.65rem); width: min(100%, 30rem); }
-  .trial-squares i {
-    aspect-ratio: 1;
-    border-radius: 18%;
-    background: var(--red);
-    animation: ts-in 0.45s cubic-bezier(0.3, 1.4, 0.5, 1) calc(0.15s + var(--i) * 0.035s) both;
+  .pr-plans { display: grid; gap: 1.25rem; margin-top: clamp(2.75rem, 6vw, 4.5rem); }
+  .plan {
+    display: grid;
+    grid-template-rows: auto auto 1fr auto;
+    gap: 1.1rem;
+    padding: clamp(1.5rem, 3vw, 2.25rem);
+    border: 1px solid var(--rule-strong);
+    border-radius: 12px;
+    background: #141414;
   }
-  .trial-squares i:nth-child(10n + 4), .trial-squares i:nth-child(10n + 5), .trial-squares i:nth-child(10n + 6), .trial-squares i:nth-child(10n + 7) { background: var(--yellow); }
-  .trial-squares i:nth-child(10n + 8), .trial-squares i:nth-child(10n + 9), .trial-squares i:nth-child(10n) { background: var(--green); }
-  .trial-meter figcaption { font-size: 0.7rem; }
-  @keyframes ts-in { from { opacity: 0; transform: translateY(-30%) scale(0.6); } to { opacity: 1; transform: none; } }
-
-  .trial-facts { display: grid; gap: 0; margin-top: clamp(3.5rem, 8vw, 5.5rem); border-top: 1px solid var(--rule); }
-  .trial-facts > div { padding: 1.3rem 0; border-bottom: 1px solid var(--rule); }
-  .trial-facts dt { color: var(--ink); }
-  .trial-facts dd { margin: 0.45rem 0 0; color: var(--ink-2); max-width: 26rem; }
+  .plan--flow { background: transparent; border-style: dashed; }
+  .plan-top { display: flex; align-items: baseline; justify-content: space-between; gap: 1rem; flex-wrap: wrap; }
+  .plan-name { font-family: var(--font-heading); font-stretch: 64%; font-weight: 800; text-transform: uppercase; font-size: clamp(2.2rem, 4vw, 3rem); line-height: 0.9; color: var(--ink); }
+  .plan-price { font-family: var(--font-mono); font-size: clamp(1.6rem, 3vw, 2.2rem); font-weight: 600; color: var(--ink); }
+  .plan-status { display: inline-flex; align-items: center; gap: 0.5rem; font-family: var(--font-mono); font-size: 0.72rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--yellow); }
+  .plan-status span { width: 0.55rem; height: 0.55rem; border-radius: 2px; background: var(--yellow); }
+  .plan-sub { font-family: var(--font-mono); font-size: 0.72rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--ink-3); }
+  .plan-list { display: grid; align-content: start; gap: 0; margin: 0; padding: 0; list-style: none; border-top: 1px solid var(--rule); }
+  .plan-list li { display: flex; gap: 0.85rem; align-items: baseline; padding: 0.85rem 0; border-bottom: 1px solid var(--rule); }
+  .plan-list p { margin: 0; color: var(--ink-2); }
+  .plan-list strong { color: var(--ink); font-weight: 650; }
+  .plan-dot { flex: none; width: 0.6rem; height: 0.6rem; border-radius: 2px; translate: 0 -0.05rem; background: var(--ink-3); }
+  .plan-dot--r { background: var(--red); }
+  .plan-dot--y { background: var(--yellow); }
+  .plan-dot--g { background: var(--green); }
+  .plan-dot--all { background: linear-gradient(90deg, var(--red) 0 33%, var(--yellow) 33% 66%, var(--green) 66%); width: 1.1rem; }
+  .plan-foot { display: grid; gap: 0.9rem; justify-items: start; }
+  .plan-cta { min-height: 3.2rem; }
+  .plan-note { font-size: 0.9rem; color: var(--ink-3); max-width: 30rem; }
 
   @media (min-width: 900px) {
-    .trial-grid { grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr); gap: 5rem; }
-    .trial-meter { justify-items: end; }
-    .trial-facts { grid-template-columns: repeat(4, minmax(0, 1fr)); border-bottom: 1px solid var(--rule); }
-    .trial-facts > div { padding: 1.5rem 1.5rem 1.6rem 0; border-bottom: 0; }
-    .trial-facts > div + div { padding-left: 1.5rem; border-left: 1px solid var(--rule); }
-  }
-  @media (prefers-reduced-motion: reduce) {
-    .trial-squares i { animation: none; }
+    .pr-plans { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   }
 </style>
