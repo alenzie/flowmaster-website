@@ -1,5 +1,11 @@
 # Flowmaster Terms of Service
 
+## 2026-11-24 update (TASK-SITE-LEGAL-SYNC), unreviewed by counsel
+
+Terms and Privacy Policy were rewritten to match the desktop EULA v1.0 (flowmastersuite PR #118, `src-tauri/LICENSE.txt`). Changes: licensor is "Alexander Blair, doing business as Flowmaster"; California governing law and venue (EULA §19) plus the Civil Code §1789.3 notice; commercial use is allowed (owner ruling) and the old beta "may restrict commercial use" language is gone; the EULA controls for the installed app and these Terms control for the website and account (EULA §1.4); liability cap matches EULA §15.2. The Privacy Policy now names the AI providers (Anthropic; ElevenLabs, directly or through fal.ai; experimental Gemini narration, off), states that cloud AI features are switched off on the service as of 2026-11-24, separates always-on crash/fault reports from opt-in usage statistics, gives the 90-day crash and 6-month usage retention, covers the GitHub-hosted update feed, and adds California (CCPA/CPRA) rights, children, and contact sections. This is best-effort drafting and counsel debt: counsel should review these pages together with the EULA.
+
+The sections below record the original 2026-10-07 work and are historical.
+
 Updated 2026-10-07. Owner requested a Terms of Service page following the published privacy policy and Google branding kit.
 
 ## Scope and reuse

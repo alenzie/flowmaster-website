@@ -8,12 +8,12 @@ try{
  for(const width of [390,1440]){
   const page=await browser.newPage({viewport:{width,height:1000}});const errors=[];page.on('pageerror',e=>errors.push(e.name));
   const response=await page.goto(base+'/terms/',{waitUntil:'networkidle'});assert.equal(response.status(),200);
-  await page.getByRole('heading',{name:'Terms of Service',exact:true}).waitFor();assert.equal(await page.locator('article h2').count(),10);
+  await page.getByRole('heading',{name:'Terms of Service',exact:true}).waitFor();assert.equal(await page.locator('article h2').count(),12);
   assert.equal(await page.locator('link[rel=canonical]').getAttribute('href'),'https://flowmaster.live/terms/');
-  assert.ok((await page.locator('article').textContent()).includes('October 7, 2026'));
+  assert.ok((await page.locator('article').textContent()).includes('November 24, 2026'));
   assert.ok(await page.locator('article a[href^="mailto:support@flowmastersuite.com"]').count());
-  assert.ok((await page.locator('article').innerText()).includes('30 actions per PC'));
-  assert.ok((await page.locator('article').innerText()).includes('software license'));
+  assert.ok((await page.locator('article').innerText()).includes('Commercial use is allowed'));
+  assert.ok((await page.locator('article').innerText()).includes('desktop licence'));
   assert.ok(await page.locator('article a[href="/privacy"]').count());
   assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),true);
   assert.deepEqual(errors,[]);
@@ -26,7 +26,7 @@ try{
   await page.goto(base+'/',{waitUntil:'domcontentloaded'});assert.equal(await page.locator('footer a[href="/terms"]').count(),1);
   await page.goto(base+'/account/',{waitUntil:'domcontentloaded'});assert.equal(await page.locator('.account-note a[href="/terms"]').count(),1);
   await page.goto(base+'/download/',{waitUntil:'domcontentloaded'});assert.equal(await page.locator('main a[href="/terms"]').count(),1);
-  checks.push({width,publicPage:true,canonicalCorrect:true,termsSections:10,contactCorrect:true,privacyAndTrialLinked:true,noOverflow:true,homeAccountDownloadLinks:true,browserErrors:errors});await page.close();
+  checks.push({width,publicPage:true,canonicalCorrect:true,termsSections:12,contactCorrect:true,privacyAndTrialLinked:true,noOverflow:true,homeAccountDownloadLinks:true,browserErrors:errors});await page.close();
  }
  await writeFile(`${out}/${live?'live':'local'}-verification.json`,JSON.stringify({base,checks},null,2)+'\n');console.log(JSON.stringify({checked:checks.length,base,passed:true}));
 }finally{await browser.close();}
