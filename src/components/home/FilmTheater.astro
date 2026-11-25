@@ -154,6 +154,8 @@ const { class: className = '' } = Astro.props;
 </style>
 
 <script>
+  import { holdLandscape } from '../../scripts/rotate-gate';
+
   const dialog = document.querySelector<HTMLDialogElement>('[data-film-dialog]');
   const video = dialog?.querySelector<HTMLVideoElement>('video');
   const closeButton = dialog?.querySelector<HTMLButtonElement>('[data-film-close]');
@@ -163,6 +165,8 @@ const { class: className = '' } = Astro.props;
     let lastTrigger: HTMLElement | null = null;
     let timers: number[] = [];
     let previousOverflow = '';
+    let release: (() => void) | null = null;
+    let wasPlaying = false;
     const clear = () => { timers.forEach((id) => window.clearTimeout(id)); timers = []; };
 
     function open(trigger: HTMLElement) {
@@ -174,11 +178,19 @@ const { class: className = '' } = Astro.props;
       dialog!.showModal();
       closeButton!.focus();
       requestAnimationFrame(() => requestAnimationFrame(() => dialog!.classList.add('is-open')));
+      // Phones: landscape only. Upright, the turn-your-phone prompt covers the theatre.
+      release = holdLandscape({
+        block: () => { wasPlaying = !video!.paused; video!.pause(); },
+        clear: () => { if (wasPlaying) video!.play().catch(() => {}); wasPlaying = false; },
+        cancel: close,
+      });
     }
 
     function close() {
       if (!dialog!.open) return;
       clear();
+      release?.();
+      release = null;
       video!.pause();
       dialog!.classList.remove('is-open');
       timers.push(window.setTimeout(() => {

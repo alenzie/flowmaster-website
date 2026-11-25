@@ -27,15 +27,17 @@ const videos = RECORDINGS.slice(0, 3).map((recording, i) => ({ ...recording, sel
         Say how much to keep before and after each press, and Flowmaster writes the MP4s.
       </p>
 
-      <div class="clip-strip" data-strip>
-        <Tape count={120}>
-          {ranges.map(range => <span class="tape-band" style={`left:${pct(range.start)};width:${pct(range.end - range.start)}`}></span>)}
-          {PRESET_MARKS.map(at => <span class="tape-flag" style={`left:${pct(at)}`}></span>)}
-        </Tape>
-        <p class="label clip-strip-read" aria-live="polite">
-          <span data-strip-count>{plural(PRESET_MARKS.length, 'mark')}, {plural(ranges.length, 'clip')}</span>
-          <span data-strip-kept>{formatDuration(total)} kept of {formatDuration(DURATION)}</span>
-        </p>
+      <div class="clip-strip-slot" data-strip-slot>
+        <div class="clip-strip" data-strip>
+          <Tape count={120}>
+            {ranges.map(range => <span class="tape-band" style={`left:${pct(range.start)};width:${pct(range.end - range.start)}`}></span>)}
+            {PRESET_MARKS.map(at => <span class="tape-flag" style={`left:${pct(at)}`}></span>)}
+          </Tape>
+          <p class="label clip-strip-read" aria-live="polite">
+            <span data-strip-count>{plural(PRESET_MARKS.length, 'mark')}, {plural(ranges.length, 'clip')}</span>
+            <span data-strip-kept>{formatDuration(total)} kept of {formatDuration(DURATION)}</span>
+          </p>
+        </div>
       </div>
 
       <ul class="chapter-facts">
@@ -173,7 +175,33 @@ const videos = RECORDINGS.slice(0, 3).map((recording, i) => ({ ...recording, sel
 </section>
 
 <style>
-  .clip-strip { --tape-h: 3.6rem; margin-top: 2.25rem; max-width: 33rem; }
+  .clip-strip-slot { margin-top: 2.25rem; max-width: 33rem; }
+  .clip-strip { --tape-h: 3.6rem; }
+  /* Phones: while the window is being changed, the strip rides along at the top of the
+     screen (or the bottom, if the control is up there) so the two read together. */
+  .clip-strip.is-docked {
+    position: fixed;
+    z-index: 60;
+    inset: 0 0 auto 0;
+    padding: calc(1.6rem + env(safe-area-inset-top)) var(--pad) 0.85rem;
+    background: rgba(16, 16, 16, 0.95);
+    -webkit-backdrop-filter: blur(14px);
+    backdrop-filter: blur(14px);
+    border-bottom: 1px solid var(--rule-strong);
+    box-shadow: 0 18px 40px -22px rgba(0, 0, 0, 0.95);
+    transform: translateY(-105%);
+    transition: transform 0.32s cubic-bezier(0.2, 0.7, 0.2, 1);
+  }
+  .clip-strip.is-docked--bottom {
+    inset: auto 0 0 0;
+    padding: 1.6rem var(--pad) calc(0.85rem + env(safe-area-inset-bottom));
+    border-bottom: 0;
+    border-top: 1px solid var(--rule-strong);
+    box-shadow: 0 -18px 40px -22px rgba(0, 0, 0, 0.95);
+    transform: translateY(105%);
+  }
+  .clip-strip.is-docked.is-docked-in { transform: none; }
+  @media (prefers-reduced-motion: reduce) { .clip-strip.is-docked { transition: none; } }
   .clip-strip-read { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 0.25rem 1rem; margin-top: 0.7rem; color: var(--ink-2); }
 
   /* "Try me!": anchored so the arrow tip lands on the start handle at the default 60 s lookback. */
@@ -377,6 +405,64 @@ const videos = RECORDINGS.slice(0, 3).map((recording, i) => ({ ...recording, sel
       lengthText.textContent = formatDuration(duration);
       render();
     });
+
+    // ── Phones: bring the strip to the control while the window is being changed. ──
+    // Stacked, the strip sits a screen above the control. Touching a handle or a seconds
+    // field docks it at the top of the screen (the bottom, if the control is up there)
+    // until the visitor lets go for a moment or scrolls away.
+    const strip = pick('[data-strip]', chapter);
+    const slot = pick('[data-strip-slot]', chapter);
+    const stacked = window.matchMedia('(max-width: 999px)');
+    const still = window.matchMedia('(prefers-reduced-motion: reduce)');
+    let docked = false;
+    let holding = false;
+    let undockTimer = 0;
+    const onScreen = (el: HTMLElement) => { const r = el.getBoundingClientRect(); return r.top >= 0 && r.bottom <= window.innerHeight; };
+    const dock = (anchor: HTMLElement) => {
+      window.clearTimeout(undockTimer);
+      if (docked || !stacked.matches || onScreen(strip)) return;
+      slot.style.height = `${strip.offsetHeight}px`;
+      // Lifted to the page root: a column still mid-reveal carries a transform, which would trap position: fixed.
+      document.body.append(strip);
+      strip.classList.add('is-docked');
+      strip.classList.toggle('is-docked--bottom', anchor.getBoundingClientRect().top < strip.offsetHeight + 12);
+      docked = true;
+      requestAnimationFrame(() => requestAnimationFrame(() => { if (docked) strip.classList.add('is-docked-in'); }));
+    };
+    const undock = () => {
+      window.clearTimeout(undockTimer);
+      if (!docked) return;
+      docked = false;
+      strip.classList.remove('is-docked-in');
+      window.setTimeout(() => {
+        if (docked) return;
+        strip.classList.remove('is-docked', 'is-docked--bottom');
+        slot.append(strip);
+        slot.style.height = '';
+      }, still.matches ? 0 : 340);
+    };
+    const undockSoon = (ms = 1600) => {
+      window.clearTimeout(undockTimer);
+      undockTimer = window.setTimeout(() => {
+        if (!holding && document.activeElement !== back && document.activeElement !== forward) undock();
+      }, ms);
+    };
+    for (const handle of [start, end]) {
+      handle.addEventListener('pointerdown', () => { holding = true; dock(track); });
+      const letGo = () => { holding = false; undockSoon(); };
+      handle.addEventListener('pointerup', letGo);
+      handle.addEventListener('pointercancel', letGo);
+      handle.addEventListener('keydown', () => { dock(track); undockSoon(); });
+    }
+    for (const input of [back, forward]) {
+      input.addEventListener('focus', () => dock(input));
+      input.addEventListener('input', () => { dock(input); undockSoon(); });
+      input.addEventListener('blur', () => undockSoon(600));
+    }
+    if ('IntersectionObserver' in window) {
+      new IntersectionObserver((entries) => { if (!entries[0].isIntersecting) undock(); }).observe(pick('.clip-options'));
+    }
+    stacked.addEventListener?.('change', undock);
 
     // ── Selection: one recording shows one button, two or more show the pair. ──
     const rows = [...root.querySelectorAll<HTMLElement>('[data-video]')];
