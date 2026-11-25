@@ -6,6 +6,15 @@ import { CLEAN_FILES, CLEAN_PRESELECTED, formatSize } from './session';
 
 const selected = CLEAN_FILES.filter(file => CLEAN_PRESELECTED.includes(file.id));
 const sum = (files: typeof CLEAN_FILES) => files.reduce((total, file) => total + file.size, 0);
+
+// The drive gauge: the recordings drive, nearly full. The four example
+// recordings sit at the end of the used space; everything else is "other".
+const GB = 1024 ** 3;
+const DISK = Math.round(465.7 * GB);
+const RECS = sum(CLEAN_FILES);
+const FREE = Math.round(15.2 * GB);
+const OTHER = DISK - RECS - FREE;
+const pc = (bytes: number) => `${(bytes / DISK) * 100}%`;
 ---
 <section class="chapter chapter--clean" id="clean" aria-labelledby="clean-title">
   <div class="wrap chapter-grid chapter-grid--flip">
@@ -22,6 +31,23 @@ const sum = (files: typeof CLEAN_FILES) => files.reduce((total, file) => total +
         Clean scans your recordings folder, groups what it found by why it is safe to remove,
         and shows what each file is costing you.
       </p>
+
+      <div class="clean-gauge-slot" data-gauge-slot>
+        <div class="clean-gauge" data-gauge data-disk={DISK} data-other={OTHER} data-recs={RECS}>
+          <p class="label clean-gauge-head"><span>D: &middot; Recordings</span><span>{formatSize(DISK)}</span></p>
+          <div class="clean-gauge-bar" aria-hidden="true">
+            <span class="g-other" style={`width:${pc(OTHER)}`}></span>
+            <span class="g-recs" data-g-recs style={`left:${pc(OTHER)};width:${pc(RECS)}`}></span>
+            <span class="g-sel" data-g-sel style={`left:${pc(OTHER + RECS - sum(selected))};width:${pc(sum(selected))}`}></span>
+            <span class="g-freed" data-g-freed></span>
+          </div>
+          <p class="label clean-gauge-read" aria-live="polite">
+            <span><strong data-g-free>{formatSize(FREE)}</strong> free</span>
+            <span class="clean-gauge-gain" data-g-gain></span>
+          </p>
+          <p class="clean-gauge-key" aria-hidden="true"><span><i class="k-other"></i>Other</span><span><i class="k-recs"></i>Recordings</span><span><i class="k-sel"></i>Selected</span></p>
+        </div>
+      </div>
       <ul class="chapter-facts">
         <li><strong>You choose what goes.</strong> Review your exported files before you tick an original.</li>
         <li><strong>To the Recycle Bin.</strong> Removal sends the selected files to the Windows Recycle Bin.</li>
@@ -95,6 +121,63 @@ const sum = (files: typeof CLEAN_FILES) => files.reduce((total, file) => total +
   </div>
 </section>
 
+<style>
+  /* Drive gauge: the recordings drive filling the bar. Selected originals show red
+     at the end of the recordings; moving them to the Recycle Bin frees that space. */
+  .clean-gauge-slot { margin-top: 2.25rem; max-width: 33rem; }
+  .clean-gauge-head { display: flex; justify-content: space-between; color: var(--ink-3); }
+  .clean-gauge-bar { position: relative; height: 1.7rem; margin: 0.75rem 0 0.7rem; overflow: hidden; border-radius: 4px; background: #1f1f1f; }
+  .clean-gauge-bar span { position: absolute; top: 0; bottom: 0; }
+  .g-other { left: 0; background: #3a3936; }
+  .g-recs { background: #5a5852; transition: width 1.1s cubic-bezier(0.6, 0, 0.2, 1); }
+  .g-sel { background: var(--red); transition: left 0.35s ease, width 0.35s ease; }
+  .g-freed {
+    width: 0;
+    opacity: 0;
+    background: repeating-linear-gradient(135deg, rgba(107, 229, 83, 0.6) 0 6px, rgba(107, 229, 83, 0.25) 6px 12px);
+    transition: opacity 0.5s ease;
+  }
+  .g-freed.is-on { opacity: 1; }
+  .clean-gauge-read { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 0.25rem 1rem; color: var(--ink-2); }
+  .clean-gauge-read strong { color: var(--ink); font-weight: 600; }
+  .clean-gauge-gain { color: var(--green); opacity: 0; transform: translateY(4px); transition: opacity 0.3s ease, transform 0.3s ease; }
+  .clean-gauge-gain.is-on { opacity: 1; transform: none; }
+  .clean-gauge-key { display: flex; gap: 1rem; margin: 0.6rem 0 0; font-family: var(--font-mono); font-size: 0.66rem; letter-spacing: 0.06em; color: var(--ink-3); }
+  .clean-gauge-key i { display: inline-block; width: 0.55rem; height: 0.55rem; margin-right: 0.35rem; border-radius: 2px; vertical-align: -0.05rem; }
+  .k-other { background: #3a3936; }
+  .k-recs { background: #5a5852; }
+  .k-sel { background: var(--red); }
+
+  /* Phones: when files are moved, the gauge (a screen above the button) slides in
+     as a hard-cut band flush with the top of the screen (the bottom, if the
+     button is up there), the same way the Clip strip does. */
+  .clean-gauge.is-docked {
+    position: fixed;
+    z-index: 60;
+    inset: 0 0 auto 0;
+    padding: calc(2rem + env(safe-area-inset-top)) var(--pad) 1.15rem;
+    background: rgba(16, 16, 16, 0.97);
+    -webkit-backdrop-filter: blur(14px);
+    backdrop-filter: blur(14px);
+    border-bottom: 1px solid var(--rule-strong);
+    box-shadow: 0 18px 40px -22px rgba(0, 0, 0, 0.95);
+    transform: translateY(-105%);
+    transition: transform 0.32s cubic-bezier(0.2, 0.7, 0.2, 1);
+  }
+  .clean-gauge.is-docked--bottom {
+    inset: auto 0 0 0;
+    padding: 2rem var(--pad) calc(1.15rem + env(safe-area-inset-bottom));
+    border-bottom: 0;
+    border-top: 1px solid var(--rule-strong);
+    box-shadow: 0 -18px 40px -22px rgba(0, 0, 0, 0.95);
+    transform: translateY(105%);
+  }
+  .clean-gauge.is-docked.is-docked-in { transform: none; }
+  @media (prefers-reduced-motion: reduce) {
+    .g-recs, .g-sel, .g-freed, .clean-gauge-gain, .clean-gauge.is-docked { transition: none; }
+  }
+</style>
+
 <script>
   import { CLEAN_FILES, formatSize } from './session';
 
@@ -114,6 +197,107 @@ const sum = (files: typeof CLEAN_FILES) => files.reduce((total, file) => total +
     const confirmNo = pick<HTMLButtonElement>('[data-confirm-no]');
     const confirmYes = pick<HTMLButtonElement>('[data-confirm-yes]');
 
+    // ── Drive gauge (in the copy column) ──
+    const gauge = document.querySelector<HTMLElement>('[data-gauge]');
+    const gaugeSlot = document.querySelector<HTMLElement>('[data-gauge-slot]');
+    const DISK = Number(gauge?.dataset.disk ?? 1);
+    const OTHER = Number(gauge?.dataset.other ?? 0);
+    const RECS_START = Number(gauge?.dataset.recs ?? 0);
+    let recs = RECS_START;
+    let reclaimed = 0;
+    let freeShown = DISK - OTHER - recs;
+    let freedTimer = 0;
+    let holdSel = false;   // while files are being moved, the red part waits to turn green
+    const still = window.matchMedia('(prefers-reduced-motion: reduce)');
+    const pc = (bytes: number) => `${(bytes / DISK) * 100}%`;
+    const gPick = (sel: string) => gauge?.querySelector<HTMLElement>(sel) ?? null;
+    const gRecs = gPick('[data-g-recs]');
+    const gSel = gPick('[data-g-sel]');
+    const gFreed = gPick('[data-g-freed]');
+    const gFree = gPick('[data-g-free]');
+    const gGain = gPick('[data-g-gain]');
+    const countTo = (to: number) => {
+      const from = freeShown;
+      freeShown = to;
+      if (!gFree) return;
+      if (still.matches) { gFree.textContent = formatSize(to); return; }
+      const t0 = performance.now();
+      const step = (now: number) => {
+        const k = Math.min(1, (now - t0) / 1100);
+        gFree.textContent = formatSize(from + (to - from) * (1 - Math.pow(1 - k, 3)));
+        if (k < 1) requestAnimationFrame(step);
+      };
+      requestAnimationFrame(step);
+    };
+    // The red part follows the selection, at the end of the recordings.
+    const showSelection = (bytes: number) => {
+      if (!gSel || holdSel) return;
+      gSel.style.left = pc(OTHER + recs - bytes);
+      gSel.style.width = pc(bytes);
+    };
+    // Moving files: the red part becomes freed space (green stripes) and the counter climbs.
+    const free = (bytes: number) => {
+      holdSel = false;
+      if (!gauge || !bytes) return;
+      window.clearTimeout(freedTimer);
+      recs -= bytes;
+      reclaimed += bytes;
+      if (gFreed) {
+        gFreed.style.left = pc(OTHER + recs);
+        gFreed.style.width = pc(bytes);
+        gFreed.classList.add('is-on');
+      }
+      if (gSel) { gSel.style.transition = 'none'; gSel.style.width = '0%'; void gSel.offsetWidth; gSel.style.transition = ''; }
+      if (gRecs) gRecs.style.width = pc(recs);
+      countTo(DISK - OTHER - recs);
+      if (gGain) { gGain.textContent = `+${formatSize(reclaimed)} reclaimed`; gGain.classList.add('is-on'); }
+      freedTimer = window.setTimeout(() => gFreed?.classList.remove('is-on'), 3200);
+    };
+    const resetGauge = () => {
+      recs = RECS_START;
+      reclaimed = 0;
+      gGain?.classList.remove('is-on');
+      gFreed?.classList.remove('is-on');
+      if (gRecs) gRecs.style.width = pc(recs);
+      countTo(DISK - OTHER - recs);
+    };
+
+    // Phones: the gauge sits a screen above the button, so moving files brings it
+    // onto the screen as a band for a few seconds.
+    const stacked = window.matchMedia('(max-width: 999px)');
+    let docked = false;
+    let dockTimer = 0;
+    const onScreen = (el: HTMLElement) => { const r = el.getBoundingClientRect(); return r.top >= 0 && r.bottom <= window.innerHeight; };
+    const undock = () => {
+      window.clearTimeout(dockTimer);
+      if (!gauge || !gaugeSlot || !docked) return;
+      docked = false;
+      gauge.classList.remove('is-docked-in');
+      window.setTimeout(() => {
+        if (docked) return;
+        gauge.classList.remove('is-docked', 'is-docked--bottom');
+        gaugeSlot.append(gauge);
+        gaugeSlot.style.height = '';
+      }, still.matches ? 0 : 340);
+    };
+    const dock = (anchor: HTMLElement) => {
+      if (!gauge || !gaugeSlot) return;
+      window.clearTimeout(dockTimer);
+      dockTimer = window.setTimeout(undock, 3600);
+      if (docked || !stacked.matches || onScreen(gauge)) return;
+      gaugeSlot.style.height = `${gauge.offsetHeight}px`;
+      // Lifted to the page root so a column mid-reveal can't trap position: fixed.
+      document.body.append(gauge);
+      gauge.classList.add('is-docked');
+      gauge.classList.toggle('is-docked--bottom', anchor.getBoundingClientRect().top < gauge.offsetHeight + 12);
+      docked = true;
+      requestAnimationFrame(() => requestAnimationFrame(() => { if (docked) gauge.classList.add('is-docked-in'); }));
+    };
+    if ('IntersectionObserver' in window) {
+      new IntersectionObserver(([entry]) => { if (!entry.isIntersecting) undock(); }).observe(root);
+    }
+    stacked.addEventListener?.('change', undock);
+
     let files: CleanFile[] = [...CLEAN_FILES];
     const selected = new Set<string>(
       [...root.querySelectorAll<HTMLInputElement>('[data-file]')].filter(box => box.checked).map(box => box.dataset.file!),
@@ -127,6 +311,7 @@ const sum = (files: typeof CLEAN_FILES) => files.reduce((total, file) => total +
       selCount.textContent = `${chosen.length} selected`;
       selSize.textContent = `${formatSize(sum(chosen))} to free`;
       deleteBtn.disabled = chosen.length === 0;
+      showSelection(sum(chosen));
       summary.hidden = files.length === 0;
       const all = root!.querySelector<HTMLInputElement>('[data-cat-all]');
       if (all) {
@@ -211,6 +396,7 @@ const sum = (files: typeof CLEAN_FILES) => files.reduce((total, file) => total +
       summary.hidden = true;
       cats.innerHTML = '<div class="clean-scanning-state">Scanning for processed files…</div>';
       window.setTimeout(() => {
+        resetGauge();
         files = [...CLEAN_FILES];
         selected.clear();
         expanded = true;
@@ -234,6 +420,11 @@ const sum = (files: typeof CLEAN_FILES) => files.reduce((total, file) => total +
     confirmNo.addEventListener('click', closeConfirm);
     confirmBox.addEventListener('keydown', event => { if (event.key === 'Escape') closeConfirm(); });
     confirmYes.addEventListener('click', () => {
+      const moving = sum(files.filter(file => selected.has(file.id)));
+      holdSel = true;
+      dock(summary);
+      // Let the band arrive before the space frees up.
+      window.setTimeout(() => free(moving), docked && !still.matches ? 380 : 0);
       files = files.filter(file => !selected.has(file.id));
       selected.clear();
       confirmBox.hidden = true;
