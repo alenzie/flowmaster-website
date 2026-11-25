@@ -1,0 +1,125 @@
+---
+// A hand-drawn "Try me!" pointing at an interactive control, the same drawing as
+// the one on the Clip window (ChapterClip.astro). It draws itself in the first
+// time `watch` is well in view and fades once the visitor uses the control.
+//
+//   pointing  'left'        words on the right, arrow pointing left (tip at 6,46)
+//             'down-right'  words on the left, arrow pointing down-right (tip at 138,74)
+//   style     placement inside a positioned parent, as custom properties:
+//             --tm-left/--tm-right/--tm-top/--tm-bottom/--tm-w, and *-sm versions for phones
+//   dismissOn CSS selector: a pointerdown, click or keydown on a match makes it leave
+//   dismissEvent  optional window event that also makes it leave
+//   watch     CSS selector for the element whose visibility starts the drawing
+interface Props {
+  pointing: 'left' | 'down-right';
+  style?: string;
+  dismissOn: string;
+  dismissEvent?: string;
+  watch: string;
+}
+const { pointing, style, dismissOn, dismissEvent, watch } = Astro.props;
+const left = pointing === 'left';
+const viewBox = left ? '0 0 170 80' : '0 0 156 80';
+const wordShift = left ? 'translate(16 0)' : 'translate(-36 0)';
+const arrow = left
+  ? ['M60,40 C46,48 26,50 6,46', 'M6,46 L16,39', 'M6,46 L15,54']
+  : ['M96,40 C108,50 124,60 138,74', 'M138,74 L126,72', 'M138,74 L135,62'];
+---
+<svg class="try-doodle" data-try-doodle data-dismiss-on={dismissOn} data-dismiss-event={dismissEvent} data-watch={watch}
+  viewBox={viewBox} fill="none" aria-hidden="true" style={style}>
+  <g class="td-word" transform={wordShift}>
+    <path pathLength="1" d="M42,8 C50,6 58,6 66,5" />
+    <path pathLength="1" d="M54,6 C53,15 53,24 55,32" />
+    <path pathLength="1" d="M66,18 C66,24 67,28 67,33" />
+    <path pathLength="1" d="M67,24 C70,18 74,17 78,19" />
+    <path pathLength="1" d="M80,18 C80,26 84,28 88,26 C91,24 92,20 92,17" />
+    <path pathLength="1" d="M92,17 C93,28 92,38 88,42 C84,45 80,42 80,38" />
+    <path pathLength="1" d="M107,19 L107,32" />
+    <path pathLength="1" d="M107,24 C110,17 115,18 115,23 L115,32" />
+    <path pathLength="1" d="M115,24 C118,17 123,18 123,23 L124,32" />
+    <path pathLength="1" d="M129,26 C135,26 139,24 137,20 C135,16 130,18 129,24 C128,30 133,33 140,30" />
+    <path pathLength="1" d="M148,3 C147,11 147,18 146,24" />
+    <path pathLength="1" d="M145.4,31 a1.4,1.4 0 1,0 0.2,0" />
+  </g>
+  <g class="td-arrow">
+    {arrow.map((d) => <path pathLength="1" d={d} />)}
+  </g>
+</svg>
+
+<style>
+  .try-doodle {
+    position: absolute;
+    left: var(--tm-left, auto);
+    right: var(--tm-right, auto);
+    top: var(--tm-top, auto);
+    bottom: var(--tm-bottom, auto);
+    width: var(--tm-w, 150px);
+    height: auto;
+    overflow: visible;
+    pointer-events: none;
+    z-index: 4;
+    stroke: var(--yellow, #f5d440);
+    stroke-width: 2.6;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    filter: drop-shadow(0 2px 6px rgba(0, 0, 0, 0.6));
+    transition: opacity 0.4s ease;
+  }
+  @media (max-width: 600px) {
+    .try-doodle {
+      left: var(--tm-left-sm, var(--tm-left, auto));
+      right: var(--tm-right-sm, var(--tm-right, auto));
+      top: var(--tm-top-sm, var(--tm-top, auto));
+      bottom: var(--tm-bottom-sm, var(--tm-bottom, auto));
+      width: var(--tm-w-sm, var(--tm-w, 120px));
+    }
+  }
+  /* Each stroke stays invisible until its own draw starts: a hidden dash still paints its round cap as a dot. */
+  .try-doodle path { stroke-dasharray: 1; stroke-dashoffset: 1; visibility: hidden; }
+  .try-doodle.is-drawn path { animation: td-draw 0.18s ease-out both; }
+  .try-doodle.is-drawn .td-word path:nth-child(1) { animation-delay: 0s; }
+  .try-doodle.is-drawn .td-word path:nth-child(2) { animation-delay: 0.06s; }
+  .try-doodle.is-drawn .td-word path:nth-child(3) { animation-delay: 0.13s; }
+  .try-doodle.is-drawn .td-word path:nth-child(4) { animation-delay: 0.17s; }
+  .try-doodle.is-drawn .td-word path:nth-child(5) { animation-delay: 0.23s; }
+  .try-doodle.is-drawn .td-word path:nth-child(6) { animation-delay: 0.29s; }
+  .try-doodle.is-drawn .td-word path:nth-child(7) { animation-delay: 0.38s; }
+  .try-doodle.is-drawn .td-word path:nth-child(8) { animation-delay: 0.42s; }
+  .try-doodle.is-drawn .td-word path:nth-child(9) { animation-delay: 0.48s; }
+  .try-doodle.is-drawn .td-word path:nth-child(10) { animation-delay: 0.55s; }
+  .try-doodle.is-drawn .td-word path:nth-child(11) { animation-delay: 0.65s; }
+  .try-doodle.is-drawn .td-word path:nth-child(12) { animation-delay: 0.71s; }
+  .try-doodle.is-drawn .td-arrow path:nth-child(1) { animation-delay: 0.8s; animation-duration: 0.24s; }
+  .try-doodle.is-drawn .td-arrow path:nth-child(2) { animation-delay: 1.03s; }
+  .try-doodle.is-drawn .td-arrow path:nth-child(3) { animation-delay: 1.08s; }
+  .try-doodle.is-gone { opacity: 0; }
+  @keyframes td-draw {
+    0% { stroke-dashoffset: 1; visibility: hidden; }
+    0.1% { visibility: visible; }
+    100% { stroke-dashoffset: 0; visibility: visible; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .try-doodle path, .try-doodle.is-drawn path { animation: none; stroke-dashoffset: 0; visibility: visible; }
+  }
+</style>
+
+<script>
+  document.querySelectorAll<SVGElement>('[data-try-doodle]').forEach((doodle) => {
+    const watched = document.querySelector(doodle.dataset.watch || '') ?? doodle.parentElement;
+    if (watched && 'IntersectionObserver' in window) {
+      const io = new IntersectionObserver((entries) => {
+        if (entries.some((e) => e.isIntersecting)) { doodle.classList.add('is-drawn'); io.disconnect(); }
+      }, { threshold: 0.6 });
+      io.observe(watched);
+    } else doodle.classList.add('is-drawn');
+
+    const leave = () => doodle.classList.add('is-gone');
+    const selector = doodle.dataset.dismissOn;
+    if (selector) {
+      document.querySelectorAll(selector).forEach((el) => {
+        ['pointerdown', 'click', 'keydown'].forEach((type) => el.addEventListener(type, leave, { once: true }));
+      });
+    }
+    if (doodle.dataset.dismissEvent) window.addEventListener(doodle.dataset.dismissEvent, leave, { once: true });
+  });
+</script>

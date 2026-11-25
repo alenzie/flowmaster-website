@@ -2,6 +2,7 @@
 // Chapter 03. The Clean tab, rebuilt from the app source: scan, tick, confirm,
 // and the files go to the Recycle Bin. The confirm text is the app's own.
 import AppWindow from './AppWindow.astro';
+import TryMe from './TryMe.astro';
 import { CLEAN_FILES, CLEAN_PRESELECTED, formatSize } from './session';
 
 const selected = CLEAN_FILES.filter(file => CLEAN_PRESELECTED.includes(file.id));
@@ -96,7 +97,10 @@ const pc = (bytes: number) => `${(bytes / DISK) * 100}%`;
             </div>
           </div>
 
-          <div class="clean-summary-bar" data-summary>
+          <div class="clean-summary-bar" data-summary style="position:relative">
+            <!-- Arrow tip just above the Move to Recycle Bin button, a little left of its middle. -->
+            <TryMe pointing="down-right" watch="[data-summary]" dismissOn="[data-delete]"
+              style="--tm-right: 83px; --tm-top: -62px; --tm-w: 150px; --tm-right-sm: 86px; --tm-top-sm: -47px; --tm-w-sm: 120px;" />
             <div class="clean-summary-stats">
               <span data-sel-count>{selected.length} selected</span>
               <span class="clean-summary-sep">&middot;</span>
