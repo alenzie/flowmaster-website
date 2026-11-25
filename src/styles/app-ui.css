@@ -533,18 +533,33 @@
 }
 @keyframes fmMarkOut { to { margin-top: -19px; opacity: 0; } }
 /* Phones: a slice of the window (the session row and its latest lines) slides in
-   while the visitor presses F9 above, since the real window is off screen. */
+   while the visitor presses F9 above, since the real window is off screen. A
+   hard-cut band across the full width, flush with the screen edge, like the Clip strip. */
 .fm.mark-dock {
   position: fixed;
   z-index: 60;
-  left: var(--pad);
-  right: var(--pad);
-  bottom: calc(12px + env(safe-area-inset-bottom));
-  transform: translateY(calc(100% + 24px));
+  left: 0;
+  right: 0;
+  bottom: 0;
+  padding-bottom: env(safe-area-inset-bottom);
+  border: 0;
+  border-top: 1px solid var(--rule-strong, #333);
+  border-radius: 0;
+  box-shadow: 0 -18px 40px -22px rgba(0, 0, 0, 0.95);
+  transform: translateY(105%);
   transition: transform 0.32s cubic-bezier(0.2, 0.7, 0.2, 1);
   pointer-events: none;
 }
-.fm.mark-dock.is-top { top: calc(12px + env(safe-area-inset-top)); bottom: auto; transform: translateY(calc(-100% - 24px)); }
+.fm.mark-dock.is-top {
+  top: 0;
+  bottom: auto;
+  padding-top: env(safe-area-inset-top);
+  padding-bottom: 0;
+  border-top: 0;
+  border-bottom: 1px solid var(--rule-strong, #333);
+  box-shadow: 0 18px 40px -22px rgba(0, 0, 0, 0.95);
+  transform: translateY(-105%);
+}
 .fm.mark-dock.is-in { transform: none; }
 @media (prefers-reduced-motion: reduce) {
   .fm.mark-dock { transition: none; }
