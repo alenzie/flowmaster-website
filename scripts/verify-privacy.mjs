@@ -8,9 +8,9 @@ try{
  for(const width of [390,1440]){
   const page=await browser.newPage({viewport:{width,height:1000}});const errors=[];page.on('pageerror',e=>errors.push(e.name));
   const response=await page.goto(base+'/privacy/',{waitUntil:'networkidle'});assert.equal(response.status(),200);
-  await page.getByRole('heading',{name:'Privacy Policy',exact:true}).waitFor();assert.equal(await page.locator('article h2').count(),9);
+  await page.getByRole('heading',{name:'Privacy Policy',exact:true}).waitFor();assert.equal(await page.locator('article h2').count(),14);
   assert.equal(await page.locator('link[rel=canonical]').getAttribute('href'),'https://flowmaster.live/privacy/');
-  assert.ok((await page.locator('article').textContent()).includes('October 7, 2026'));
+  assert.ok((await page.locator('article').textContent()).includes('November 24, 2026'));
   assert.ok(await page.locator('article a[href^="mailto:support@flowmastersuite.com"]').count());
   assert.equal(await page.locator('a[href="https://myaccount.google.com/connections"]').count(),1);
   assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),true);
@@ -20,7 +20,7 @@ try{
   await page.goto(base+'/',{waitUntil:'domcontentloaded'});assert.equal(await page.locator('footer a[href="/privacy"]').count(),1);
   await page.goto(base+'/account/',{waitUntil:'domcontentloaded'});assert.equal(await page.locator('.account-note a[href="/privacy"]').count(),1);
   await page.goto(base+'/data/',{waitUntil:'domcontentloaded'});assert.equal(await page.locator('main a[href="/privacy"]').count(),1);
-  checks.push({width,publicPage:true,canonicalCorrect:true,policySections:9,contactCorrect:true,googleRevocationLinked:true,noOverflow:true,homeAccountTrialLinks:true,browserErrors:errors});await page.close();
+  checks.push({width,publicPage:true,canonicalCorrect:true,policySections:14,contactCorrect:true,googleRevocationLinked:true,noOverflow:true,homeAccountTrialLinks:true,browserErrors:errors});await page.close();
  }
  await writeFile(`${out}/${live?'live':'local'}-verification.json`,JSON.stringify({base,checks},null,2)+'\n');console.log(JSON.stringify({checked:checks.length,base,passed:true}));
 }finally{await browser.close();}
