@@ -127,9 +127,9 @@ const times = [3, 5, 7, 9].map((k) => ({ x: k * 100, label: timecode((k * 100 - 
   <button type="button" class="ml-key-btn" data-mark-key aria-label="Press F9 to drop a mark on the timeline"></button>
   <p class="ml-hint" data-ml-hint aria-hidden="true">Try it: press F9</p>
   <button type="button" class="ml-stop" data-ml-stop tabindex="-1"><span aria-hidden="true"></span>Stop recording</button>
-  <!-- Arrow tip at the key's right edge, level with its middle (key: 265-335 x, ~38 y of 600x200). -->
+  <!-- Arrow tip a little right of the key, level with its middle (key: 265-335 x, ~38 y of 600x200). -->
   <TryMe pointing="left" watch="[data-mark-loop]" dismissOn="[data-mark-key]" dismissEvent="flowmaster:mark"
-    style="--tm-left: calc(55.83% - 1px); --tm-top: calc(19% - 40px); --tm-w: 150px; --tm-left-sm: 55.83%; --tm-top-sm: calc(19% - 30px); --tm-w-sm: 112px;" />
+    style="--tm-left: calc(55.83% + 20px); --tm-top: calc(19% - 40px); --tm-w: 150px; --tm-left-sm: calc(55.83% + 14px); --tm-top-sm: calc(19% - 30px); --tm-w-sm: 112px;" />
   <slot />
 </figure>
 
