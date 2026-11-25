@@ -23,7 +23,7 @@ import RotateGate from '../components/home/RotateGate.astro';
         <div class="hero-animate" style="--delay: 0.3s">
           <div class="hero-headline">
             <span class="display hero-title hero-title-shadow" aria-hidden="true">Skip the<br />rough&nbsp;cut<span class="hero-stop"></span></span>
-            <h1 id="hero-title" class="display hero-title hero-title-primary"><span class="hero-dim">Skip</span> the<br />rough&nbsp;cut<span class="hero-stop" aria-hidden="true"></span><span class="sr-only">.</span></h1>
+            <h1 id="hero-title" class="display hero-title hero-title-primary">Skip <span class="hero-dim">the<br />rough&nbsp;cut<span class="hero-stop" aria-hidden="true"></span></span><span class="sr-only">.</span></h1>
           </div>
         </div>
         <p class="hero-lede hero-animate" style="--delay: 0.5s">Choose what to keep. Not when to record.<br />Mark it, clip it, clean it.</p>
@@ -144,7 +144,7 @@ import RotateGate from '../components/home/RotateGate.astro';
   .hero-headline { position: relative; display: inline-block; }
   .hero-title-shadow { position: absolute; inset: 0 0 auto 0; z-index: 1; color: rgba(20, 15, 12, 0.8); animation: sway-shadow 6s ease-in-out infinite; user-select: none; pointer-events: none; }
   .hero-title-shadow .hero-stop { background: rgba(20, 15, 12, 0.8); }
-  /* "Skip" steps back, the way "Not when to record" does in the pitch title. */
+  /* "the rough cut" steps back, the way "Not when to record" does in the pitch title. */
   .hero-dim { color: var(--ink-3); }
   .hero-title-primary { position: relative; z-index: 2; animation: sway-primary 6s ease-in-out infinite; }
   @keyframes sway-primary { 0%, 100% { transform: translate(0, 0); } 25% { transform: translate(4px, -2px); } 50% { transform: translate(0, -3px); } 75% { transform: translate(-4px, -1px); } }
