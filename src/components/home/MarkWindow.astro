@@ -169,6 +169,11 @@ const rows = RECORDINGS.slice(0, live ? 2 : 3);
         recording = true;
         total = 0;
         stamps.replaceChildren();
+        // A new recording: the phone slice is rebuilt from the fresh row on its next show.
+        dock?.remove();
+        dock = null;
+        dockList = null;
+        docked = false;
         began = new Date(Date.now() - time * 1000);
         const name = firstRow?.querySelector('.session-name');
         const date = firstRow?.querySelector('.session-date');
