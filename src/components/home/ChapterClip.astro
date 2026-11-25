@@ -180,7 +180,7 @@ const videos = RECORDINGS.slice(0, 3).map((recording, i) => ({ ...recording, sel
   .clip-window { position: relative; }
   .try-me {
     position: absolute;
-    top: -36px;
+    top: -52px;
     left: calc(14px + (100% - 28px) * 240 / 360 - 18px);
     width: 156px;
     height: 80px;
@@ -214,7 +214,7 @@ const videos = RECORDINGS.slice(0, 3).map((recording, i) => ({ ...recording, sel
   .try-me.is-gone { opacity: 0; }
   @keyframes try-me-draw { to { stroke-dashoffset: 0; } }
   @media (max-width: 600px) {
-    .try-me { width: 116px; height: 60px; top: -26px; left: calc(14px + (100% - 28px) * 240 / 360 - 13px); }
+    .try-me { width: 116px; height: 60px; top: -38px; left: calc(14px + (100% - 28px) * 240 / 360 - 13px); }
   }
   @media (prefers-reduced-motion: reduce) {
     .try-me path, .try-me.is-drawn path { animation: none; stroke-dashoffset: 0; }
