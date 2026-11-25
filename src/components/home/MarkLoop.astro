@@ -111,6 +111,7 @@ const times = [3, 4, 5, 6, 7, 8, 9].map((k) => ({ x: k * 100, label: timecode((k
   </svg>
   <button type="button" class="ml-key-btn" data-mark-key aria-label="Press F9 to drop a mark on the timeline"></button>
   <p class="ml-hint" data-ml-hint aria-hidden="true">Try it: press F9</p>
+  <button type="button" class="ml-stop" data-ml-stop tabindex="-1"><span aria-hidden="true"></span>Stop recording</button>
   <slot />
 </figure>
 
@@ -250,6 +251,41 @@ const times = [3, 4, 5, 6, 7, 8, 9].map((k) => ({ x: k * 100, label: timecode((k
   .mark-loop :global(.ml-times g line) { stroke: #3a3a3a; stroke-width: 1; }
   .mark-loop :global(.ml-times text) { fill: #8c8a83; font-family: var(--font-mono), monospace; font-size: 13px; font-weight: 600; letter-spacing: 0.3px; }
   .mark-loop.is-live .ml-times--loop, .mark-loop.is-live .ml-ticks { display: none; }
+  .mark-loop:not(.is-live) [data-live-times] { display: none; }
+
+  /* Stop recording: offered a few seconds into a live take. The tape stops, the clips
+     turn green, lift off and slide away, and the scripted loop starts again. */
+  .ml-stop {
+    position: absolute;
+    left: 50%;
+    bottom: 0;
+    translate: -50% 0;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.55rem;
+    min-height: 2.5rem;
+    padding: 0.5rem 0.95rem;
+    border: 1px solid var(--rule-strong);
+    border-radius: 6px;
+    background: rgba(16, 16, 16, 0.9);
+    color: var(--ink);
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    cursor: pointer;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.35s ease, visibility 0s linear 0.35s, border-color 0.18s ease;
+  }
+  .ml-stop span { width: 0.6rem; height: 0.6rem; border-radius: 2px; background: var(--red); }
+  .ml-stop.is-shown { opacity: 1; visibility: visible; transition: opacity 0.35s ease, border-color 0.18s ease; }
+  .ml-stop:hover { border-color: var(--ink); }
+  .ml-stop:focus-visible { outline: 2px solid var(--ink); outline-offset: 3px; }
+  .mark-loop.is-live.is-stopping .ml-playhead, .mark-loop.is-live.is-stopping .ml-key { opacity: 0; transition: opacity 0.4s ease; }
+  .mark-loop :global(.ml-lr.is-done) { fill: #6be553; transition: fill 0.35s ease; }
+  .mark-loop :global(.ml-lr.is-lift) { transform: translateY(-40px); transition: fill 0.35s ease, transform 0.35s cubic-bezier(0.2, 0.7, 0.2, 1); }
+  .mark-loop :global(.ml-lr.is-away) { transform: translate(-640px, -40px); transition: transform 0.6s cubic-bezier(0.5, 0, 0.75, 0); }
 
   /* The scripted loop stops and holds its recording frame; the script drives the tape. */
   .mark-loop.is-live * { animation: none !important; }
@@ -285,15 +321,17 @@ const times = [3, 4, 5, 6, 7, 8, 9].map((k) => ({ x: k * 100, label: timecode((k
   // unit is SECONDS_PER_UNIT of recording (one big tick, 100 units, is 10 minutes).
   // The playhead stays at x 300 under the key. While the recording is short, its
   // start stays pinned near the left edge and the tape zooms out to fit everything
-  // recorded so far; once it reaches the widest zoom it tracks again, and the oldest
+  // recorded so far, but only a little; past that it moves again and the oldest
   // ranges slide off the left. Ticks and time labels re-space as the zoom changes.
+  // A few seconds in, "Stop recording" appears: the take ends like the scripted loop
+  // (clips turn green, lift and slide away) and the loop starts over.
   const SPEED = 30;              // units per second of page time
   const BACK = 45;               // a range reaches back from the press...
   const AHEAD = 15;              // ...and a little ahead of it
   const SECONDS_PER_UNIT = 6;
   const PLAYHEAD = 300;
   const PIN = 92;                // where the recording's start is held while zooming out
-  const MIN_ZOOM = 0.12;         // widest view: about three hours of recording
+  const MIN_ZOOM = 0.75;         // only a little zoom-out; past it the tape moves on
   const MINOR = [20, 50, 100, 200, 300, 600, 1200];
   const MAJOR = [100, 200, 300, 600, 1200, 1800, 3600];
   const NS = 'http://www.w3.org/2000/svg';
@@ -308,6 +346,7 @@ const times = [3, 4, 5, 6, 7, 8, 9].map((k) => ({ x: k * 100, label: timecode((k
     const scale = el.querySelector<SVGGElement>('[data-live-times]')!;
     const key = el.querySelector<SVGGElement>('.ml-press')!;
     const button = el.querySelector<HTMLButtonElement>('[data-mark-key]')!;
+    const stopButton = el.querySelector<HTMLButtonElement>('[data-ml-stop]')!;
     const hint = el.querySelector<HTMLElement>('[data-ml-hint]');
     const still = window.matchMedia('(prefers-reduced-motion: reduce)');
     if (hint && window.matchMedia('(hover: none)').matches) hint.textContent = 'Try it: tap F9';
@@ -318,6 +357,9 @@ const times = [3, 4, 5, 6, 7, 8, 9].map((k) => ({ x: k * 100, label: timecode((k
     let zoom = 1;
     let last = 0;
     let ranges: Range[] = [];
+    let stopping = false;
+    let raf = 0;
+    let stopTimer = 0;
     const toX = (u: number) => PLAYHEAD - (now - u) * zoom;
 
     const make = <K extends keyof SVGElementTagNameMap>(tag: K, parent: SVGElement, attrs: Record<string, string>) => {
@@ -347,7 +389,7 @@ const times = [3, 4, 5, 6, 7, 8, 9].map((k) => ({ x: k * 100, label: timecode((k
       const from = Math.max(0, now - (PLAYHEAD - 40) / zoom);
       const to = now + (560 - PLAYHEAD) / zoom;
       const minor = MINOR.find((m) => m * zoom >= 9) ?? MINOR[MINOR.length - 1];
-      const major = MAJOR.find((m) => m * zoom >= 82 && m % minor === 0) ?? MAJOR[MAJOR.length - 1];
+      const major = MAJOR.find((m) => m * zoom >= 70 && m % minor === 0) ?? MAJOR[MAJOR.length - 1];
       let t = 0;
       for (let u = Math.ceil(from / minor) * minor; u <= to; u += minor, t++) {
         const line = tick(t);
@@ -382,11 +424,12 @@ const times = [3, 4, 5, 6, 7, 8, 9].map((k) => ({ x: k * 100, label: timecode((k
       });
     };
     const frame = (time: number) => {
+      if (!live) { last = 0; return; }
       const dt = last ? Math.min(0.1, (time - last) / 1000) : 0;
       last = time;
-      if (visible && !still.matches) now += SPEED * dt;
+      if (visible && !still.matches && !stopping) now += SPEED * dt;
       draw();
-      requestAnimationFrame(frame);
+      raf = requestAnimationFrame(frame);
     };
 
     const goLive = () => {
@@ -397,11 +440,17 @@ const times = [3, 4, 5, 6, 7, 8, 9].map((k) => ({ x: k * 100, label: timecode((k
       live = true;
       el.classList.add('is-live');
       draw();
-      requestAnimationFrame(frame);
+      cancelAnimationFrame(raf);
+      raf = requestAnimationFrame(frame);
     };
 
     const press = () => {
+      if (stopping) return;
       goLive();
+      if (!stopTimer) stopTimer = window.setTimeout(() => {
+        stopButton.classList.add('is-shown');
+        stopButton.tabIndex = 0;
+      }, 5000);
       key.classList.add('is-down');
       window.setTimeout(() => key.classList.remove('is-down'), 110);
 
@@ -451,6 +500,42 @@ const times = [3, 4, 5, 6, 7, 8, 9].map((k) => ({ x: k * 100, label: timecode((k
       if (still.matches) { now += 25; draw(); }
     };
 
+    const stop = () => {
+      if (!live || stopping) return;
+      stopping = true;
+      window.clearTimeout(stopTimer);
+      stopTimer = 0;
+      stopButton.classList.remove('is-shown');
+      stopButton.tabIndex = -1;
+      el.classList.add('is-stopping');
+      window.dispatchEvent(new CustomEvent('flowmaster:stop'));
+      // Finished clips: green, then lifted and sent off to the left, oldest first.
+      const clips = [...ranges].sort((a, b) => a.start - b.start);
+      const rects = (r: Range) => r.parts.filter((p) => p.el.tagName === 'rect' && !p.el.classList.contains('is-out'));
+      clips.forEach((r) => rects(r).forEach((p) => {
+        p.el.classList.remove('ml-lr--drop');
+        p.el.classList.add('is-in', 'is-done');
+      }));
+      const gap = still.matches ? 0 : 110;
+      const lift = still.matches ? 0 : 700;
+      clips.forEach((r, i) => {
+        window.setTimeout(() => rects(r).forEach((p) => p.el.classList.add('is-lift')), lift + i * gap);
+        window.setTimeout(() => rects(r).forEach((p) => p.el.classList.add('is-away')), lift + 450 + i * gap);
+      });
+      window.setTimeout(() => {
+        ranges.forEach((r) => r.parts.forEach((p) => p.el.remove()));
+        layer.replaceChildren();
+        ranges = [];
+        live = false;
+        cancelAnimationFrame(raf);
+        last = 0;
+        stopping = false;
+        now = 0;
+        el.classList.remove('is-live', 'is-stopping');
+      }, still.matches ? 0 : lift + 450 + clips.length * gap + 800);
+    };
+
+    stopButton.addEventListener('click', stop);
     button.addEventListener('click', press);
     document.addEventListener('keydown', (event) => {
       if (event.key !== 'F9' || event.repeat || !visible) return;

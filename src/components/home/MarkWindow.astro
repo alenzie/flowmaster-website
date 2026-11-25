@@ -101,6 +101,7 @@ const rows = RECORDINGS.slice(0, live ? 2 : 3);
     const firstRow = log.querySelector<HTMLElement>('.mark-session-item');
     let recording = false;
     let total = 0;
+    let began = new Date();
     const pad = (n: number) => String(n).padStart(2, '0');
 
     const push = (list: HTMLElement, text: string, max: number) => {
@@ -168,7 +169,7 @@ const rows = RECORDINGS.slice(0, live ? 2 : 3);
         recording = true;
         total = 0;
         stamps.replaceChildren();
-        const began = new Date(Date.now() - time * 1000);
+        began = new Date(Date.now() - time * 1000);
         const name = firstRow?.querySelector('.session-name');
         const date = firstRow?.querySelector('.session-date');
         if (name) name.textContent = `${began.getFullYear()}-${pad(began.getMonth() + 1)}-${pad(began.getDate())} ${pad(began.getHours())}-${pad(began.getMinutes())}-${pad(began.getSeconds())}.mp4`;
@@ -186,6 +187,17 @@ const rows = RECORDINGS.slice(0, live ? 2 : 3);
         push(dockList, text, DOCK_LINES);
         bump(dock.querySelector<HTMLElement>('[data-count]'), markLabel(total));
       }
+    });
+    // Stop recording in the Mark chapter: back to idle; the session keeps its marks.
+    window.addEventListener('flowmaster:stop', () => {
+      if (!recording) return;
+      recording = false;
+      if (obsText) obsText.textContent = 'OBS: Connected';
+      recInd?.classList.remove('active');
+      if (recLabel) recLabel.textContent = 'IDLE';
+      const date = firstRow?.querySelector('.session-date');
+      if (date) date.textContent = began.toLocaleString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit' });
+      dock?.querySelector('.session-date')?.replaceChildren(date?.textContent ?? '');
     });
     new IntersectionObserver(([entry]) => { if (!entry.isIntersecting) undock(); }).observe(document.querySelector('[data-mark-loop]') ?? log);
     stacked.addEventListener?.('change', undock);
