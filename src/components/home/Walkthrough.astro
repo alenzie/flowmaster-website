@@ -64,26 +64,31 @@ const src = '/demos/flowmaster-ux-story/index.html?v=mobile-2&embed=1';
   .walk-frame iframe { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; display: block; background: #07080b; }
   .walk-controls { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 0.75rem 1.5rem; margin-top: 1rem; }
   .walk-controls .label { font-size: 0.68rem; }
+  /* Same look as the hero's "Watch it work" button: outlined, 6px corners, plain play/pause glyph. */
   .walk-toggle {
     display: inline-flex;
     align-items: center;
-    gap: 0.6rem;
-    min-height: 2.75rem;
-    padding: 0.5rem 1rem 0.5rem 0.6rem;
+    gap: 0.7rem;
+    min-height: 3.4rem;
+    padding: 0.9rem 1.35rem 0.9rem 1.2rem;
     border: 1px solid var(--rule-strong);
-    border-radius: 999px;
+    border-radius: 6px;
     background: transparent;
     color: var(--ink);
-    font: inherit;
-    font-weight: 600;
+    font-family: var(--font-body);
+    font-weight: 700;
+    font-size: 1.08rem;
+    line-height: 1.1;
     cursor: pointer;
+    transition: border-color 0.18s ease, background-color 0.18s ease, transform 0.18s ease;
   }
-  .walk-toggle:hover:not(:disabled) { border-color: var(--ink-2); }
+  .walk-toggle:hover:not(:disabled) { border-color: var(--ink); background: rgba(242, 240, 234, 0.05); transform: translateY(-1px); }
+  .walk-toggle:active:not(:disabled) { transform: translateY(0); }
   .walk-toggle:disabled { color: var(--ink-3); cursor: wait; }
   .walk-toggle:focus-visible { outline: 2px solid var(--ink); outline-offset: 3px; }
-  .walk-toggle-icon { width: 1.7rem; height: 1.7rem; border-radius: 50%; background: var(--ink); position: relative; }
-  .walk-toggle-icon::before { content: ''; position: absolute; left: 55%; top: 50%; translate: -50% -50%; border-style: solid; border-width: 0.32rem 0 0.32rem 0.52rem; border-color: transparent transparent transparent #111; }
-  .walk-toggle.is-playing .walk-toggle-icon::before { left: 50%; width: 0.5rem; height: 0.6rem; border: 0; border-left: 0.16rem solid #111; border-right: 0.16rem solid #111; }
+  .walk-toggle-icon { position: relative; width: 1rem; height: 1rem; }
+  .walk-toggle-icon::before { content: ''; position: absolute; left: 55%; top: 50%; translate: -50% -50%; border-style: solid; border-width: 0.3rem 0 0.3rem 0.48rem; border-color: transparent transparent transparent currentColor; }
+  .walk-toggle.is-playing .walk-toggle-icon::before { left: 50%; width: 0.62rem; height: 0.66rem; border: 0; border-left: 0.2rem solid currentColor; border-right: 0.2rem solid currentColor; box-sizing: border-box; }
 </style>
 
 <script>
