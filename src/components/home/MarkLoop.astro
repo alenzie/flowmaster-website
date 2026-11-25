@@ -25,9 +25,10 @@ import { timecode } from './session';
 const ticks = Array.from({ length: 120 }, (_, i) => i);
 // Time on the tape, exaggerated: every big tick (100 units) is 10 minutes of
 // recording, counted from the playhead's spot when the loop starts (x 300).
+// Labelled every other big tick (20 minutes).
 // The live script and the Mark tab use the same scale (SECONDS_PER_UNIT below).
 const SECONDS_PER_UNIT = 6;
-const times = [3, 4, 5, 6, 7, 8, 9].map((k) => ({ x: k * 100, label: timecode((k * 100 - 300) * SECONDS_PER_UNIT) }));
+const times = [3, 5, 7, 9].map((k) => ({ x: k * 100, label: timecode((k * 100 - 300) * SECONDS_PER_UNIT) }));
 ---
 
 <figure class="mark-loop" data-mark-loop aria-label="Animation: pressing F9 while recording drops a clip range on the timeline; ranges close together merge into one clip.">
@@ -48,6 +49,16 @@ const times = [3, 4, 5, 6, 7, 8, 9].map((k) => ({ x: k * 100, label: timecode((k
         <stop offset="88%" stop-color="#252525" stop-opacity="1" />
         <stop offset="100%" stop-color="#252525" stop-opacity="0" />
       </linearGradient>
+      <!-- The time labels fade out in a wide oval around the key, so none crowd it. -->
+      <radialGradient id="ml-key-fade">
+        <stop offset="0%" stop-color="black" stop-opacity="1" />
+        <stop offset="50%" stop-color="black" stop-opacity="1" />
+        <stop offset="100%" stop-color="black" stop-opacity="0" />
+      </radialGradient>
+      <mask id="ml-label-mask" maskUnits="userSpaceOnUse" x="0" y="0" width="600" height="200">
+        <rect x="0" y="0" width="600" height="200" fill="white" />
+        <ellipse cx="300" cy="48" rx="110" ry="40" fill="url(#ml-key-fade)" />
+      </mask>
     </defs>
 
     <g class="ml-stage">
@@ -56,14 +67,6 @@ const times = [3, 4, 5, 6, 7, 8, 9].map((k) => ({ x: k * 100, label: timecode((k
 
         <g mask="url(#ml-scroll-mask)">
         <g class="ml-scroll">
-          <g class="ml-times ml-times--loop" aria-hidden="true">
-            {times.map(({ x, label }) => (
-              <g>
-                <line x1={x} y1="68" x2={x} y2="92" />
-                <text x={x} y="62" text-anchor="middle">{label}</text>
-              </g>
-            ))}
-          </g>
           <g class="ml-ticks">
             {ticks.map((i) => {
               const x = (i - 10) * 20;
@@ -83,7 +86,18 @@ const times = [3, 4, 5, 6, 7, 8, 9].map((k) => ({ x: k * 100, label: timecode((k
             <text class="ml-note" x="548" y="146" text-anchor="middle" fill="#f5d440" font-size="11" letter-spacing="1.2" style="font-family: var(--font-mono), monospace">MERGED</text>
           </g>
         </g>
-        <g class="ml-times" data-live-times></g>
+        <!-- Time labels: the scripted loop's scroll with the tape (same animation); the live ones are drawn by the script. -->
+        <g mask="url(#ml-label-mask)">
+          <g class="ml-scroll ml-times ml-times--loop" aria-hidden="true">
+            {times.map(({ x, label }) => (
+              <g>
+                <line x1={x} y1="68" x2={x} y2="92" />
+                <text x={x} y="62" text-anchor="middle">{label}</text>
+              </g>
+            ))}
+          </g>
+          <g class="ml-times" data-live-times></g>
+        </g>
         <g class="ml-live" data-live-ranges></g>
         </g>
 
@@ -389,7 +403,7 @@ const times = [3, 4, 5, 6, 7, 8, 9].map((k) => ({ x: k * 100, label: timecode((k
       const from = Math.max(0, now - (PLAYHEAD - 40) / zoom);
       const to = now + (560 - PLAYHEAD) / zoom;
       const minor = MINOR.find((m) => m * zoom >= 9) ?? MINOR[MINOR.length - 1];
-      const major = MAJOR.find((m) => m * zoom >= 70 && m % minor === 0) ?? MAJOR[MAJOR.length - 1];
+      const major = MAJOR.find((m) => m * zoom >= 140 && m % minor === 0) ?? MAJOR[MAJOR.length - 1];
       let t = 0;
       for (let u = Math.ceil(from / minor) * minor; u <= to; u += minor, t++) {
         const line = tick(t);
