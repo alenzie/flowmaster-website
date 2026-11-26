@@ -1,7 +1,9 @@
 ---
 // The Flowmaster product film (flowmaster-film repo, draft v28). On desktop it opens on the
 // same kind of loader as the walkthrough below, then plays in the frame with sound.
-// On mobile (and without JavaScript) it is the native video player.
+// On phones (and narrow windows, and without JavaScript) it is the native video player, with a
+// poster that has the logo and a play button drawn into the picture, so it fits any screen;
+// on a phone, tapping it starts the film in the phone's own full-screen player (owner 2026-11-26).
 // `bare` drops the caption and page spacing, for use inside the theatre.
 interface Props { bare?: boolean }
 const { bare = false } = Astro.props;
@@ -10,7 +12,7 @@ const film = '/media/flowmaster/film-v28';
 <div id="film" class:list={['film-section', { 'is-bare': bare }]}>
   <figure>
     <div class="film-window" data-film>
-      <video class="film-video" controls playsinline preload="none" poster={`${film}-poster.jpg`} aria-label="Flowmaster video">
+      <video class="film-video" controls playsinline preload="none" poster={`${film}-poster-play.jpg`} aria-label="Flowmaster video">
         <source src={`${film}.mp4`} type="video/mp4" />
         <track kind="captions" src={`${film}.en.vtt`} srclang="en" label="English" />
         <p>Your browser cannot play this video. <a href={`${film}.mp4`}>Open the Flowmaster video.</a></p>
@@ -41,7 +43,7 @@ const film = '/media/flowmaster/film-v28';
   .is-bare figure, .is-bare .film-window { height: 100%; }
   .is-bare .film-window { border: 0; border-radius: 0; aspect-ratio: auto; }
   figure { margin: 0; }
-  .film-window { position: relative; width: 100%; aspect-ratio: 16 / 9; overflow: hidden; border-radius: 10px; border: 1px solid var(--rule); background: #07080b; }
+  .film-window { position: relative; container-type: inline-size; width: 100%; aspect-ratio: 16 / 9; overflow: hidden; border-radius: 10px; border: 1px solid var(--rule); background: #07080b; }
   .film-video { display: block; width: 100%; height: 100%; background: #07080b; }
   .film-window.is-gated .film-video { cursor: pointer; }
   .film-window.is-gated:focus-visible { outline: 2px solid #ff5959; outline-offset: 4px; }
@@ -53,10 +55,10 @@ const film = '/media/flowmaster/film-v28';
   .film-gate[hidden] { display: none; }
   .film-gate.is-leaving { opacity: 0; pointer-events: none; }
   .film-gate.is-paused { background: rgba(7, 8, 11, .72); backdrop-filter: blur(2px); }
-  .gate-stack { display: flex; flex-direction: column; align-items: center; gap: clamp(1rem, 2.2vw, 1.5rem); }
-  .gate-logo { width: clamp(220px, 32vw, 380px); height: auto; display: block; animation: gate-up .6s ease-out both; }
-  .gate-label { margin: 0; font-size: clamp(.95rem, 1.4vw, 1.2rem); color: #b6bcc6; }
-  .gate-play { display: inline-flex; align-items: center; justify-content: center; gap: .6rem; min-width: clamp(240px, 34vw, 420px); min-height: 52px; padding: .9rem 1.25rem; border: 0; border-radius: 8px; background: #f43f43; color: #140606; font-family: inherit; font-size: clamp(1rem, 1.4vw, 1.2rem); font-weight: 600; line-height: 1; cursor: pointer; box-shadow: 0 12px 36px rgba(244, 63, 67, .3); animation: gate-up .45s ease-out both; transition: transform .15s ease, box-shadow .15s ease; }
+  .gate-stack { display: flex; flex-direction: column; align-items: center; gap: clamp(.5rem, 2.4cqw, 1.5rem); }
+  .gate-logo { width: min(380px, 34cqw); height: auto; display: block; animation: gate-up .6s ease-out both; }
+  .gate-label { margin: 0; font-size: clamp(.75rem, 1.6cqw, 1.2rem); color: #b6bcc6; }
+  .gate-play { display: inline-flex; align-items: center; justify-content: center; gap: .6rem; min-width: min(420px, 36cqw); min-height: clamp(36px, 5cqw, 52px); padding: clamp(.5rem, 1.2cqw, .9rem) clamp(.9rem, 1.8cqw, 1.25rem); border: 0; border-radius: 8px; background: #f43f43; color: #140606; font-family: inherit; font-size: clamp(.85rem, 1.6cqw, 1.2rem); font-weight: 600; line-height: 1; cursor: pointer; box-shadow: 0 12px 36px rgba(244, 63, 67, .3); animation: gate-up .45s ease-out both; transition: transform .15s ease, box-shadow .15s ease; }
   .gate-play:hover:not(:disabled) { transform: translateY(-1px); box-shadow: 0 16px 42px rgba(255, 51, 51, .38); }
   .gate-play:disabled { background: #2a2c31; color: #b6bcc6; box-shadow: none; cursor: wait; }
   .gate-play:focus-visible { outline: 2px solid #fff; outline-offset: 4px; }
@@ -81,6 +83,8 @@ const film = '/media/flowmaster/film-v28';
 </style>
 
 <script>
+  import { isPhone } from '../scripts/rotate-gate';
+
   const win = document.querySelector<HTMLElement>('[data-film]');
   const video = win?.querySelector('video');
   const gate = win?.querySelector<HTMLElement>('[data-film-gate]');
@@ -92,7 +96,8 @@ const film = '/media/flowmaster/film-v28';
 
   if (win && video && gate && button && label && status && progress && bar) {
     video.id = 'flowmaster-film-player';
-    // Mobile keeps the native player; the loader is for desktop-sized screens.
+    // Phones and narrow windows keep the native player; the loader is for desktop-sized screens.
+    // A phone held sideways can be wider than 768 px, so phones are excluded outright.
     const desktop = window.matchMedia('(min-width: 768px)');
     let gated = false;
     let loading = false;
@@ -203,7 +208,7 @@ const film = '/media/flowmaster/film-v28';
       : null;
 
     const apply = () => {
-      const want = desktop.matches;
+      const want = desktop.matches && !isPhone;
       if (want === gated) return;
       pause();
       gated = want;
@@ -228,5 +233,33 @@ const film = '/media/flowmaster/film-v28';
     };
     apply();
     desktop.addEventListener('change', apply);
+
+    // Phones: the poster is the play button (its controls stay hidden until the film starts, so
+    // there is only one play button), and the film plays in the phone's own full-screen player.
+    if (isPhone) {
+      const shell = video as HTMLVideoElement & { webkitEnterFullscreen?: () => void };
+      video.controls = false;
+      video.removeAttribute('playsinline'); // iPhone: playing then opens its full-screen player
+      const goFullscreen = () => {
+        if (document.fullscreenElement) return;
+        if (video.requestFullscreen) {
+          video.requestFullscreen()
+            .then(() => (screen.orientation as ScreenOrientation & { lock?: (o: string) => Promise<void> })?.lock?.('landscape'))
+            .catch(() => {});
+        } else {
+          try { shell.webkitEnterFullscreen?.(); } catch { /* the inline player is fine */ }
+        }
+      };
+      win.addEventListener('click', () => {
+        if (video.controls) return; // after the first start the phone's own controls take over
+        video.controls = true;
+        video.preload = 'auto';
+        video.play().catch(() => {});
+        goFullscreen();
+      });
+      document.addEventListener('fullscreenchange', () => {
+        if (!document.fullscreenElement) screen.orientation?.unlock?.();
+      });
+    }
   }
 </script>
