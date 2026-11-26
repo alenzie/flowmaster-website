@@ -101,6 +101,10 @@ const { class: className = '' } = Astro.props;
     perspective: 1600px;
     pointer-events: none;
   }
+  /* Short screens (a phone held sideways): keep less room above and below the screen. */
+  @media (max-height: 520px) {
+    .theater-stage { --screen-w: min(calc(100vw - 7.5rem), calc((100dvh - 2.5rem) * 16 / 9), 1400px); padding: 1.25rem; }
+  }
   .theater-screen {
     position: relative;
     width: var(--screen-w);
